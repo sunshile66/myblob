@@ -51,6 +51,6 @@ Myblob 项目当前运行依赖 PostgreSQL 数据库、Redis 缓存服务和 Cel
 
 ## 七、项目地址
 
-GitHub 仓库：待推送后更新（当前已提交 494 个文件，73,915 行代码）
+GitHub 仓库：https://github.com/sunshile66/myblob
 技术栈：Python 3.14 + Django 6.0 + Vue 3 + TypeScript + PostgreSQL + Redis + Celery
 许可证：MIT License
