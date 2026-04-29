@@ -1,0 +1,11 @@
+{
+  "name": "myblob-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "dev:frontend": "pnpm --filter blog-frontend dev",
+    "build:frontend": "pnpm --filter blog-frontend build",
+    "preview:frontend": "pnpm --filter blog-frontend preview",
+    "typecheck:frontend": "pnpm --filter blog-frontend typecheck"
+  }
+}

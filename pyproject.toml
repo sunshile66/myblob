@@ -1,8 +1,18 @@
 [project]
 name = "myblob"
 version = "0.1.0"
-description = "Add your description here"
+description = "A modern Django blog system"
 requires-python = ">=3.14"
 dependencies = [
     "django>=6.0.3",
+    "python-dotenv>=1.0.0",
+    "psycopg2-binary>=2.9.0",
+    "django-redis>=5.4.0",
+    "redis>=5.0.0",
+    "celery>=5.4.0",
+    "djangorestframework>=3.15.0",
+    "django-cors-headers>=4.3.0",
+    "pillow>=10.0.0",
+    "django-admin-interface>=0.32.0",
+    "django-colorfield>=0.14.0",
 ]

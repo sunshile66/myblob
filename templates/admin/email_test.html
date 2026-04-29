@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+<div id="content-main">
+    <h1>📧 测试邮箱配置</h1>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>当前配置信息</h3>
+        <ul style="list-style: none; padding: 0;">
+            <li><strong>服务商：</strong>{{ config.get_provider_display }}</li>
+            <li><strong>邮箱账号：</strong>{{ config.username }}</li>
+            <li><strong>发件人：</strong>{{ config.from_email|default:config.username }}</li>
+        </ul>
+    </div>
+    
+    <form method="post" style="max-width: 500px;">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+            <label for="test_email" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                测试收件人邮箱：
+            </label>
+            <input 
+                type="email" 
+                id="test_email" 
+                name="test_email" 
+                placeholder="请输入要接收测试邮件的邮箱"
+                value="{{ config.username }}"
+                style="width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;"
+                required
+            >
+            <p style="color: #666; margin-top: 8px; font-size: 14px;">
+                可以输入任何邮箱地址来测试，不一定要和配置的邮箱账号相同
+            </p>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="button" style="background: #417690; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                ✅ 发送测试邮件
+            </button>
+            <a href="../" class="button" style="background: #79aec8; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 16px;">
+                ← 返回
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -381,3 +381,55 @@ interactions 只管点赞收藏浏览记录；
 mediaapp 只管上传文件；
 
 common 放基类、工具类、中间件。
+
+数据库优化重点
+
+博客系统最容易卡的，不是“发文章”，而是“文章列表页、详情页、评论区、后台筛选”。
+
+所以数据表优化核心是这几个点：
+
+必做 1：为高频筛选字段建索引
+
+典型字段：
+
+Post.status
+
+Post.published_at
+
+Post.author_id
+
+Post.category_id
+
+Comment.post_id
+
+Comment.parent_id
+
+这正是 Django Meta.indexes 的使用场景。
+
+必做 2：为交互关系建唯一约束
+
+例如点赞、收藏必须防重复：
+
+models.UniqueConstraint(fields=["user", "post"], name="uniq_user_post_like")
+
+这是 Django 6.0 官方推荐的约束写法。
+
+必做 3：计数字段冗余
+
+comment_count / like_count / view_count 不要每次现算。
+列表页性能提升非常明显。
+
+必做 4：软删除优先
+
+文章、评论建议优先 is_deleted，别直接物理删除。
+尤其后台误删很常见。
+
+必做 5：用户外键尽量别全用 CASCADE
+
+文章作者：PROTECT
+
+评论作者：SET_NULL
+
+普通附件：看业务决定
+
+你现在相册表和留言板里大多偏简单级联，适合 demo，不太适合正式系统。
