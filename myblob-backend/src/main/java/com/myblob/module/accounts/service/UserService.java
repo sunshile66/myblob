@@ -161,6 +161,8 @@ public class UserService {
                 .nickname(user.getNickname())
                 .avatar(user.getAvatar())
                 .emailVerified(user.getEmailVerified())
+                .role(user.getRole() != null ? user.getRole().name() : "USER")
+                .isSuperuser(Boolean.TRUE.equals(user.getSuperuser()))
                 .bio(profile != null ? profile.getBio() : null)
                 .website(profile != null ? profile.getWebsite() : null)
                 .company(profile != null ? profile.getCompany() : null)

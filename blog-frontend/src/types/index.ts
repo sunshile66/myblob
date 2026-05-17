@@ -4,6 +4,9 @@ export interface User {
   email: string
   nickname?: string
   avatar?: string
+  role?: 'USER' | 'ADMIN'
+  is_superuser?: boolean
+  is_email_verified?: boolean
   bio?: string
   website?: string
   company?: string

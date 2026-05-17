@@ -1,209 +1,232 @@
 <template>
   <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="logo">
-          <span class="logo-icon">📔</span>
-          <span class="logo-text">小红书</span>
+    <div class="auth-shell">
+      <aside class="auth-brand">
+        <div class="brand-top">
+          <div class="brand-logo">
+            <span class="brand-mark">M</span>
+            <span class="brand-name">MyBlob</span>
+          </div>
+          <p class="brand-tag">记录思考 · 分享创作</p>
         </div>
-        <p class="auth-subtitle">分享精彩生活</p>
-      </div>
 
-      <el-tabs
-        v-model="activeTab"
-        class="auth-tabs"
-        @tab-change="handleTabChange"
-      >
-        <el-tab-pane label="登录" name="login">
-          <el-form
-            ref="loginFormRef"
-            :model="loginForm"
-            :rules="loginRules"
-            class="auth-form"
-            label-position="top"
-          >
-            <el-form-item label="用户名" prop="username">
-              <el-input
-                v-model="loginForm.username"
-                placeholder="请输入用户名"
-                size="large"
-                :prefix-icon="User"
-              />
-            </el-form-item>
-
-            <el-form-item label="密码" prop="password">
-              <el-input
-                v-model="loginForm.password"
-                type="password"
-                placeholder="请输入密码"
-                size="large"
-                :prefix-icon="Lock"
-                show-password
-              />
-            </el-form-item>
-
-            <el-form-item label="验证码" prop="code">
-              <div class="code-input-wrapper">
-                <el-input
-                  v-model="loginForm.code"
-                  placeholder="请输入验证码"
-                  size="large"
-                  :prefix-icon="Message"
-                  style="flex: 1"
-                  @keyup.enter="handleLogin"
-                />
-                <el-button
-                  size="large"
-                  :disabled="loginCodeCountdown > 0"
-                  @click="handleSendLoginCode"
-                >
-                  {{
-                    loginCodeCountdown > 0
-                      ? `${loginCodeCountdown}s`
-                      : "获取验证码"
-                  }}
-                </el-button>
-              </div>
-            </el-form-item>
-
-            <el-form-item>
-              <el-button
-                type="primary"
-                size="large"
-                class="auth-button"
-                :loading="loginLoading"
-                @click="handleLogin"
-              >
-                登录
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <el-tab-pane label="注册" name="register">
-          <el-form
-            ref="registerFormRef"
-            :model="registerForm"
-            :rules="registerRules"
-            class="auth-form"
-            label-position="top"
-          >
-            <el-form-item label="用户名" prop="username">
-              <el-input
-                v-model="registerForm.username"
-                placeholder="请输入用户名"
-                size="large"
-                :prefix-icon="User"
-              />
-            </el-form-item>
-
-            <el-form-item label="邮箱" prop="email">
-              <el-input
-                v-model="registerForm.email"
-                type="email"
-                placeholder="请输入邮箱"
-                size="large"
-                :prefix-icon="Message"
-              />
-            </el-form-item>
-
-            <el-form-item label="昵称" prop="nickname">
-              <el-input
-                v-model="registerForm.nickname"
-                placeholder="请输入昵称"
-                size="large"
-                :prefix-icon="Avatar"
-              />
-            </el-form-item>
-
-            <el-form-item label="密码" prop="password">
-              <el-input
-                v-model="registerForm.password"
-                type="password"
-                placeholder="请输入密码（至少6位）"
-                size="large"
-                :prefix-icon="Lock"
-                show-password
-              />
-            </el-form-item>
-
-            <el-form-item label="确认密码" prop="confirmPassword">
-              <el-input
-                v-model="registerForm.confirmPassword"
-                type="password"
-                placeholder="请再次输入密码"
-                size="large"
-                :prefix-icon="Lock"
-                show-password
-              />
-            </el-form-item>
-
-            <el-form-item label="验证码" prop="code">
-              <div class="code-input-wrapper">
-                <el-input
-                  v-model="registerForm.code"
-                  placeholder="请输入验证码"
-                  size="large"
-                  :prefix-icon="Message"
-                  style="flex: 1"
-                  @keyup.enter="handleRegister"
-                />
-                <el-button
-                  size="large"
-                  :disabled="registerCodeCountdown > 0"
-                  @click="handleSendRegisterCode"
-                >
-                  {{
-                    registerCodeCountdown > 0
-                      ? `${registerCodeCountdown}s`
-                      : "获取验证码"
-                  }}
-                </el-button>
-              </div>
-            </el-form-item>
-
-            <el-form-item prop="agree">
-              <el-checkbox v-model="registerForm.agree" size="large">
-                我已阅读并同意
-                <router-link to="/user-agreement" class="auth-link-inline"
-                  >用户协议</router-link
-                >
-                和
-                <router-link to="/privacy-policy" class="auth-link-inline"
-                  >隐私政策</router-link
-                >
-              </el-checkbox>
-            </el-form-item>
-
-            <el-form-item>
-              <el-button
-                type="primary"
-                size="large"
-                class="auth-button"
-                :loading="registerLoading"
-                @click="handleRegister"
-              >
-                注册
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-      </el-tabs>
-
-      <SocialLogin />
-
-      <div class="auth-footer">
-        <p>登录即表示同意</p>
-        <div class="auth-links">
-          <router-link to="/user-agreement" class="auth-link"
-            >用户协议</router-link
-          >
-          <span class="auth-divider">·</span>
-          <router-link to="/privacy-policy" class="auth-link"
-            >隐私政策</router-link
-          >
+        <div class="brand-illu">
+          <h2 class="brand-title">欢迎回来。</h2>
+          <p class="brand-desc">
+            一个极简、专注、可扩展的内容与创作平台。
+          </p>
+          <ul class="brand-points">
+            <li><span class="dot"></span>极简现代的阅读体验</li>
+            <li><span class="dot"></span>多主题、多设备适配</li>
+            <li><span class="dot"></span>RBAC 权限体系保护账号安全</li>
+          </ul>
         </div>
-      </div>
+
+        <div class="brand-foot">
+          <span>© {{ year }} MyBlob</span>
+          <router-link to="/" class="brand-link">返回首页</router-link>
+        </div>
+      </aside>
+
+      <main class="auth-panel">
+        <div class="panel-inner">
+          <header class="panel-header">
+            <h1>{{ activeTab === 'login' ? '登录账号' : '创建账号' }}</h1>
+            <p>{{ activeTab === 'login' ? '使用账号密码继续' : '几秒钟完成注册，开启你的创作之旅' }}</p>
+          </header>
+
+          <el-tabs
+            v-model="activeTab"
+            class="auth-tabs"
+            @tab-change="handleTabChange"
+          >
+            <el-tab-pane label="登录" name="login">
+              <el-form
+                ref="loginFormRef"
+                :model="loginForm"
+                :rules="loginRules"
+                class="auth-form"
+                label-position="top"
+              >
+                <el-form-item label="用户名 / 邮箱" prop="username">
+                  <el-input
+                    v-model="loginForm.username"
+                    placeholder="请输入用户名或邮箱"
+                    size="large"
+                    :prefix-icon="User"
+                  />
+                </el-form-item>
+
+                <el-form-item label="密码" prop="password">
+                  <el-input
+                    v-model="loginForm.password"
+                    type="password"
+                    placeholder="请输入密码"
+                    size="large"
+                    :prefix-icon="Lock"
+                    show-password
+                    @keyup.enter="handleLogin"
+                  />
+                </el-form-item>
+
+                <el-form-item label="验证码" prop="code">
+                  <div class="code-input-wrapper">
+                    <el-input
+                      v-model="loginForm.code"
+                      placeholder="请输入 6 位验证码"
+                      size="large"
+                      :prefix-icon="Message"
+                      style="flex: 1"
+                      @keyup.enter="handleLogin"
+                    />
+                    <el-button
+                      size="large"
+                      class="code-btn"
+                      :disabled="loginCodeCountdown > 0"
+                      @click="handleSendLoginCode"
+                    >
+                      {{ loginCodeCountdown > 0 ? `${loginCodeCountdown}s` : '获取验证码' }}
+                    </el-button>
+                  </div>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button
+                    type="primary"
+                    size="large"
+                    class="auth-button"
+                    :loading="loginLoading"
+                    @click="handleLogin"
+                  >
+                    登录
+                  </el-button>
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
+
+            <el-tab-pane label="注册" name="register">
+              <el-form
+                ref="registerFormRef"
+                :model="registerForm"
+                :rules="registerRules"
+                class="auth-form"
+                label-position="top"
+              >
+                <div class="form-grid">
+                  <el-form-item label="用户名" prop="username">
+                    <el-input
+                      v-model="registerForm.username"
+                      placeholder="请输入用户名"
+                      size="large"
+                      :prefix-icon="User"
+                    />
+                  </el-form-item>
+
+                  <el-form-item label="昵称" prop="nickname">
+                    <el-input
+                      v-model="registerForm.nickname"
+                      placeholder="请输入昵称"
+                      size="large"
+                      :prefix-icon="Avatar"
+                    />
+                  </el-form-item>
+                </div>
+
+                <el-form-item label="邮箱" prop="email">
+                  <el-input
+                    v-model="registerForm.email"
+                    type="email"
+                    placeholder="请输入邮箱"
+                    size="large"
+                    :prefix-icon="Message"
+                  />
+                </el-form-item>
+
+                <div class="form-grid">
+                  <el-form-item label="密码" prop="password">
+                    <el-input
+                      v-model="registerForm.password"
+                      type="password"
+                      placeholder="至少 6 位"
+                      size="large"
+                      :prefix-icon="Lock"
+                      show-password
+                    />
+                  </el-form-item>
+
+                  <el-form-item label="确认密码" prop="confirmPassword">
+                    <el-input
+                      v-model="registerForm.confirmPassword"
+                      type="password"
+                      placeholder="请再次输入密码"
+                      size="large"
+                      :prefix-icon="Lock"
+                      show-password
+                    />
+                  </el-form-item>
+                </div>
+
+                <el-form-item label="验证码" prop="code">
+                  <div class="code-input-wrapper">
+                    <el-input
+                      v-model="registerForm.code"
+                      placeholder="请输入验证码"
+                      size="large"
+                      :prefix-icon="Message"
+                      style="flex: 1"
+                      @keyup.enter="handleRegister"
+                    />
+                    <el-button
+                      size="large"
+                      class="code-btn"
+                      :disabled="registerCodeCountdown > 0"
+                      @click="handleSendRegisterCode"
+                    >
+                      {{ registerCodeCountdown > 0 ? `${registerCodeCountdown}s` : '获取验证码' }}
+                    </el-button>
+                  </div>
+                </el-form-item>
+
+                <el-form-item prop="agree" class="agree-item">
+                  <el-checkbox v-model="registerForm.agree">
+                    我已阅读并同意
+                    <router-link to="/user-agreement" class="auth-link-inline">《用户协议》</router-link>
+                    与
+                    <router-link to="/privacy-policy" class="auth-link-inline">《隐私政策》</router-link>
+                  </el-checkbox>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button
+                    type="primary"
+                    size="large"
+                    class="auth-button"
+                    :loading="registerLoading"
+                    @click="handleRegister"
+                  >
+                    创建账号
+                  </el-button>
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
+          </el-tabs>
+
+          <div class="divider"><span>或使用第三方账号</span></div>
+
+          <SocialLogin />
+
+          <p class="panel-foot">
+            <template v-if="activeTab === 'login'">
+              还没有账号？
+              <a class="auth-link" @click.prevent="switchTab('register')">立即注册</a>
+            </template>
+            <template v-else>
+              已有账号？
+              <a class="auth-link" @click.prevent="switchTab('login')">返回登录</a>
+            </template>
+          </p>
+        </div>
+      </main>
     </div>
   </div>
 </template>
@@ -216,7 +239,6 @@ import { User, Lock, Message, Avatar } from "@element-plus/icons-vue";
 import { useUserStore } from "@/store/user";
 import SecurityUtils from "@/utils/security";
 import type { FormInstance, FormRules } from "element-plus";
-import type { User as UserType } from "@/types";
 import SocialLogin from "@/components/common/SocialLogin.vue";
 import { login as loginApi, register as registerApi } from "@/api/auth";
 import { sendVerificationCode } from "@/api/core";
@@ -225,7 +247,20 @@ const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
 
-const activeTab = ref("login");
+const activeTab = ref(route.path === "/register" ? "register" : "login");
+const year = new Date().getFullYear();
+
+onMounted(() => {
+  activeTab.value = route.path === "/register" ? "register" : "login";
+});
+
+const switchTab = (tab: string) => {
+  activeTab.value = tab;
+  const target = tab === "register" ? "/register" : "/login";
+  if (route.path !== target) {
+    router.replace({ path: target, query: route.query });
+  }
+};
 
 const loginLoading = ref(false);
 const registerLoading = ref(false);
@@ -377,6 +412,10 @@ const handleTabChange = (tab: string) => {
   registerForm.confirmPassword = "";
   registerForm.code = "";
   registerForm.agree = false;
+  const target = tab === "register" ? "/register" : "/login";
+  if (route.path !== target) {
+    router.replace({ path: target, query: route.query });
+  }
 };
 
 onUnmounted(() => {
@@ -454,160 +493,377 @@ const handleRegister = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-  padding: 20px;
+  padding: 24px;
+  background:
+    radial-gradient(1200px 600px at -10% -20%, rgba(99, 102, 241, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, rgba(79, 70, 229, 0.16), transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
 }
 
-.auth-card {
+.auth-shell {
   width: 100%;
-  max-width: 420px;
-  background: white;
-  border-radius: 24px;
-  padding: 40px 32px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  max-width: 1040px;
+  min-height: 620px;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
 }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 32px;
+/* 左侧品牌区 */
+.auth-brand {
+  position: relative;
+  padding: 40px 44px;
+  color: #ffffff;
+  background:
+    radial-gradient(600px 300px at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+    radial-gradient(500px 260px at 0% 100%, rgba(255, 255, 255, 0.12), transparent 60%),
+    linear-gradient(160deg, #4338ca 0%, #4f46e5 45%, #6366f1 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.logo {
+.auth-brand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 70%);
+  pointer-events: none;
+}
+
+.brand-top,
+.brand-illu,
+.brand-foot {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.logo-icon {
-  font-size: 40px;
-}
-
-.logo-text {
-  font-size: 32px;
   font-weight: 700;
-  background: linear-gradient(135deg, #ff2442 0%, #ff6a7f 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 18px;
+  color: #ffffff;
+  backdrop-filter: blur(6px);
 }
 
-.auth-subtitle {
-  font-size: 15px;
-  color: #999;
+.brand-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.brand-tag {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.brand-title {
+  margin: 0 0 14px;
+  font-size: 32px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.brand-desc {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.brand-points {
+  list-style: none;
+  padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.auth-tabs {
-  margin-bottom: 8px;
+.brand-points li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+
+.brand-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.brand-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding-bottom: 1px;
+  transition: opacity 0.2s ease;
+}
+
+.brand-link:hover {
+  opacity: 0.85;
+}
+
+/* 右侧表单区 */
+.auth-panel {
+  padding: 44px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-inner {
+  width: 100%;
+  max-width: 380px;
+}
+
+.panel-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+  letter-spacing: 0.2px;
+}
+
+.panel-header p {
+  margin: 0 0 22px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Tabs */
 .auth-tabs :deep(.el-tabs__header) {
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 
 .auth-tabs :deep(.el-tabs__nav-wrap::after) {
-  display: none;
+  height: 1px;
+  background: #e5e7eb;
 }
 
 .auth-tabs :deep(.el-tabs__item) {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
-  color: #999;
-  padding: 0 24px;
+  color: #94a3b8;
+  padding: 0 18px;
+  height: 38px;
+  line-height: 38px;
 }
 
 .auth-tabs :deep(.el-tabs__item.is-active) {
-  color: #ff2442;
+  color: #4f46e5;
 }
 
 .auth-tabs :deep(.el-tabs__active-bar) {
-  background: #ff2442;
-  height: 3px;
+  background: #4f46e5;
+  height: 2px;
   border-radius: 2px;
 }
 
-.auth-form {
-  margin-top: 24px;
+/* Form */
+.auth-form :deep(.el-form-item) {
+  margin-bottom: 16px;
 }
 
 .auth-form :deep(.el-form-item__label) {
+  font-size: 13px;
   font-weight: 500;
-  color: #333;
+  color: #334155;
   padding-bottom: 6px;
+  line-height: 1.4;
+}
+
+.auth-form :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #e5e7eb inset;
+  transition: box-shadow 0.18s ease;
+}
+
+.auth-form :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #c7d2fe inset;
+}
+
+.auth-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #4f46e5 inset, 0 0 0 4px rgba(79, 70, 229, 0.12);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.code-input-wrapper {
+  display: flex;
+  gap: 10px;
+}
+
+.code-btn {
+  min-width: 116px;
+  border-radius: 8px;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #4f46e5;
+}
+
+.code-btn:hover:not(:disabled) {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.code-btn:disabled {
+  color: #94a3b8;
+  background: #f8fafc;
 }
 
 .auth-button {
   width: 100%;
-  height: 48px;
-  font-size: 16px;
+  height: 44px;
+  font-size: 15px;
   font-weight: 600;
-  background: linear-gradient(135deg, #ff2442 0%, #ff6a7f 100%);
+  background: #4f46e5;
   border: none;
-  border-radius: 24px;
-  margin-top: 8px;
-  transition: all 0.3s ease;
+  border-radius: 10px;
+  margin-top: 4px;
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .auth-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 36, 66, 0.35);
+  background: #4338ca;
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+  transform: translateY(-1px);
 }
 
 .auth-button:active {
   transform: translateY(0);
 }
 
-.auth-footer {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.auth-footer p {
+.agree-item :deep(.el-checkbox__label) {
   font-size: 13px;
-  color: #999;
-  margin: 0 0 8px 0;
+  color: #64748b;
 }
 
-.auth-links {
+.agree-item :deep(.el-checkbox__inner) {
+  border-radius: 4px;
+}
+
+.agree-item :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+/* Divider */
+.divider {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
+  gap: 12px;
+  margin: 22px 0 14px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+/* Foot */
+.panel-foot {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
 }
 
 .auth-link {
-  font-size: 13px;
-  color: #ff2442;
+  color: #4f46e5;
+  cursor: pointer;
+  font-weight: 500;
   text-decoration: none;
+  margin-left: 4px;
   transition: color 0.2s ease;
 }
 
 .auth-link:hover {
-  color: #ff6a7f;
-}
-
-.auth-divider {
-  color: #ddd;
-  font-size: 13px;
-}
-
-.code-input-wrapper {
-  display: flex;
-  gap: 12px;
+  color: #4338ca;
+  text-decoration: underline;
 }
 
 .auth-link-inline {
-  color: #ff2442;
+  color: #4f46e5;
   text-decoration: none;
-  font-size: 14px;
+  font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .auth-link-inline:hover {
-  color: #ff6a7f;
+  color: #4338ca;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 880px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    min-height: auto;
+  }
+  .auth-brand {
+    padding: 32px;
+  }
+  .brand-illu {
+    margin-top: 22px;
+  }
+  .brand-title {
+    font-size: 26px;
+  }
+  .auth-panel {
+    padding: 32px 28px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
 }
 </style>

@@ -58,7 +58,7 @@ class HttpClient {
           if (res.code === 401) {
             const userStore = useUserStore();
             userStore.logout();
-            router.push("/auth");
+            router.push("/login");
           }
 
           if (res.message) {
@@ -82,7 +82,7 @@ class HttpClient {
             try {
               const userStore = useUserStore();
               userStore.logout();
-              router.push("/auth");
+              router.push("/login");
               ElMessage.error("登录已过期，请重新登录");
             } finally {
               this.isRefreshing = false;

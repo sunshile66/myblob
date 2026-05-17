@@ -15,6 +15,10 @@ export const useUserStore = defineStore("user", () => {
   const username = computed(() => userInfo.value?.username || "");
   const nickname = computed(() => userInfo.value?.nickname || userInfo.value?.username || "");
   const avatar = computed(() => userInfo.value?.avatar || "");
+  const role = computed(() => userInfo.value?.role || "USER");
+  const isAdmin = computed(
+    () => userInfo.value?.role === "ADMIN" || userInfo.value?.is_superuser === true
+  );
 
   const setToken = (newToken: string) => {
     token.value = newToken;
@@ -77,6 +81,8 @@ export const useUserStore = defineStore("user", () => {
     username,
     nickname,
     avatar,
+    role,
+    isAdmin,
     setToken,
     setUserInfo,
     fetchUserInfo,

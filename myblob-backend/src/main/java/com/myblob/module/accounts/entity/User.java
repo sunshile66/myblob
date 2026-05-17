@@ -48,6 +48,11 @@ public class User extends BaseEntity {
     @Builder.Default
     private Boolean superuser = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    @Builder.Default
+    private UserRole role = UserRole.USER;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserProfile profile;
 }

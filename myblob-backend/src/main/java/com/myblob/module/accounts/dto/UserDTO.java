@@ -23,6 +23,11 @@ public class UserDTO {
     @JsonProperty("is_email_verified")
     private Boolean emailVerified;
 
+    private String role;
+
+    @JsonProperty("is_superuser")
+    private Boolean isSuperuser;
+
     private String bio;
     private String website;
     private String company;

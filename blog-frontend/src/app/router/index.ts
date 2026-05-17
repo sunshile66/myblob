@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { ElMessage } from "element-plus";
+import { useUserStore } from "@/store/user";
 import { saveRecentTool } from "@features/tools/lib/recentTools";
 import { contentRoutes } from "./modules/content";
 import { legalRoutes } from "./modules/legal";
@@ -17,8 +19,32 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - MyBlob` : "MyBlob";
+
+  const userStore = useUserStore();
+  const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth);
+  const requiresAdmin = to.matched.some((r) => r.meta?.requiresAdmin);
+
+  if (!requiresAuth && !requiresAdmin) {
+    return next();
+  }
+
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning("请先登录");
+    return next({ path: "/login", query: { redirect: to.fullPath } });
+  }
+
+  if (requiresAdmin) {
+    if (!userStore.userInfo) {
+      await userStore.fetchUserInfo();
+    }
+    if (!userStore.isAdmin) {
+      ElMessage.error("无管理员权限");
+      return next({ path: "/" });
+    }
+  }
+
   next();
 });
 
