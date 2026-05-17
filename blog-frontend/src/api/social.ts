@@ -2,15 +2,15 @@ import request from '@/utils/request'
 import type { OAuthApp, SocialAccount } from '@/types'
 
 export const getOAuthApps = () => {
-  return request.get<OAuthApp[]>('/social/apps/')
+  return request.get<OAuthApp[]>('/social/oauth-apps/')
 }
 
 export const getMySocialAccounts = () => {
-  return request.get<SocialAccount[]>('/social/accounts/my_accounts/')
+  return request.get<SocialAccount[]>('/social/accounts/my-accounts/')
 }
 
 export const oauthLogin = (provider: string) => {
-  return request.post<{ auth_url: string; state: string; provider: string }>('/social/oauth/login/', { provider })
+  return request.post<{ auth_url: string; provider: string }>('/social/oauth/login/', { provider })
 }
 
 export const oauthCallback = (provider: string, code: string) => {

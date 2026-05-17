@@ -18,9 +18,9 @@ export const payOrder = (orderId: number, paymentMethod: string = 'alipay') => {
 }
 
 export const getMyWallet = () => {
-  return request.get<Wallet>('/payments/wallet/my_wallet/')
+  return request.get<Wallet>('/payments/wallet/my-wallet/')
 }
 
 export const getMyTransactions = (params?: any) => {
-  return request.get<PaginatedResponse<WalletTransaction>>('/payments/transactions/', { params })
+  return request.get<PaginatedResponse<WalletTransaction>>('/payments/wallet/transactions/', { params })
 }

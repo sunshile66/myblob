@@ -6,5 +6,5 @@ export const getMembershipPlans = () => {
 }
 
 export const getMyMembership = () => {
-  return request.get<UserMembership>('/membership/user/my_membership/')
+  return request.get<UserMembership>('/membership/my-membership/')
 }

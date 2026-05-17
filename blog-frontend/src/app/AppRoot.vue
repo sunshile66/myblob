@@ -7,11 +7,14 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useThemeStore } from "@/store/theme";
+import { useUserStore } from "@/store/user";
 
 const themeStore = useThemeStore();
+const userStore = useUserStore();
 
 onMounted(() => {
   themeStore.initTheme();
+  userStore.initUser();
 });
 </script>
 
@@ -60,12 +63,16 @@ onMounted(() => {
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --brightness: 100%;
+  --contrast: 100%;
 }
 
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  filter: brightness(var(--brightness)) contrast(var(--contrast));
 }
 
 body {
@@ -123,6 +130,36 @@ body {
 .el-input__wrapper:hover,
 .el-input__wrapper.is-focus {
   box-shadow: 0 0 0 1px var(--theme-primary) inset !important;
+}
+
+.el-dropdown-menu {
+  background: var(--theme-card) !important;
+  border: 1px solid var(--theme-border) !important;
+}
+
+.el-dropdown-menu__item {
+  color: var(--theme-text) !important;
+
+  &:hover {
+    background: var(--theme-hover) !important;
+  }
+}
+
+.el-popover {
+  background: var(--theme-card) !important;
+  border: 1px solid var(--theme-border) !important;
+}
+
+.el-divider {
+  background: var(--theme-border) !important;
+}
+
+.el-badge__content {
+  background: var(--theme-primary) !important;
+}
+
+.el-avatar {
+  background: var(--theme-primary-light) !important;
 }
 
 .glass-card {
@@ -285,5 +322,10 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.theme-transition {
+  transition: background-color var(--transition-normal),
+    color var(--transition-normal), border-color var(--transition-normal);
 }
 </style>

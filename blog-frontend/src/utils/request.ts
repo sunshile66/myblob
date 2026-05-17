@@ -1,86 +1,151 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { ElMessage } from 'element-plus'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import { ElNotification, ElMessage } from "element-plus";
+import router from "@/app/router";
+import { useUserStore } from "@/store/user";
 
-const cache = new Map<string, { data: any; timestamp: number }>()
-const CACHE_DURATION = 5 * 60 * 1000
+export interface ApiResponse<T = any> {
+  code: number;
+  message?: string;
+  data?: T;
+  token?: string;
+  user?: any;
+}
 
-const request: AxiosInstance = axios.create({
-  baseURL: '/api',
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json'
+export interface PageResult<T> {
+  results: T[];
+  count: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+
+class HttpClient {
+  private instance: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: string) => void)[] = [];
+
+  constructor() {
+    this.instance = axios.create({
+      baseURL: BASE_URL,
+      timeout: 30000,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    this.setupInterceptors();
   }
-})
 
-request.interceptors.request.use(
-  (config) => {
-    if (config.method === 'get' && !config.headers['Cache-Control']) {
-      const cacheKey = `${config.url}-${JSON.stringify(config.params || {})}`
-      const cached = cache.get(cacheKey)
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return Promise.reject({ cachedData: cached.data, fromCache: true })
-      }
-    }
+  private setupInterceptors() {
+    this.instance.interceptors.request.use(
+      (config) => {
+        const userStore = useUserStore();
+        if (userStore.token) {
+          config.headers.Authorization = `Bearer ${userStore.token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-    const token = localStorage.getItem('token')
-    if (token && token.trim() !== '') {
-      config.headers.Authorization = `Token ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
+    this.instance.interceptors.response.use(
+      (response: AxiosResponse<ApiResponse>) => {
+        const res = response.data;
 
-request.interceptors.response.use(
-  (response: AxiosResponse) => {
-    const config = response.config
-    if (config.method === 'get' && config.url) {
-      const cacheKey = `${config.url}-${JSON.stringify(config.params || {})}`
-      cache.set(cacheKey, { data: response.data, timestamp: Date.now() })
-    }
-    return response.data
-  },
-  (error) => {
-    if (error.fromCache && error.cachedData) {
-      return error.cachedData
-    }
-
-    if (error.response) {
-      const { status, data, config } = error.response
-      switch (status) {
-        case 400:
-          ElMessage.error(data.detail || '请求错误')
-          break
-        case 401:
-          localStorage.removeItem('token')
-          if (config?.method === 'get') {
-            console.log('GET请求未授权，已清理token', data)
-          } else {
-            ElMessage.error('未授权，请重新登录')
-            window.location.href = '/login'
+        if (res.code !== undefined && res.code !== 0 && res.code !== 200) {
+          if (res.code === 401) {
+            const userStore = useUserStore();
+            userStore.logout();
+            router.push("/auth");
           }
-          break
-        case 403:
-          ElMessage.error('拒绝访问')
-          break
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-        case 500:
-          ElMessage.error('服务器错误')
-          break
-        default:
-          if (config?.method !== 'get') {
-            ElMessage.error(data.detail || '请求失败')
-          }
-      }
-    } else {
-      ElMessage.error('网络错误，请稍后重试')
-    }
-    return Promise.reject(error)
-  }
-)
 
-export default request
+          if (res.message) {
+            return Promise.reject(new Error(res.message));
+          }
+        }
+
+        if (response.config.headers?.Authorization && res.token) {
+          const userStore = useUserStore();
+          userStore.setToken(res.token);
+        }
+
+        return response;
+      },
+      async (error: AxiosError<ApiResponse>) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && originalRequest && !originalRequest.headers?.["X-Retry"]) {
+          if (!this.isRefreshing) {
+            this.isRefreshing = true;
+            try {
+              const userStore = useUserStore();
+              userStore.logout();
+              router.push("/auth");
+              ElMessage.error("登录已过期，请重新登录");
+            } finally {
+              this.isRefreshing = false;
+              this.refreshSubscribers = [];
+            }
+          }
+        }
+
+        if (error.response?.status === 403) {
+          ElMessage.error("没有权限访问该资源");
+        }
+
+        if (error.response?.status === 404) {
+          ElMessage.error("请求的资源不存在");
+        }
+
+        if (error.response?.status === 500) {
+          ElMessage.error("服务器内部错误，请稍后重试");
+        }
+
+        if (!error.response && error.message === "Network Error") {
+          ElMessage.error("网络连接失败，请检查网络设置");
+        }
+
+        const errorMessage = error.response?.data?.message || error.message || "请求失败";
+        return Promise.reject(new Error(errorMessage));
+      }
+    );
+  }
+
+  public get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.get<ApiResponse<T>>(url, config).then((res) => res.data.data || res.data);
+  }
+
+  public post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.post<ApiResponse<T>>(url, data, config).then((res) => res.data.data || res.data);
+  }
+
+  public put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.put<ApiResponse<T>>(url, data, config).then((res) => res.data.data || res.data);
+  }
+
+  public delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.delete<ApiResponse<T>>(url, config).then((res) => res.data.data || res.data);
+  }
+
+  public patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.patch<ApiResponse<T>>(url, data, config).then((res) => res.data.data || res.data);
+  }
+
+  public upload<T = any>(url: string, formData: FormData, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance
+      .post<ApiResponse<T>>(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        ...config,
+      })
+      .then((res) => res.data.data || res.data);
+  }
+
+  public request<T = any>(config: AxiosRequestConfig): Promise<T> {
+    return this.instance.request<ApiResponse<T>>(config).then((res) => res.data.data || res.data);
+  }
+}
+
+export const http = new HttpClient();
+export default http;

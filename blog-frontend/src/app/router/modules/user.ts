@@ -37,4 +37,16 @@ export const userRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/user/FavoritesPage.vue"),
     meta: { title: "我的收藏" },
   },
+  {
+    path: "/settings/theme",
+    name: "ThemeSettings",
+    component: () => import("@/pages/settings/ThemeSettings.vue"),
+    meta: { title: "主题设置" },
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("@/pages/settings/ThemeSettings.vue"),
+    meta: { title: "设置" },
+  },
 ];

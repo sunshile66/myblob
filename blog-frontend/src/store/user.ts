@@ -1,62 +1,87 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { User } from '@/types'
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { getUserProfile } from "@/api/user";
+import type { User } from "@/types";
 
-/**
- * 用户状态管理 Store
- * 管理用户登录状态、Token 和用户信息
- */
-export const useUserStore = defineStore('user', () => {
-  /**
-   * 认证 Token，从 localStorage 中读取
-   */
-  const token = ref<string>(localStorage.getItem('token') || '')
+export const useUserStore = defineStore("user", () => {
+  const token = ref<string | null>(localStorage.getItem("token") || null);
+  const userInfo = ref<User | null>(null);
+  const isLoading = ref(false);
+  const lastFetchTime = ref<number>(0);
+  const CACHE_DURATION = 5 * 60 * 1000;
 
-  /**
-   * 当前登录用户的信息
-   */
-  const userInfo = ref<User | null>(null)
+  const isLoggedIn = computed(() => !!token.value);
+  const userId = computed(() => userInfo.value?.id);
+  const username = computed(() => userInfo.value?.username || "");
+  const nickname = computed(() => userInfo.value?.nickname || userInfo.value?.username || "");
+  const avatar = computed(() => userInfo.value?.avatar || "");
 
-  /**
-   * 计算属性：判断用户是否已登录
-   * @returns {boolean} 已登录返回 true，否则返回 false
-   */
-  const isLoggedIn = computed(() => !!token.value)
-
-  /**
-   * 设置认证 Token
-   * 同时保存到 localStorage 中
-   * @param {string} newToken - 新的认证 Token
-   */
   const setToken = (newToken: string) => {
-    token.value = newToken
-    localStorage.setItem('token', newToken)
-  }
+    token.value = newToken;
+    localStorage.setItem("token", newToken);
+  };
 
-  /**
-   * 设置用户信息
-   * @param {User} user - 用户信息对象
-   */
-  const setUserInfo = (user: User) => {
-    userInfo.value = user
-  }
+  const setUserInfo = (info: User) => {
+    userInfo.value = info;
+    lastFetchTime.value = Date.now();
+  };
 
-  /**
-   * 用户退出登录
-   * 清空 Token、用户信息，并从 localStorage 中移除 Token
-   */
+  const fetchUserInfo = async (force = false) => {
+    if (!token.value) return null;
+
+    if (!force && userInfo.value && Date.now() - lastFetchTime.value < CACHE_DURATION) {
+      return userInfo.value;
+    }
+
+    isLoading.value = true;
+    try {
+      const user = await getUserProfile();
+      setUserInfo(user);
+      return user;
+    } catch (error) {
+      console.error("获取用户信息失败:", error);
+      if ((error as any)?.response?.status === 401) {
+        logout();
+      }
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const logout = () => {
-    token.value = ''
-    userInfo.value = null
-    localStorage.removeItem('token')
-  }
+    token.value = null;
+    userInfo.value = null;
+    lastFetchTime.value = 0;
+    localStorage.removeItem("token");
+  };
+
+  const initUser = async () => {
+    if (token.value) {
+      await fetchUserInfo();
+    }
+  };
+
+  const updateUserInfo = (updates: Partial<User>) => {
+    if (userInfo.value) {
+      userInfo.value = { ...userInfo.value, ...updates };
+    }
+  };
 
   return {
     token,
     userInfo,
+    isLoading,
     isLoggedIn,
+    userId,
+    username,
+    nickname,
+    avatar,
     setToken,
     setUserInfo,
-    logout
-  }
-})
+    fetchUserInfo,
+    logout,
+    initUser,
+    updateUserInfo,
+  };
+});

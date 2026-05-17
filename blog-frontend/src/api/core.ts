@@ -51,6 +51,6 @@ export const getSiteConfig = () => {
  * @param {string} type - 验证码类型（sms/email）
  * @returns {Promise<void>}
  */
-export const sendVerificationCode = (phoneOrEmail: string, type: string = 'sms') => {
-  return request.post('/core/send-code/', { phone_or_email: phoneOrEmail, type })
+export const sendVerificationCode = (phoneOrEmail: string, type: string = 'email') => {
+  return request.post('/auth/send-verification-code/', { phone_or_email: phoneOrEmail, type })
 }

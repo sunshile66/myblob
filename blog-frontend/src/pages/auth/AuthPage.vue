@@ -218,6 +218,7 @@ import SecurityUtils from "@/utils/security";
 import type { FormInstance, FormRules } from "element-plus";
 import type { User as UserType } from "@/types";
 import SocialLogin from "@/components/common/SocialLogin.vue";
+import { login as loginApi, register as registerApi } from "@/api/auth";
 import { sendVerificationCode } from "@/api/core";
 
 const router = useRouter();
@@ -386,35 +387,26 @@ onUnmounted(() => {
 const handleLogin = async () => {
   if (!loginFormRef.value) return;
 
-  const rateLimitKey = `login_${loginForm.username}`;
-  if (!SecurityUtils.checkRateLimit(rateLimitKey)) {
-    ElMessage.error("登录尝试次数过多，请稍后再试");
-    return;
-  }
-
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loginForm.username = SecurityUtils.sanitizeHTML(loginForm.username);
 
       loginLoading.value = true;
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        const mockUser: UserType = {
-          id: 1,
+        const response = await loginApi({
           username: loginForm.username,
-          email: `${loginForm.username}@example.com`,
-          nickname: loginForm.username,
-          avatar: "",
-        };
+          password: loginForm.password,
+          code: loginForm.code || undefined,
+        });
 
-        userStore.setToken("mock-token-" + Date.now());
-        userStore.setUserInfo(mockUser);
+        userStore.setToken(response.token);
+        userStore.setUserInfo(response.user);
 
         ElMessage.success("登录成功！");
-        router.push("/");
-      } catch (error) {
-        ElMessage.error("登录失败，请重试");
+        const redirect = route.query.redirect as string;
+        router.push(redirect || "/");
+      } catch (error: any) {
+        ElMessage.error(error.message || "登录失败，请重试");
       } finally {
         loginLoading.value = false;
       }
@@ -425,57 +417,34 @@ const handleLogin = async () => {
 const handleRegister = async () => {
   if (!registerFormRef.value) return;
 
-  const usernameValidation = SecurityUtils.validateUsername(
-    registerForm.username
-  );
-  if (!usernameValidation.valid) {
-    ElMessage.warning(usernameValidation.message);
+  if (registerForm.password !== registerForm.confirmPassword) {
+    ElMessage.error("两次输入的密码不一致");
     return;
   }
 
-  if (!SecurityUtils.validateEmail(registerForm.email)) {
-    ElMessage.warning("请输入正确的邮箱格式");
+  if (registerForm.password.length < 6) {
+    ElMessage.error("密码长度不能少于6位");
     return;
   }
 
-  const passwordValidation = SecurityUtils.validatePassword(
-    registerForm.password
-  );
-  if (!passwordValidation.valid) {
-    ElMessage.warning(passwordValidation.message);
-    return;
+  registerForm.username = SecurityUtils.sanitizeHTML(registerForm.username);
+
+  registerLoading.value = true;
+  try {
+    await registerApi({
+      username: registerForm.username,
+      email: registerForm.email,
+      password: registerForm.password,
+      code: registerForm.code || undefined,
+    });
+
+    ElMessage.success("注册成功！请登录");
+    activeTab.value = "login";
+  } catch (error: any) {
+    ElMessage.error(error.message || "注册失败，请重试");
+  } finally {
+    registerLoading.value = false;
   }
-
-  await registerFormRef.value.validate(async (valid) => {
-    if (valid) {
-      registerForm.username = SecurityUtils.sanitizeHTML(registerForm.username);
-      registerForm.email = SecurityUtils.sanitizeHTML(registerForm.email);
-      registerForm.nickname = SecurityUtils.sanitizeHTML(registerForm.nickname);
-
-      registerLoading.value = true;
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        const mockUser: UserType = {
-          id: Date.now(),
-          username: registerForm.username,
-          email: registerForm.email,
-          nickname: registerForm.nickname,
-          avatar: "",
-        };
-
-        userStore.setToken("mock-token-" + Date.now());
-        userStore.setUserInfo(mockUser);
-
-        ElMessage.success("注册成功！");
-        router.push("/");
-      } catch (error) {
-        ElMessage.error("注册失败，请重试");
-      } finally {
-        registerLoading.value = false;
-      }
-    }
-  });
 };
 </script>
 

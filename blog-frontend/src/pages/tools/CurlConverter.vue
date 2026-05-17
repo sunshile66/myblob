@@ -17,10 +17,7 @@
               v-model="curlInput"
               type="textarea"
               :rows="10"
-              placeholder="请输入curl命令，例如：
-curl -X POST https://api.example.com/data \
-  -H 'Content-Type: application/json' \
-  -d '{\"key\": \"value\"}'"
+              :placeholder="curlPlaceholder"
             />
             <div class="button-group">
               <el-button type="primary" @click="convertCurl" class="action-btn">
@@ -72,6 +69,10 @@ import { ArrowLeft, DocumentCopy, RefreshRight } from '@element-plus/icons-vue'
 import SimpleLayout from '@/layout/SimpleLayout.vue'
 
 const router = useRouter()
+const curlPlaceholder = `请输入curl命令，例如：
+curl -X POST https://api.example.com/data \\
+  -H 'Content-Type: application/json' \\
+  -d '{"key": "value"}'`
 const curlInput = ref('')
 const pythonCode = ref('')
 

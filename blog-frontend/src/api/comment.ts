@@ -36,15 +36,11 @@ export interface Sticker {
 }
 
 export const getComments = (params?: CommentListParams) => {
-  return request.get<PaginatedResponse<Comment>>('/comments/comments/', { params })
+  return request.get<Comment[]>('/comments/comments/', { params })
 }
 
 export const createComment = (data: CreateCommentData) => {
   return request.post<Comment>('/comments/comments/', data)
-}
-
-export const deleteComment = (id: number) => {
-  return request.delete(`/comments/comments/${id}/`)
 }
 
 export const likeComment = (id: number) => {
@@ -52,7 +48,7 @@ export const likeComment = (id: number) => {
 }
 
 export const unlikeComment = (id: number) => {
-  return request.post(`/comments/comments/${id}/unlike/`)
+  return request.delete(`/comments/comments/${id}/like/`)
 }
 
 export const reactComment = (id: number, emoji: string) => {
@@ -60,7 +56,7 @@ export const reactComment = (id: number, emoji: string) => {
 }
 
 export const unreactComment = (id: number) => {
-  return request.post(`/comments/comments/${id}/unreact/`)
+  return request.delete(`/comments/comments/${id}/react/`)
 }
 
 export const getEmojis = (category?: string) => {
@@ -78,4 +74,3 @@ export const getStickers = (category?: string, isGif?: boolean) => {
 export const getReactionEmojis = () => {
   return request.get<{ emojis: [string, string][] }>('/comments/reaction-emojis/')
 }
-
