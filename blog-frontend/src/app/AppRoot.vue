@@ -105,7 +105,7 @@ onMounted(() => {
 
   /* 渐变 */
   --gradient-primary: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-  --gradient-secondary: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  --gradient-secondary: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
   --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
   --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
   --gradient-info: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);

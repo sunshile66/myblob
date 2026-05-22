@@ -69,6 +69,10 @@
                   />
                 </el-form-item>
 
+                <div class="form-options">
+                  <router-link to="/forgot-password" class="forgot-link">忘记密码？</router-link>
+                </div>
+
                 <el-form-item label="验证码" prop="code">
                   <div class="code-input-wrapper">
                     <el-input
@@ -211,10 +215,6 @@
             </el-tab-pane>
           </el-tabs>
 
-          <div class="divider"><span>或使用第三方账号</span></div>
-
-          <SocialLogin />
-
           <p class="panel-foot">
             <template v-if="activeTab === 'login'">
               还没有账号？
@@ -239,7 +239,6 @@ import { User, Lock, Message, Avatar } from "@element-plus/icons-vue";
 import { useUserStore } from "@/store/user";
 import SecurityUtils from "@/utils/security";
 import type { FormInstance, FormRules } from "element-plus";
-import SocialLogin from "@/components/common/SocialLogin.vue";
 import { login as loginApi, register as registerApi } from "@/api/auth";
 import { sendVerificationCode } from "@/api/core";
 
@@ -790,30 +789,32 @@ const handleRegister = async () => {
   border-color: #4f46e5;
 }
 
-/* Divider */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 22px 0 14px;
-  color: #94a3b8;
-  font-size: 12px;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #e5e7eb;
-}
-
 /* Foot */
 .panel-foot {
   margin: 18px 0 0;
   text-align: center;
   font-size: 13px;
   color: #64748b;
+}
+
+.form-options {
+  display: flex;
+  justify-content: flex-end;
+  margin: -8px 0 6px;
+}
+
+.forgot-link {
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+  color: #4338ca;
+  text-decoration: underline;
 }
 
 .auth-link {

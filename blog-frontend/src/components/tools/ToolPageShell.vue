@@ -110,11 +110,11 @@ const goBack = () => {
   margin-bottom: 28px;
   padding: 28px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 28px;
+  border-radius: 24px;
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.74)),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.04), rgba(59, 130, 246, 0.08));
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(59, 130, 246, 0.06));
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -149,17 +149,19 @@ const goBack = () => {
 
 .tool-shell__hero h1 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 44px);
-  line-height: 1.08;
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: #0f172a;
 }
 
 .tool-shell__hero p {
   margin: 0;
-  max-width: 680px;
-  font-size: 16px;
-  line-height: 1.75;
-  color: #475569;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #64748b;
 }
 
 .tool-shell__meta {

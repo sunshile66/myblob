@@ -6,7 +6,7 @@
         <slot />
       </main>
     </div>
-    <Footer />
+    <Footer v-if="!noFooter" />
     <AnnouncementModal />
   </div>
 </template>
@@ -15,6 +15,8 @@
 import SimpleNavbar from "@/components/layout/SimpleNavbar.vue";
 import Footer from "@/components/layout/Footer.vue";
 import AnnouncementModal from "@/components/common/AnnouncementModal.vue";
+
+defineProps<{ noFooter?: boolean }>();
 </script>
 
 <style scoped>

@@ -237,11 +237,11 @@ const handleCommand = async (command: string) => {
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  background: var(--gradient-primary);
   color: white;
   font-size: 18px;
   font-weight: 800;
-  box-shadow: 0 16px 28px rgba(29, 78, 216, 0.18);
+  box-shadow: 0 12px 22px rgba(79, 70, 229, 0.22);
 }
 
 .logo-copy {
@@ -391,13 +391,13 @@ const handleCommand = async (command: string) => {
   border-radius: 999px;
   font-weight: 600;
   font-size: 14px;
-  box-shadow: 0 14px 24px rgba(255, 36, 66, 0.2);
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.22);
   transition: all var(--transition-normal);
 }
 
 .publish-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 28px rgba(255, 36, 66, 0.28);
+  box-shadow: 0 12px 22px rgba(79, 70, 229, 0.3);
 }
 
 .nav-link {
@@ -417,12 +417,15 @@ const handleCommand = async (command: string) => {
 
 .register-link {
   color: white;
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  background: var(--gradient-primary);
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.22);
 }
 
 .register-link:hover {
   color: white;
-  background: linear-gradient(135deg, #111827 0%, #2563eb 100%);
+  background: var(--gradient-primary);
+  filter: brightness(1.05);
+  box-shadow: 0 12px 22px rgba(79, 70, 229, 0.32);
 }
 
 .user-info {

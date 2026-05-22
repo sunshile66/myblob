@@ -14,6 +14,18 @@ export const userRoutes: RouteRecordRaw[] = [
     meta: { title: "注册" },
   },
   {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: () => import("@/pages/auth/ForgotPasswordPage.vue"),
+    meta: { title: "忘记密码" },
+  },
+  {
+    path: "/reset-password",
+    name: "ResetPassword",
+    component: () => import("@/pages/auth/ResetPasswordPage.vue"),
+    meta: { title: "重置密码" },
+  },
+  {
     path: "/profile",
     name: "Profile",
     component: () => import("@/pages/user/ProfilePage.vue"),

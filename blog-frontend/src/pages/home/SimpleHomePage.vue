@@ -1,122 +1,31 @@
 <template>
-  <SimpleLayout>
+  <SimpleLayout noFooter>
     <div class="simple-home">
       <AnnouncementBar />
 
+      <!-- Hero: 网站简介，博客导向 -->
       <section class="hero-section">
         <div class="hero-card">
           <div class="hero-copy">
-            <span class="hero-eyebrow">MyBlob Workbench</span>
-            <h1>把灵感笔记和高频开发工具放进同一个首页。</h1>
+            <span class="hero-eyebrow">创意与效率工作台</span>
+            <h1>把灵感和笔记变成内容，用工具链提效。</h1>
             <p>
-              从内容浏览、分类探索，到 JSON、正则、时间戳这些开发细节处理，
-              都能在这一套界面里连续完成，不再来回切换。
+              MyBlob 是一个以笔记/博客为中心的创作平台，集成了高频开发工具和内容管理能力。
+              写笔记、浏览文章、处理 JSON 和正则，一个界面完成。
             </p>
-
-            <div class="hero-search">
-              <el-input
-                v-model="searchQuery"
-                placeholder="搜索笔记、标签或主题..."
-                clearable
-                @keyup.enter="goSearch"
-              >
-                <template #append>
-                  <el-button @click="goSearch">
-                    <el-icon><Search /></el-icon>
-                    搜索
-                  </el-button>
-                </template>
-              </el-input>
-            </div>
-
             <div class="hero-actions">
-              <el-button type="primary" size="large" round @click="scrollToFeed">
-                开始浏览
-                <el-icon><ArrowRight /></el-icon>
+              <el-button type="primary" round @click="scrollToFeed">
+                开始浏览 <el-icon><ArrowRight /></el-icon>
               </el-button>
-              <el-button size="large" round @click="router.push('/tools')">
+              <el-button round @click="router.push('/tools')">
                 打开工具中心
               </el-button>
             </div>
-
-            <div class="hero-stats">
-              <article
-                v-for="item in heroStats"
-                :key="item.label"
-                class="hero-stat"
-              >
-                <strong>{{ item.value }}</strong>
-                <span>{{ item.label }}</span>
-              </article>
-            </div>
-
-            <div v-if="categoryPreview.length" class="hero-categories">
-              <button
-                v-for="category in categoryPreview"
-                :key="category.id"
-                class="hero-chip"
-                @click="goToCategory(category.slug)"
-              >
-                {{ category.name }}
-              </button>
-            </div>
-          </div>
-
-          <div class="hero-side">
-            <section class="spotlight-card">
-              <div class="panel-head">
-                <div>
-                  <span class="panel-kicker">高频工具</span>
-                  <h2>从首页直达常用工具</h2>
-                </div>
-                <router-link to="/tools">查看全部</router-link>
-              </div>
-
-              <div class="tool-preview-grid">
-                <button
-                  v-for="tool in quickTools"
-                  :key="tool.slug"
-                  class="tool-preview"
-                  @click="goToTool(tool.slug)"
-                >
-                  <span
-                    class="tool-preview__icon"
-                    :style="{ background: tool.accent }"
-                  >
-                    {{ tool.name.slice(0, 1) }}
-                  </span>
-                  <div>
-                    <strong>{{ tool.name }}</strong>
-                    <span>{{ tool.tags.join(" · ") }}</span>
-                  </div>
-                </button>
-              </div>
-            </section>
-
-            <section class="spotlight-card">
-              <div class="panel-head">
-                <div>
-                  <span class="panel-kicker">热门标签</span>
-                  <h2>继续探索内容主题</h2>
-                </div>
-                <span class="panel-meta">{{ tagPreview.length }} 个标签</span>
-              </div>
-
-              <div class="tag-cloud">
-                <button
-                  v-for="tag in tagPreview"
-                  :key="tag.id"
-                  class="tag-cloud__item"
-                  @click="goToTag(tag.slug)"
-                >
-                  # {{ tag.name }}
-                </button>
-              </div>
-            </section>
           </div>
         </div>
       </section>
 
+      <!-- 主内容区：博客内容流 + 侧栏 -->
       <div class="content-shell">
         <section ref="feedSection" class="feed-section">
           <div class="section-head">
@@ -125,7 +34,6 @@
               <h2>{{ activeTabMeta.label }}笔记</h2>
               <p>{{ activeTabMeta.description }}</p>
             </div>
-
             <div class="tabs">
               <button
                 v-for="tab in tabs"
@@ -139,10 +47,7 @@
             </div>
           </div>
 
-          <div
-            v-if="loading && posts.length === 0"
-            class="notes-grid notes-grid--placeholder"
-          >
+          <div v-if="loading && posts.length === 0" class="notes-grid notes-grid--placeholder">
             <div v-for="item in 8" :key="item" class="placeholder-card" />
           </div>
 
@@ -167,15 +72,57 @@
         </section>
 
         <aside class="home-sidebar">
+          <!-- 高频工具 -->
           <section class="sidebar-card">
             <div class="panel-head">
-              <div>
-                <span class="panel-kicker">分类导航</span>
-                <h2>快速切换主题</h2>
-              </div>
+              <span class="panel-kicker">高频工具</span>
+              <router-link to="/tools">查看全部</router-link>
+            </div>
+            <div class="tool-preview-grid">
+              <button
+                v-for="tool in quickTools"
+                :key="tool.slug"
+                class="tool-preview"
+                @click="goToTool(tool.slug)"
+              >
+                <span
+                  class="tool-preview__icon"
+                  :style="{ background: tool.accent }"
+                >
+                  {{ tool.name.slice(0, 1) }}
+                </span>
+                <div>
+                  <strong>{{ tool.name }}</strong>
+                  <span>{{ tool.tags.join(' \u00B7 ') }}</span>
+                </div>
+              </button>
+            </div>
+          </section>
+
+          <!-- 热门标签 -->
+          <section class="sidebar-card">
+            <div class="panel-head">
+              <span class="panel-kicker">热门标签</span>
+              <span class="panel-meta">{{ tagPreview.length }} 个标签</span>
+            </div>
+            <div class="tag-cloud">
+              <button
+                v-for="tag in tagPreview"
+                :key="tag.id"
+                class="tag-cloud__item"
+                @click="goToTag(tag.slug)"
+              >
+                # {{ tag.name }}
+              </button>
+            </div>
+          </section>
+
+          <!-- 分类导航 -->
+          <section class="sidebar-card">
+            <div class="panel-head">
+              <span class="panel-kicker">分类导航</span>
               <span class="panel-meta">{{ categoryPreview.length }} 个分类</span>
             </div>
-
             <div class="category-list">
               <button
                 v-for="category in categoryPreview"
@@ -184,45 +131,21 @@
                 @click="goToCategory(category.slug)"
               >
                 <span>{{ category.name }}</span>
-                <el-icon><ArrowRight /></el-icon>
               </button>
             </div>
           </section>
-
-          <section class="sidebar-card">
-            <div class="panel-head">
-              <div>
-                <span class="panel-kicker">工具捷径</span>
-                <h2>最近常用</h2>
-              </div>
-              <router-link to="/tools">工具中心</router-link>
-            </div>
-
-            <div class="shortcut-list">
-              <button
-                v-for="tool in quickTools"
-                :key="tool.slug"
-                class="shortcut-item"
-                @click="goToTool(tool.slug)"
-              >
-                <span class="shortcut-item__title">{{ tool.name }}</span>
-                <span class="shortcut-item__desc">{{ tool.description }}</span>
-              </button>
-            </div>
-          </section>
-
-          <AdBanner position="sidebar" />
         </aside>
       </div>
+
+      <AdBanner position="sidebar" />
     </div>
   </SimpleLayout>
 </template>
-
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ArrowRight, Search } from "@element-plus/icons-vue";
+import { ArrowRight } from "@element-plus/icons-vue";
 import { getCategories, getPosts, getTags } from "@/api/post";
 import AnnouncementBar from "@/components/common/AnnouncementBar.vue";
 import AdBanner from "@/components/common/AdBanner.vue";
@@ -234,7 +157,6 @@ import { getRecentTools } from "@features/tools/lib/recentTools";
 
 const router = useRouter();
 const feedSection = ref<HTMLElement | null>(null);
-const searchQuery = ref("");
 const categories = ref<Category[]>([]);
 const tags = ref<Tag[]>([]);
 const posts = ref<Post[]>([]);
@@ -274,19 +196,13 @@ const activeTabMeta = computed(
   () => tabs.find((tab) => tab.value === activeTab.value) ?? tabs[0]
 );
 
-const categoryPreview = computed(() => categories.value.slice(0, 6));
-const tagPreview = computed(() => tags.value.slice(0, 10));
+const categoryPreview = computed(() => categories.value.slice(0, 4));
+const tagPreview = computed(() => tags.value.slice(0, 6));
 const quickTools = computed(() => {
   const source =
     recentTools.value.length > 0 ? recentTools.value : FEATURED_TOOLS;
-  return source.slice(0, 4);
+  return source.slice(0, 3);
 });
-
-const heroStats = computed(() => [
-  { label: "内容条目", value: formatCount(totalPosts.value || posts.value.length) },
-  { label: "分类主题", value: `${categories.value.length}` },
-  { label: "常用工具", value: `${FEATURED_TOOLS.length}+` },
-]);
 
 const loadDiscoveryData = async () => {
   try {
@@ -358,15 +274,6 @@ const scrollToFeed = () => {
   feedSection.value?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
-const goSearch = () => {
-  const keyword = searchQuery.value.trim();
-  if (!keyword) {
-    return;
-  }
-
-  router.push({ name: "Search", query: { q: keyword } });
-};
-
 const goToCategory = (slug: string) => {
   router.push({ name: "Category", params: { slug } });
 };
@@ -383,18 +290,6 @@ const viewNote = (slug: string) => {
   router.push(`/note/${slug}`);
 };
 
-const formatCount = (count: number) => {
-  if (count >= 10000) {
-    return `${(count / 10000).toFixed(1)}w`;
-  }
-
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}k`;
-  }
-
-  return `${count}`;
-};
-
 onMounted(() => {
   void Promise.all([loadDiscoveryData(), fetchPosts(true)]);
 });
@@ -402,31 +297,28 @@ onMounted(() => {
 
 <style scoped>
 .simple-home {
-  min-height: 100vh;
-  padding-top: 10px;
+  padding-top: 6px;
 }
 
+/* ── Hero ── */
 .hero-section {
-  margin-bottom: 28px;
+  margin-bottom: 8px;
 }
 
 .hero-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
-  gap: 24px;
-  padding: 28px;
-  border-radius: 32px;
+  padding: 16px 20px;
+  border-radius: 18px;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.72)),
-    linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(15, 23, 42, 0.02));
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.74)),
+    linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(15, 23, 42, 0.02));
   border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 .hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 8px;
 }
 
 .hero-eyebrow,
@@ -434,211 +326,123 @@ onMounted(() => {
 .panel-kicker {
   display: inline-flex;
   width: fit-content;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--theme-primary-light);
   color: var(--theme-primary);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .hero-copy h1 {
   margin: 0;
-  max-width: 760px;
-  font-size: clamp(34px, 4.6vw, 56px);
-  line-height: 1.04;
-  letter-spacing: -0.04em;
+  max-width: 600px;
+  font-size: clamp(20px, 2.6vw, 28px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
   color: #0f172a;
 }
 
-.hero-copy p,
-.section-head p {
+.hero-copy p {
   margin: 0;
-  max-width: 720px;
+  max-width: 560px;
   color: #475569;
-  font-size: 16px;
-  line-height: 1.8;
-}
-
-.hero-search {
-  max-width: 540px;
-}
-
-.hero-search :deep(.el-input-group__append .el-button) {
-  border: none;
-  color: white;
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
-.hero-stats {
+/* ── Mid sections (tools + tags preview) ── */
+.tool-preview-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  max-width: 560px;
+  gap: 2px;
 }
 
-.hero-stat {
-  padding: 16px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-}
-
-.hero-stat strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 22px;
-  color: #0f172a;
-}
-
-.hero-stat span {
-  font-size: 13px;
-  color: #64748b;
-}
-
-.hero-categories,
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.hero-chip,
-.tag-cloud__item {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.05);
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.hero-chip:hover,
-.tag-cloud__item:hover {
-  background: rgba(255, 36, 66, 0.12);
-  color: var(--theme-primary);
-}
-
-.hero-side,
-.home-sidebar {
-  display: grid;
-  gap: 18px;
-}
-
-.spotlight-card,
-.sidebar-card {
-  padding: 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.06);
-}
-
-.panel-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.panel-head h2,
-.section-head h2 {
-  margin: 10px 0 6px;
-  font-size: 28px;
-  color: #0f172a;
-  line-height: 1.15;
-}
-
-.panel-head a,
-.panel-meta {
-  color: #64748b;
-  font-size: 13px;
-  text-decoration: none;
-}
-
-.panel-head a:hover {
-  color: var(--theme-primary);
-}
-
-.tool-preview-grid,
-.shortcut-list,
-.category-list {
-  display: grid;
-  gap: 12px;
-}
-
-.tool-preview,
-.shortcut-item,
-.category-item {
+.tool-preview {
   width: 100%;
   border: none;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
-  border-radius: 18px;
+  gap: 5px;
+  padding: 3px 6px;
+  border-radius: 6px;
   background: rgba(15, 23, 42, 0.04);
   text-align: left;
   cursor: pointer;
   transition: all var(--transition-fast);
+  font-family: inherit;
+  font-size: inherit;
 }
 
-.tool-preview:hover,
-.shortcut-item:hover,
-.category-item:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 36, 66, 0.08);
+.tool-preview:hover {
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .tool-preview__icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 18px;
+  font-size: 10px;
   font-weight: 800;
   flex-shrink: 0;
 }
 
-.tool-preview strong,
-.shortcut-item__title {
+.tool-preview strong {
   display: block;
   color: #0f172a;
-  font-size: 15px;
+  font-size: 11px;
   font-weight: 700;
 }
 
-.tool-preview span:last-child,
-.shortcut-item__desc,
-.category-item span {
+.tool-preview span:last-child {
   color: #64748b;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 10px;
+  line-height: 1.2;
 }
 
-.category-item {
-  justify-content: space-between;
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
 }
 
+.tag-cloud__item {
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.tag-cloud__item:hover {
+  background: var(--theme-primary-light);
+  border-color: rgba(79, 70, 229, 0.18);
+  color: var(--theme-primary);
+}
+
+/* ── Content shell (feed + sidebar) ── */
 .content-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 14px;
+  align-items: start;
 }
 
 .feed-section {
@@ -649,23 +453,38 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.section-head h2 {
+  margin: 4px 0 2px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #0f172a;
+}
+
+.section-head p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tab-item {
   border: none;
   border-radius: 999px;
-  padding: 10px 16px;
+  padding: 8px 16px;
   background: rgba(15, 23, 42, 0.05);
   color: #475569;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -673,7 +492,7 @@ onMounted(() => {
 
 .tab-item:hover,
 .tab-item.active {
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  background: var(--gradient-primary);
   color: white;
 }
 
@@ -693,7 +512,7 @@ onMounted(() => {
 
 .placeholder-card {
   height: 320px;
-  border-radius: 24px;
+  border-radius: 18px;
   margin-bottom: 14px;
   background:
     linear-gradient(90deg, rgba(226, 232, 240, 0.8), rgba(248, 250, 252, 0.95), rgba(226, 232, 240, 0.8));
@@ -702,29 +521,109 @@ onMounted(() => {
 }
 
 .empty-state {
-  padding: 48px 0;
-  border-radius: 24px;
+  padding: 16px 0;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.82);
 }
 
+.empty-state :deep(.el-empty) {
+  padding: 8px 0;
+}
+
+.empty-state :deep(.el-empty__image) {
+  width: 80px;
+  height: 80px;
+}
+
+.empty-state :deep(.el-empty__description) {
+  margin-top: 8px;
+}
+
 .load-more {
-  margin-top: 24px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
+/* ── Sidebar ── */
+.home-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-card {
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.04);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.panel-head h2 {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.panel-head a,
+.panel-meta {
+  color: #64748b;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.panel-head a:hover {
+  color: var(--theme-primary);
+}
+
+.category-list {
+  display: grid;
+  gap: 2px;
+}
+
+.category-item {
+  width: 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.04);
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.category-item:hover {
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--theme-primary);
+}
+
+/* ── Responsive ── */
 @media (max-width: 1200px) {
-  .hero-card,
   .content-shell {
     grid-template-columns: 1fr;
   }
@@ -736,19 +635,14 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .hero-card,
-  .spotlight-card,
+  .mid-card,
   .sidebar-card {
-    padding: 18px;
-    border-radius: 24px;
+    padding: 14px;
+    border-radius: 14px;
   }
 
-  .hero-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .section-head {
-    align-items: flex-start;
-    flex-direction: column;
+  .home-sidebar {
+    display: none;
   }
 
   .notes-grid,
@@ -761,10 +655,6 @@ onMounted(() => {
   .notes-grid,
   .notes-grid--placeholder {
     column-count: 1;
-  }
-
-  .hero-copy h1 {
-    font-size: 34px;
   }
 }
 </style>

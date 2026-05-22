@@ -62,3 +62,11 @@ export const sendVerificationCode = (data: SendVerificationCodeData) => {
 export const getSecurityConfig = () => {
   return request.get<SecurityConfig>('/auth/security-config/')
 }
+
+export const forgotPassword = (email: string) => {
+  return request.post('/auth/forgot-password/', { email })
+}
+
+export const resetPassword = (token: string, password: string) => {
+  return request.post('/auth/reset-password/', { token, password })
+}

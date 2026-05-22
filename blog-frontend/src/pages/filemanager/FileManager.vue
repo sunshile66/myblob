@@ -411,7 +411,7 @@ onMounted(() => {
 }
 
 .file-icon-video {
-  color: #8b5cf6;
+  color: #6366f1;
 }
 
 .file-icon-audio {

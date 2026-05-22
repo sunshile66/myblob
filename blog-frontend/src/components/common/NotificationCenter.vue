@@ -184,7 +184,7 @@ onMounted(() => {
 }
 
 .notification-item.unread {
-  background: rgba(255, 36, 66, 0.05);
+  background: rgba(79, 70, 229, 0.06);
   border-left-color: var(--theme-primary);
 }
 

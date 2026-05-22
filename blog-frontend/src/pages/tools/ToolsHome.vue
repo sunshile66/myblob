@@ -296,48 +296,50 @@ const openRecentTool = () => {
 .recent-section,
 .featured-section,
 .tools-section {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .hero-card {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.8fr);
-  gap: 20px;
-  padding: 28px;
-  border-radius: 32px;
+  gap: 24px;
+  padding: 28px 32px;
+  border-radius: 24px;
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.78)),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(15, 23, 42, 0.04));
+    linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(15, 23, 42, 0.02));
   border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
 }
 
 .hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .hero-eyebrow,
 .section-kicker {
   display: inline-flex;
   width: fit-content;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
+  background: var(--theme-primary-light);
   color: var(--theme-primary);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .hero-copy h1 {
   margin: 0;
-  font-size: clamp(34px, 4.4vw, 54px);
-  line-height: 1.04;
+  max-width: 580px;
+  font-size: clamp(24px, 2.8vw, 34px);
+  line-height: 1.22;
+  font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
 }
 
 .hero-copy p,
@@ -345,9 +347,9 @@ const openRecentTool = () => {
 .featured-card p,
 .recent-card span {
   margin: 0;
-  color: #475569;
-  font-size: 15px;
-  line-height: 1.75;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .hero-actions,
@@ -366,24 +368,26 @@ const openRecentTool = () => {
 }
 
 .metric-card {
-  padding: 18px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.16);
 }
 
 .metric-card strong {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: #0f172a;
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .metric-card span,
 .section-count,
 .filter-meta span {
-  color: #64748b;
-  font-size: 13px;
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 .filter-section {
@@ -396,13 +400,13 @@ const openRecentTool = () => {
 
 .filter-chip,
 .clear-btn {
-  border: none;
+  border: 1px solid rgba(15, 23, 42, 0.06);
   border-radius: 999px;
-  padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.05);
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.72);
   color: #334155;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -410,7 +414,8 @@ const openRecentTool = () => {
 .filter-chip:hover,
 .filter-chip.active,
 .clear-btn:hover {
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  background: var(--theme-primary);
+  border-color: var(--theme-primary);
   color: white;
 }
 
@@ -419,13 +424,14 @@ const openRecentTool = () => {
   justify-content: space-between;
   gap: 20px;
   align-items: flex-end;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .section-head h2 {
-  margin: 10px 0 0;
-  font-size: 28px;
-  line-height: 1.2;
+  margin: 6px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
   color: #0f172a;
 }
 
@@ -519,7 +525,7 @@ const openRecentTool = () => {
 }
 
 .badge--featured {
-  background: rgba(255, 36, 66, 0.12);
+  background: rgba(79, 70, 229, 0.12);
   color: var(--theme-primary);
 }
 

@@ -44,6 +44,12 @@
               编辑资料
             </el-button>
           </router-link>
+          <router-link to="/account/bind" style="margin-left: 10px;">
+            <el-button size="large">
+              <el-icon><Link /></el-icon>
+              账号绑定
+            </el-button>
+          </router-link>
         </div>
       </div>
 
@@ -126,6 +132,7 @@ import {
   Document,
   Star,
   Picture,
+  Link,
 } from "@element-plus/icons-vue";
 import type { Post } from "@/types";
 
