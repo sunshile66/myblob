@@ -68,6 +68,12 @@ export const toolRoutes: RouteRecordRaw[] = [
     meta: { title: "文本对比" },
   },
   {
+    path: "/tools/json-diff",
+    name: "JsonDiff",
+    component: () => import("@/pages/tools/JsonDiff.vue"),
+    meta: { title: "JSON 对比" },
+  },
+  {
     path: "/tools/image-compressor",
     name: "ImageCompressor",
     component: () => import("@/pages/tools/ImageCompressor.vue"),
@@ -92,9 +98,75 @@ export const toolRoutes: RouteRecordRaw[] = [
     meta: { title: "哈希生成器" },
   },
   {
+    path: "/tools/json-to-sql",
+    name: "JsonToSql",
+    component: () => import("@/pages/tools/JsonToSql.vue"),
+    meta: { title: "JSON 转 SQL" },
+  },
+  {
     path: "/tools/curl-converter",
     name: "CurlConverter",
     component: () => import("@/pages/tools/CurlConverter.vue"),
     meta: { title: "curl 转 requests" },
+  },
+  {
+    path: "/tools/code-formatter",
+    name: "CodeFormatter",
+    component: () => import("@/pages/tools/CodeFormatter.vue"),
+    meta: { title: "JS/HTML 格式化" },
+  },
+  {
+    path: "/tools/header-formatter",
+    name: "HeaderFormatter",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "Header 格式化", crawlerMode: "headers" },
+  },
+  {
+    path: "/tools/cookie-formatter",
+    name: "CookieFormatter",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "Cookie 格式化", crawlerMode: "cookies" },
+  },
+  {
+    path: "/tools/dict-formatter",
+    name: "DictFormatter",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "Dict 转换", crawlerMode: "dict" },
+  },
+  {
+    path: "/tools/url-params",
+    name: "UrlParams",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "URL 参数提取", crawlerMode: "url" },
+  },
+  {
+    path: "/tools/url-codec",
+    name: "UrlCodec",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "URL 编解码", crawlerMode: "codec" },
+  },
+  {
+    path: "/tools/html-renderer",
+    name: "HtmlRenderer",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "HTML 渲染", crawlerMode: "html" },
+  },
+  {
+    path: "/tools/text-decoder",
+    name: "TextDecoder",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "文本解码", crawlerMode: "decoder" },
+  },
+  {
+    path: "/tools/code-share",
+    name: "CodeShare",
+    component: () => import("@/pages/tools/CrawlerToolkit.vue"),
+    meta: { title: "代码分享", crawlerMode: "share" },
+  },
+  {
+    path: "/tools/base64-image",
+    name: "Base64Image",
+    component: () => import("@/pages/tools/Base64ImageTool.vue"),
+    meta: { title: "Base64 图片" },
   },
 ];

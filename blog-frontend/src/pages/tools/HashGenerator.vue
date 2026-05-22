@@ -1,203 +1,246 @@
 <template>
-  <SimpleLayout>
-    <div class="tool-page">
-      <div class="tool-container">
-        <div class="page-header">
-          <h1>🔑 哈希生成器</h1>
-          <p>MD5、SHA1、SHA256、SHA512</p>
-        </div>
-
-        <div class="tool-card">
-          <div class="input-section">
-            <label>输入文本</label>
-            <el-input
-              v-model="inputText"
-              type="textarea"
-              :rows="4"
-              placeholder="请输入要计算哈希的文本..."
-            />
+  <ToolPageShell
+    title="哈希生成器"
+    description="为文本生成 MD5、SHA 系列摘要，支持 HMAC、大小写输出和文件校验。"
+    eyebrow="安全与标识"
+    :meta="meta"
+  >
+    <div class="workbench">
+      <section class="panel input-panel">
+        <div class="panel-head">
+          <div>
+            <h2>输入内容</h2>
+            <p>可以粘贴文本，也可以选择本地文件计算校验值。</p>
           </div>
-
-          <el-button type="primary" size="large" @click="generateHash" class="generate-btn">
-            生成哈希
-          </el-button>
-
-          <div class="results-section">
-            <h3>哈希结果</h3>
-            <div class="result-item">
-              <div class="result-header">
-                <span class="result-label">MD5</span>
-                <el-button size="small" @click="copyResult('md5')" :icon="DocumentCopy">复制</el-button>
-              </div>
-              <el-input v-model="md5Hash" readonly />
-            </div>
-            <div class="result-item">
-              <div class="result-header">
-                <span class="result-label">SHA-1</span>
-                <el-button size="small" @click="copyResult('sha1')" :icon="DocumentCopy">复制</el-button>
-              </div>
-              <el-input v-model="sha1Hash" readonly />
-            </div>
-            <div class="result-item">
-              <div class="result-header">
-                <span class="result-label">SHA-256</span>
-                <el-button size="small" @click="copyResult('sha256')" :icon="DocumentCopy">复制</el-button>
-              </div>
-              <el-input v-model="sha256Hash" readonly />
-            </div>
-            <div class="result-item">
-              <div class="result-header">
-                <span class="result-label">SHA-512</span>
-                <el-button size="small" @click="copyResult('sha512')" :icon="DocumentCopy">复制</el-button>
-              </div>
-              <el-input v-model="sha512Hash" readonly />
-            </div>
+          <div class="inline-actions">
+            <el-upload :auto-upload="false" :show-file-list="false" :on-change="loadFile">
+              <el-button :icon="Upload">读取文件</el-button>
+            </el-upload>
+            <el-button text :icon="Delete" @click="clearAll">清空</el-button>
           </div>
         </div>
-      </div>
+
+        <el-input v-model="inputText" type="textarea" :rows="14" placeholder="输入要计算摘要的内容" />
+
+        <div class="settings-grid">
+          <label>
+            输出格式
+            <el-segmented v-model="caseMode" :options="caseOptions" />
+          </label>
+          <label>
+            HMAC 密钥
+            <el-input v-model="hmacKey" placeholder="为空时生成普通哈希" clearable />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="panel-head">
+          <div>
+            <h2>摘要结果</h2>
+            <p>点击任意结果即可复制。</p>
+          </div>
+          <el-button type="primary" :icon="Refresh" @click="generate">重新计算</el-button>
+        </div>
+
+        <button v-for="item in results" :key="item.name" class="result-row" @click="copy(item.value)">
+          <span>{{ item.name }}</span>
+          <code>{{ item.value || "等待输入" }}</code>
+        </button>
+      </section>
     </div>
-  </SimpleLayout>
+  </ToolPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { DocumentCopy } from '@element-plus/icons-vue'
-import SimpleLayout from '@/layout/SimpleLayout.vue'
-import { ElMessage } from 'element-plus'
-import CryptoJS from 'crypto-js'
+import { computed, ref, watch } from "vue";
+import { Delete, Refresh, Upload } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+import type { UploadFile } from "element-plus";
+import CryptoJS from "crypto-js";
+import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 
-const inputText = ref('')
-const md5Hash = ref('')
-const sha1Hash = ref('')
-const sha256Hash = ref('')
-const sha512Hash = ref('')
+type CaseMode = "lower" | "upper";
 
-const generateHash = () => {
+const inputText = ref("MyBlob");
+const hmacKey = ref("");
+const caseMode = ref<CaseMode>("lower");
+const fileName = ref("");
+
+const caseOptions = [
+  { label: "小写", value: "lower" },
+  { label: "大写", value: "upper" },
+];
+
+const algorithms = [
+  { name: "MD5", hash: CryptoJS.MD5, hmac: CryptoJS.HmacMD5 },
+  { name: "SHA-1", hash: CryptoJS.SHA1, hmac: CryptoJS.HmacSHA1 },
+  { name: "SHA-224", hash: CryptoJS.SHA224, hmac: CryptoJS.HmacSHA224 },
+  { name: "SHA-256", hash: CryptoJS.SHA256, hmac: CryptoJS.HmacSHA256 },
+  { name: "SHA-384", hash: CryptoJS.SHA384, hmac: CryptoJS.HmacSHA384 },
+  { name: "SHA-512", hash: CryptoJS.SHA512, hmac: CryptoJS.HmacSHA512 },
+];
+
+const normalizeCase = (value: string) => (caseMode.value === "upper" ? value.toUpperCase() : value.toLowerCase());
+
+const results = computed(() =>
+  algorithms.map((algorithm) => {
+    if (!inputText.value) {
+      return { name: algorithm.name, value: "" };
+    }
+
+    const digest = hmacKey.value
+      ? algorithm.hmac(inputText.value, hmacKey.value).toString()
+      : algorithm.hash(inputText.value).toString();
+    return { name: hmacKey.value ? `HMAC-${algorithm.name}` : algorithm.name, value: normalizeCase(digest) };
+  })
+);
+
+const meta = computed(() => [
+  { label: "输入长度", value: `${inputText.value.length} 字符` },
+  { label: "模式", value: hmacKey.value ? "HMAC" : "Hash" },
+  { label: "文件", value: fileName.value || "未选择" },
+]);
+
+const generate = () => {
   if (!inputText.value) {
-    ElMessage.warning('请输入文本')
-    return
+    ElMessage.warning("请先输入内容");
+    return;
   }
+  ElMessage.success("摘要已更新");
+};
 
-  md5Hash.value = CryptoJS.MD5(inputText.value).toString()
-  sha1Hash.value = CryptoJS.SHA1(inputText.value).toString()
-  sha256Hash.value = CryptoJS.SHA256(inputText.value).toString()
-  sha512Hash.value = CryptoJS.SHA512(inputText.value).toString()
-}
-
-const copyResult = (type: string) => {
-  let text = ''
-  switch (type) {
-    case 'md5':
-      text = md5Hash.value
-      break
-    case 'sha1':
-      text = sha1Hash.value
-      break
-    case 'sha256':
-      text = sha256Hash.value
-      break
-    case 'sha512':
-      text = sha512Hash.value
-      break
+const copy = async (value: string) => {
+  if (!value) {
+    ElMessage.warning("没有内容可复制");
+    return;
   }
+  await navigator.clipboard.writeText(value);
+  ElMessage.success("已复制");
+};
 
-  if (text) {
-    navigator.clipboard.writeText(text).then(() => {
-      ElMessage.success('已复制到剪贴板')
-    })
-  }
-}
+const clearAll = () => {
+  inputText.value = "";
+  hmacKey.value = "";
+  fileName.value = "";
+};
+
+const loadFile = async (file: UploadFile) => {
+  const raw = file.raw;
+  if (!raw) return;
+  fileName.value = raw.name;
+  inputText.value = await raw.text();
+  ElMessage.success("文件内容已读取");
+};
+
+watch([inputText, hmacKey, caseMode], () => {
+  // computed results update automatically; the watcher keeps Element Plus inputs responsive after file loads.
+});
 </script>
 
 <style scoped>
-.tool-page {
-  background: var(--theme-background);
-  min-height: calc(100vh - 80px);
-  padding: 40px 0;
+.workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 16px;
 }
 
-.tool-container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 0 20px;
+.panel {
+  padding: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.page-header h1 {
-  font-size: 32px;
-  font-weight: 800;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 10px 0;
-}
-
-.page-header p {
-  font-size: 15px;
-  color: var(--theme-text-secondary);
-  margin: 0;
-}
-
-.tool-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  box-shadow: var(--glass-shadow);
-}
-
-.input-section {
-  margin-bottom: 24px;
-}
-
-.input-section label {
-  display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--theme-text);
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
-.generate-btn {
-  width: 100%;
-  font-weight: 600;
-  margin-bottom: 24px;
-}
-
-.results-section h3 {
+h2 {
+  margin: 0;
+  color: #0f172a;
   font-size: 18px;
-  font-weight: 700;
-  color: var(--theme-text);
-  margin: 0 0 16px 0;
 }
 
-.result-item {
-  margin-bottom: 16px;
+p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.result-header {
+.inline-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.result-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--theme-text);
+.settings-grid {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
 }
 
-@media (max-width: 768px) {
-  .tool-card {
-    padding: 20px;
+.settings-grid label {
+  display: grid;
+  gap: 8px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.result-panel {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+}
+
+.result-row:hover {
+  border-color: #14b8a6;
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.result-row span {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.result-row code {
+  color: #0f172a;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+@media (max-width: 960px) {
+  .workbench,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-head,
+  .result-row {
+    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 }
 </style>

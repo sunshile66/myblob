@@ -1,611 +1,462 @@
 <template>
-  <SimpleLayout>
-    <div class="text-diff">
-      <div class="tool-header">
-        <el-button @click="router.push('/tools')" class="back-btn">
-          <el-icon><ArrowLeft /></el-icon>
-          返回工具箱
-        </el-button>
-        <h1>📝 文本对比工具</h1>
-      </div>
+  <ToolPageShell
+    title="文本对比"
+    description="按行计算差异，支持忽略空白/大小写、并排视图、统一视图和差异统计。"
+    eyebrow="文本处理"
+    :meta="meta"
+  >
+    <div class="workbench">
+      <section class="editor-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>原文</h2>
+            <div class="inline-actions">
+              <el-button text :icon="DocumentCopy" @click="pasteInto('left')">粘贴</el-button>
+              <el-button text :icon="Delete" @click="clearSide('left')">清空</el-button>
+            </div>
+          </div>
+          <el-input v-model="leftText" type="textarea" :rows="14" placeholder="粘贴原始文本" />
+          <div class="stats-line">
+            <span>{{ leftLines.length }} 行</span>
+            <span>{{ leftText.length }} 字符</span>
+          </div>
+        </article>
 
-      <div class="tool-container">
-        <div class="input-section">
-          <div class="text-input-card">
-            <div class="input-header">
-              <h3>原文</h3>
-              <div class="input-actions">
-                <el-button size="small" @click="clearText1">
-                  <el-icon><Delete /></el-icon>
-                  清空
-                </el-button>
-                <el-button size="small" @click="pasteText1">
-                  <el-icon><DocumentCopy /></el-icon>
-                  粘贴
-                </el-button>
+        <article class="panel">
+          <div class="panel-head">
+            <h2>修改后</h2>
+            <div class="inline-actions">
+              <el-button text :icon="DocumentCopy" @click="pasteInto('right')">粘贴</el-button>
+              <el-button text :icon="Delete" @click="clearSide('right')">清空</el-button>
+            </div>
+          </div>
+          <el-input v-model="rightText" type="textarea" :rows="14" placeholder="粘贴修改后的文本" />
+          <div class="stats-line">
+            <span>{{ rightLines.length }} 行</span>
+            <span>{{ rightText.length }} 字符</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="toolbar panel">
+        <div class="toolbar-options">
+          <el-checkbox v-model="ignoreWhitespace">忽略首尾空白</el-checkbox>
+          <el-checkbox v-model="ignoreCase">忽略大小写</el-checkbox>
+          <el-checkbox v-model="hideEqual">只看差异</el-checkbox>
+        </div>
+        <div class="toolbar-actions">
+          <el-button :icon="Sort" @click="swapTexts">交换</el-button>
+          <el-button :icon="DocumentCopy" @click="copyUnified">复制差异</el-button>
+          <el-button type="primary" :icon="Search" @click="compare">开始对比</el-button>
+        </div>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="panel-head">
+          <div>
+            <h2>对比结果</h2>
+            <p>使用 LCS 按行对齐，插入与删除会保留相邻上下文。</p>
+          </div>
+          <div class="tag-row">
+            <el-tag type="success">+{{ addedCount }}</el-tag>
+            <el-tag type="danger">-{{ removedCount }}</el-tag>
+            <el-tag>{{ equalCount }} 相同</el-tag>
+          </div>
+        </div>
+
+        <el-tabs v-model="activeView">
+          <el-tab-pane label="并排视图" name="side">
+            <div class="side-view">
+              <div class="diff-header">原文</div>
+              <div class="diff-header">修改后</div>
+              <template v-for="row in visibleRows" :key="row.key">
+                <div class="diff-line" :class="row.left?.type || 'empty'">
+                  <span class="line-no">{{ row.left?.line || '' }}</span>
+                  <code>{{ row.left?.text || '' }}</code>
+                </div>
+                <div class="diff-line" :class="row.right?.type || 'empty'">
+                  <span class="line-no">{{ row.right?.line || '' }}</span>
+                  <code>{{ row.right?.text || '' }}</code>
+                </div>
+              </template>
+            </div>
+          </el-tab-pane>
+
+          <el-tab-pane label="统一视图" name="unified">
+            <div class="unified-view">
+              <div v-for="line in visibleUnifiedLines" :key="line.key" class="diff-line" :class="line.type">
+                <span class="line-no">{{ line.marker }}</span>
+                <code>{{ line.text }}</code>
               </div>
             </div>
-            <el-input
-              v-model="text1"
-              type="textarea"
-              :rows="12"
-              placeholder="请输入原文..."
-              class="text-input"
-            />
-            <div class="text-stats">
-              <span>字符数：{{ text1.length }}</span>
-              <span>行数：{{ text1Lines }}</span>
-            </div>
-          </div>
+          </el-tab-pane>
 
-          <div class="text-input-card">
-            <div class="input-header">
-              <h3>修改后</h3>
-              <div class="input-actions">
-                <el-button size="small" @click="clearText2">
-                  <el-icon><Delete /></el-icon>
-                  清空
-                </el-button>
-                <el-button size="small" @click="pasteText2">
-                  <el-icon><DocumentCopy /></el-icon>
-                  粘贴
-                </el-button>
-              </div>
+          <el-tab-pane label="统计" name="stats">
+            <div class="stats-grid">
+              <article>
+                <strong>{{ changeRate }}%</strong>
+                <span>变化比例</span>
+              </article>
+              <article>
+                <strong>{{ similarity }}%</strong>
+                <span>相似度</span>
+              </article>
+              <article>
+                <strong>{{ leftText.length - rightText.length }}</strong>
+                <span>字符差值</span>
+              </article>
+              <article>
+                <strong>{{ diffRows.length }}</strong>
+                <span>对齐行数</span>
+              </article>
             </div>
-            <el-input
-              v-model="text2"
-              type="textarea"
-              :rows="12"
-              placeholder="请输入修改后的文本..."
-              class="text-input"
-            />
-            <div class="text-stats">
-              <span>字符数：{{ text2.length }}</span>
-              <span>行数：{{ text2Lines }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="action-section">
-          <el-button
-            type="primary"
-            size="large"
-            @click="compareText"
-            class="compare-btn"
-          >
-            <el-icon><Search /></el-icon>
-            开始对比
-          </el-button>
-          <el-button @click="swapTexts" class="swap-btn">
-            <el-icon><Sort /></el-icon>
-            交换文本
-          </el-button>
-        </div>
-
-        <div v-if="hasResult" class="result-section">
-          <div class="result-header">
-            <h3>📊 对比结果</h3>
-            <div class="result-stats">
-              <el-tag type="success">+{{ addedCount }} 新增</el-tag>
-              <el-tag type="danger">-{{ removedCount }} 删除</el-tag>
-              <el-tag>{{ unchangedCount }} 未变</el-tag>
-            </div>
-          </div>
-
-          <div class="result-tabs">
-            <el-tabs v-model="activeTab">
-              <el-tab-pane label="并排对比" name="side">
-                <div class="diff-view side-by-side">
-                  <div class="diff-column">
-                    <div class="diff-column-header">原文</div>
-                    <div class="diff-content" v-html="originalDiff"></div>
-                  </div>
-                  <div class="diff-column">
-                    <div class="diff-column-header">修改后</div>
-                    <div class="diff-content" v-html="modifiedDiff"></div>
-                  </div>
-                </div>
-              </el-tab-pane>
-              <el-tab-pane label="统一视图" name="unified">
-                <div class="diff-view unified" v-html="unifiedDiff"></div>
-              </el-tab-pane>
-              <el-tab-pane label="统计信息" name="stats">
-                <div class="stats-card">
-                  <div class="stat-item">
-                    <div class="stat-value">{{ text1.length }}</div>
-                    <div class="stat-label">原文字符数</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value">{{ text2.length }}</div>
-                    <div class="stat-label">修改后字符数</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value">{{ diffPercent }}%</div>
-                    <div class="stat-label">差异比例</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value">{{ similarity }}%</div>
-                    <div class="stat-label">相似度</div>
-                  </div>
-                </div>
-              </el-tab-pane>
-            </el-tabs>
-          </div>
-        </div>
-      </div>
+          </el-tab-pane>
+        </el-tabs>
+      </section>
     </div>
-  </SimpleLayout>
+  </ToolPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import {
-  ArrowLeft,
-  Delete,
-  DocumentCopy,
-  Search,
-  Sort,
-} from "@element-plus/icons-vue";
+import { computed, ref, watch } from "vue";
+import { Delete, DocumentCopy, Search, Sort } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import SimpleLayout from "@/layout/SimpleLayout.vue";
+import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 
-const router = useRouter();
+type DiffType = "equal" | "added" | "removed";
 
-const text1 = ref("");
-const text2 = ref("");
-const hasResult = ref(false);
-const activeTab = ref("side");
+interface DiffCell {
+  type: DiffType;
+  text: string;
+  line: number;
+}
 
-const text1Lines = computed(() => text1.value.split("\n").length);
-const text2Lines = computed(() => text2.value.split("\n").length);
+interface DiffRow {
+  key: string;
+  type: DiffType;
+  left?: DiffCell;
+  right?: DiffCell;
+}
 
-const addedCount = ref(0);
-const removedCount = ref(0);
-const unchangedCount = ref(0);
+interface UnifiedLine {
+  key: string;
+  type: DiffType;
+  text: string;
+  marker: string;
+}
 
-const originalDiff = ref("");
-const modifiedDiff = ref("");
-const unifiedDiff = ref("");
+const leftText = ref("const name = 'MyBlob';\nconsole.log(name);\n");
+const rightText = ref("const name = 'MyBlob';\nconsole.info(name);\n");
+const ignoreWhitespace = ref(false);
+const ignoreCase = ref(false);
+const hideEqual = ref(false);
+const activeView = ref("side");
+const diffRows = ref<DiffRow[]>([]);
 
-const diffPercent = computed(() => {
-  const total = text1.value.length || 1;
-  return Math.round(((addedCount.value + removedCount.value) / total) * 100);
+const leftLines = computed(() => splitLines(leftText.value));
+const rightLines = computed(() => splitLines(rightText.value));
+
+const addedCount = computed(() => diffRows.value.filter((row) => row.type === "added").length);
+const removedCount = computed(() => diffRows.value.filter((row) => row.type === "removed").length);
+const equalCount = computed(() => diffRows.value.filter((row) => row.type === "equal").length);
+
+const visibleRows = computed(() =>
+  hideEqual.value ? diffRows.value.filter((row) => row.type !== "equal") : diffRows.value
+);
+
+const unifiedLines = computed<UnifiedLine[]>(() =>
+  diffRows.value.flatMap((row, index) => {
+    if (row.type === "equal" && row.left) {
+      return [{ key: `u-${index}-equal`, type: "equal", marker: " ", text: row.left.text }];
+    }
+    const lines: UnifiedLine[] = [];
+    if (row.left) {
+      lines.push({ key: `u-${index}-removed`, type: "removed", marker: "-", text: row.left.text });
+    }
+    if (row.right) {
+      lines.push({ key: `u-${index}-added`, type: "added", marker: "+", text: row.right.text });
+    }
+    return lines;
+  })
+);
+
+const visibleUnifiedLines = computed(() =>
+  hideEqual.value ? unifiedLines.value.filter((line) => line.type !== "equal") : unifiedLines.value
+);
+
+const totalChanges = computed(() => addedCount.value + removedCount.value);
+
+const changeRate = computed(() => {
+  const base = Math.max(leftLines.value.length, rightLines.value.length, 1);
+  return Math.min(100, Math.round((totalChanges.value / base) * 100));
 });
 
-const similarity = computed(() => {
-  const total = text1.value.length || 1;
-  return Math.round(
-    (1 - (addedCount.value + removedCount.value) / total) * 100
-  );
-});
+const similarity = computed(() => Math.max(0, 100 - changeRate.value));
 
-const compareText = () => {
-  if (!text1.value.trim() && !text2.value.trim()) {
-    ElMessage.warning("请至少输入一段文本");
-    return;
-  }
+const meta = computed(() => [
+  { label: "新增行", value: `+${addedCount.value}` },
+  { label: "删除行", value: `-${removedCount.value}` },
+  { label: "相似度", value: `${similarity.value}%` },
+]);
 
-  const lines1 = text1.value.split("\n");
-  const lines2 = text2.value.split("\n");
+const splitLines = (value: string) => value.replace(/\r\n/g, "\n").split("\n");
 
-  const result = computeDiff(lines1, lines2);
-
-  originalDiff.value = result.original
-    .map((line: string) => {
-      if (line.startsWith("-")) {
-        return `<div class="diff-line removed"><span class="line-num">${result.lineNums.original.shift()}</span>${line.substring(
-          1
-        )}</div>`;
-      }
-      return `<div class="diff-line unchanged"><span class="line-num">${result.lineNums.original.shift()}</span>${line}</div>`;
-    })
-    .join("");
-
-  modifiedDiff.value = result.modified
-    .map((line: string) => {
-      if (line.startsWith("+")) {
-        return `<div class="diff-line added"><span class="line-num">${result.lineNums.modified.shift()}</span>${line.substring(
-          1
-        )}</div>`;
-      }
-      return `<div class="diff-line unchanged"><span class="line-num">${result.lineNums.modified.shift()}</span>${line}</div>`;
-    })
-    .join("");
-
-  unifiedDiff.value = result.unified
-    .map((line: string) => {
-      if (line.startsWith("+")) {
-        return `<div class="diff-line added">${line}</div>`;
-      } else if (line.startsWith("-")) {
-        return `<div class="diff-line removed">${line}</div>`;
-      }
-      return `<div class="diff-line unchanged">${line}</div>`;
-    })
-    .join("");
-
-  addedCount.value = result.addedCount;
-  removedCount.value = result.removedCount;
-  unchangedCount.value = result.unchangedCount;
-  hasResult.value = true;
+const normalize = (value: string) => {
+  let result = ignoreWhitespace.value ? value.trim() : value;
+  if (ignoreCase.value) result = result.toLowerCase();
+  return result;
 };
 
-const computeDiff = (lines1: string[], lines2: string[]) => {
-  const original: string[] = [];
-  const modified: string[] = [];
-  const unified: string[] = [];
-  const lineNums = {
-    original: [] as number[],
-    modified: [] as number[],
-  };
+const buildLcsTable = (left: string[], right: string[]) => {
+  const rows = left.length;
+  const cols = right.length;
+  const table = Array.from({ length: rows + 1 }, () => Array(cols + 1).fill(0));
 
-  let addedCount = 0;
-  let removedCount = 0;
-  let unchangedCount = 0;
-
-  const maxLen = Math.max(lines1.length, lines2.length);
-
-  for (let i = 0; i < maxLen; i++) {
-    const line1 = lines1[i];
-    const line2 = lines2[i];
-
-    if (line1 === undefined) {
-      original.push(` ${line1 || ""}`);
-      modified.push(`+${line2}`);
-      unified.push(`+${line2}`);
-      lineNums.original.push(i + 1);
-      lineNums.modified.push(i + 1);
-      addedCount++;
-    } else if (line2 === undefined) {
-      original.push(`-${line1}`);
-      modified.push(` ${line2 || ""}`);
-      unified.push(`-${line1}`);
-      lineNums.original.push(i + 1);
-      lineNums.modified.push(i + 1);
-      removedCount++;
-    } else if (line1 === line2) {
-      original.push(` ${line1}`);
-      modified.push(` ${line2}`);
-      unified.push(`  ${line1}`);
-      lineNums.original.push(i + 1);
-      lineNums.modified.push(i + 1);
-      unchangedCount++;
-    } else {
-      original.push(`-${line1}`);
-      modified.push(`+${line2}`);
-      unified.push(`-${line1}`);
-      unified.push(`+${line2}`);
-      lineNums.original.push(i + 1, i + 1);
-      lineNums.modified.push(i + 1, i + 1);
-      removedCount++;
-      addedCount++;
+  for (let row = rows - 1; row >= 0; row -= 1) {
+    for (let col = cols - 1; col >= 0; col -= 1) {
+      table[row][col] =
+        normalize(left[row]) === normalize(right[col])
+          ? table[row + 1][col + 1] + 1
+          : Math.max(table[row + 1][col], table[row][col + 1]);
     }
   }
 
-  return {
-    original,
-    modified,
-    unified,
-    lineNums,
-    addedCount,
-    removedCount,
-    unchangedCount,
-  };
+  return table;
 };
 
-const clearText1 = () => {
-  text1.value = "";
-  hasResult.value = false;
-};
-
-const clearText2 = () => {
-  text2.value = "";
-  hasResult.value = false;
-};
-
-const pasteText1 = async () => {
-  try {
-    text1.value = await navigator.clipboard.readText();
-  } catch {
-    ElMessage.error("粘贴失败");
+const compare = () => {
+  if (!leftText.value && !rightText.value) {
+    ElMessage.warning("请先输入文本");
+    return;
   }
+
+  const left = leftLines.value;
+  const right = rightLines.value;
+  const table = buildLcsTable(left, right);
+  const rows: DiffRow[] = [];
+  let leftIndex = 0;
+  let rightIndex = 0;
+
+  while (leftIndex < left.length || rightIndex < right.length) {
+    const leftValue = left[leftIndex];
+    const rightValue = right[rightIndex];
+
+    if (leftIndex < left.length && rightIndex < right.length && normalize(leftValue) === normalize(rightValue)) {
+      rows.push({
+        key: `r-${rows.length}`,
+        type: "equal",
+        left: { type: "equal", text: leftValue, line: leftIndex + 1 },
+        right: { type: "equal", text: rightValue, line: rightIndex + 1 },
+      });
+      leftIndex += 1;
+      rightIndex += 1;
+    } else if (rightIndex < right.length && (leftIndex === left.length || table[leftIndex][rightIndex + 1] >= table[leftIndex + 1][rightIndex])) {
+      rows.push({
+        key: `r-${rows.length}`,
+        type: "added",
+        right: { type: "added", text: rightValue, line: rightIndex + 1 },
+      });
+      rightIndex += 1;
+    } else if (leftIndex < left.length) {
+      rows.push({
+        key: `r-${rows.length}`,
+        type: "removed",
+        left: { type: "removed", text: leftValue, line: leftIndex + 1 },
+      });
+      leftIndex += 1;
+    }
+  }
+
+  diffRows.value = rows;
 };
 
-const pasteText2 = async () => {
+const clearSide = (side: "left" | "right") => {
+  if (side === "left") leftText.value = "";
+  else rightText.value = "";
+};
+
+const pasteInto = async (side: "left" | "right") => {
   try {
-    text2.value = await navigator.clipboard.readText();
+    const value = await navigator.clipboard.readText();
+    if (side === "left") leftText.value = value;
+    else rightText.value = value;
   } catch {
-    ElMessage.error("粘贴失败");
+    ElMessage.error("读取剪贴板失败");
   }
 };
 
 const swapTexts = () => {
-  const temp = text1.value;
-  text1.value = text2.value;
-  text2.value = temp;
-  hasResult.value = false;
+  [leftText.value, rightText.value] = [rightText.value, leftText.value];
 };
+
+const copyUnified = async () => {
+  const content = unifiedLines.value.map((line) => `${line.marker} ${line.text}`).join("\n");
+  if (!content) {
+    ElMessage.warning("没有可复制的差异内容");
+    return;
+  }
+  await navigator.clipboard.writeText(content);
+  ElMessage.success("差异内容已复制");
+};
+
+watch([leftText, rightText, ignoreWhitespace, ignoreCase], compare, { immediate: true });
 </script>
 
 <style scoped>
-.text-diff {
-  background: var(--theme-background);
-  min-height: calc(100vh - 80px);
-  padding: 24px;
-}
-
-.tool-header {
-  max-width: 1200px;
-  margin: 0 auto 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.back-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--theme-text);
-}
-
-.back-btn:hover {
-  border-color: var(--theme-primary);
-  color: var(--theme-primary);
-}
-
-.tool-header h1 {
-  font-size: 28px;
-  font-weight: 800;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-}
-
-.tool-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.input-section {
+.workbench {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.text-input-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: 20px;
-  box-shadow: var(--glass-shadow);
-}
-
-.input-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.input-header h3 {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--theme-text);
-  margin: 0;
-}
-
-.input-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.text-input {
-  margin-bottom: 12px;
-}
-
-.text-input :deep(.el-textarea__inner) {
-  font-family: monospace;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.text-stats {
-  display: flex;
   gap: 16px;
-  font-size: 12px;
-  color: var(--theme-text-secondary);
 }
 
-.action-section {
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.panel {
+  padding: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.panel-head,
+.toolbar {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 24px;
 }
 
-.compare-btn,
-.swap-btn {
-  flex: 1;
-  font-weight: 600;
-}
-
-.result-section {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  box-shadow: var(--glass-shadow);
-}
-
-.result-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.result-header h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--theme-text);
+h2 {
   margin: 0;
+  color: #0f172a;
+  font-size: 18px;
 }
 
-.result-stats {
-  display: flex;
-  gap: 8px;
-}
-
-.result-tabs {
-  margin-top: 20px;
-}
-
-.diff-view {
-  font-family: monospace;
+p {
+  margin: 6px 0 0;
+  color: #64748b;
   font-size: 13px;
   line-height: 1.6;
 }
 
-.side-by-side {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.inline-actions,
+.toolbar-actions,
+.toolbar-options,
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.diff-column {
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  border-radius: var(--radius-md);
+.stats-line {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.side-view {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.diff-column-header {
-  padding: 12px 16px;
-  background: var(--theme-background);
-  border-bottom: 1px solid var(--theme-border);
-  font-weight: 600;
-  color: var(--theme-text);
+.diff-header {
+  padding: 10px 12px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.diff-content {
-  max-height: 400px;
-  overflow-y: auto;
+.diff-header:first-child,
+.side-view .diff-line:nth-child(2n + 1) {
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .diff-line {
-  padding: 4px 16px;
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  min-height: 30px;
+  padding: 6px 10px;
+  color: #0f172a;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
-.diff-line .line-num {
-  min-width: 40px;
-  text-align: right;
-  color: var(--theme-text-secondary);
-  font-size: 11px;
-  padding-top: 2px;
+.diff-line code {
+  font-family: inherit;
+  word-break: break-word;
 }
 
-.diff-line.removed {
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.diff-line.removed .line-num {
-  color: #ef4444;
+.line-no {
+  color: #94a3b8;
+  user-select: none;
 }
 
 .diff-line.added {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.12);
 }
 
-.diff-line.added .line-num {
-  color: #10b981;
+.diff-line.removed {
+  background: rgba(239, 68, 68, 0.12);
 }
 
-.diff-line.unchanged {
-  background: transparent;
+.diff-line.empty {
+  background: rgba(148, 163, 184, 0.08);
 }
 
-.unified {
-  max-height: 500px;
-  overflow-y: auto;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  border-radius: var(--radius-md);
-  padding: 16px;
+.unified-view {
+  max-height: 560px;
+  overflow: auto;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
 }
 
-.stats-card {
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.stat-item {
-  text-align: center;
-  padding: 20px;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  border-radius: var(--radius-lg);
+.stats-grid article {
+  padding: 16px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.stat-value {
-  font-size: 32px;
-  font-weight: 800;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
+.stats-grid strong {
+  display: block;
+  color: #0f172a;
+  font-size: 24px;
 }
 
-.stat-label {
+.stats-grid span {
+  color: #64748b;
   font-size: 13px;
-  color: var(--theme-text-secondary);
 }
 
-@media (max-width: 992px) {
-  .input-section {
+@media (max-width: 960px) {
+  .editor-grid,
+  .side-view,
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .side-by-side {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-card {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
-
-@media (max-width: 768px) {
-  .text-diff {
-    padding: 12px;
-  }
-
-  .tool-header {
+  .panel-head,
+  .toolbar {
     flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .tool-header h1 {
-    font-size: 22px;
-  }
-
-  .action-section {
-    flex-direction: column;
-  }
-
-  .stats-card {
-    grid-template-columns: 1fr;
   }
 }
 </style>

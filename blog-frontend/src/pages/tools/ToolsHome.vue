@@ -1,175 +1,93 @@
 <template>
   <SimpleLayout>
-    <div class="tools-home">
-      <section class="hero-section">
-        <div class="hero-card">
-          <div class="hero-copy">
-            <span class="hero-eyebrow">Tool Hub</span>
-            <h1>把开发里的高频小动作，压缩成一套随手可用的工具。</h1>
-            <p>
-              覆盖 JSON、正则、时间戳、图片处理、编码转换和接口调试，
-              打开就能用，不需要跳转到一堆零散页面里。
-            </p>
-
-            <div class="hero-search">
-              <el-input
-                v-model="searchQuery"
-                clearable
-                placeholder="搜索工具名称、用途或关键词"
-              />
-            </div>
-
-            <div class="hero-actions">
-              <el-button
-                type="primary"
-                round
-                size="large"
-                @click="startWithFirstMatch"
-              >
-                立即开始
-              </el-button>
-              <el-button
-                v-if="recentTools.length"
-                round
-                size="large"
-                @click="openRecentTool"
-              >
-                继续最近工具
-              </el-button>
-            </div>
-          </div>
-
-          <div class="hero-metrics">
-            <article
-              v-for="item in metrics"
-              :key="item.label"
-              class="metric-card"
-            >
-              <strong>{{ item.value }}</strong>
-              <span>{{ item.label }}</span>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="filter-section">
-        <div class="filters">
-          <button
-            v-for="item in filterOptions"
-            :key="item.key"
-            class="filter-chip"
-            :class="{ active: activeFilter === item.key }"
-            @click="activeFilter = item.key"
-          >
-            {{ item.label }}
-          </button>
+    <div class="tool-desk">
+      <aside class="desk-sidebar">
+        <div class="desk-brand">
+          <span>Toolbox</span>
+          <strong>{{ TOOL_CATALOG.length }}</strong>
         </div>
 
-        <div class="filter-meta">
-          <span>{{ filteredTools.length }} 个可用工具</span>
-          <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
-            清除搜索
-          </button>
-        </div>
-      </section>
+        <button
+          v-for="item in filterOptions"
+          :key="item.key"
+          class="nav-item"
+          :class="{ active: activeFilter === item.key }"
+          type="button"
+          @click="activeFilter = item.key"
+        >
+          <span>{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+        </button>
+      </aside>
 
-      <section v-if="recentTools.length" class="recent-section">
-        <div class="section-head">
+      <main class="desk-main">
+        <section class="desk-toolbar">
           <div>
-            <span class="section-kicker">最近使用</span>
-            <h2>继续你的上一次操作</h2>
+            <span class="toolbar-kicker">开发 / 爬虫 / 文本 / 图片</span>
+            <h1>工具中心</h1>
+            <p>用更短的路径完成格式化、转换、对比、生成和调试。</p>
           </div>
-        </div>
 
-        <div class="recent-grid">
+          <div class="toolbar-search">
+            <el-input
+              v-model="searchQuery"
+              clearable
+              size="large"
+              placeholder="搜索 JSON、curl、Header、图片、SQL..."
+              @keyup.enter="startWithFirstMatch"
+            />
+            <el-button type="primary" size="large" @click="startWithFirstMatch">
+              打开
+            </el-button>
+          </div>
+        </section>
+
+        <section class="desk-stats">
+          <article v-for="metric in metrics" :key="metric.label">
+            <strong>{{ metric.value }}</strong>
+            <span>{{ metric.label }}</span>
+          </article>
+        </section>
+
+        <section v-if="recentTools.length" class="quick-row">
+          <span>最近</span>
           <button
-            v-for="tool in recentTools.slice(0, 3)"
+            v-for="tool in recentTools.slice(0, 5)"
             :key="tool.slug"
-            class="recent-card"
+            type="button"
             @click="goToTool(tool.slug)"
           >
-            <span class="recent-card__icon" :style="{ background: tool.accent }">
-              <component :is="iconMap[tool.icon]" />
-            </span>
-            <div>
-              <strong>{{ tool.name }}</strong>
-              <span>{{ tool.description }}</span>
-            </div>
+            {{ tool.name }}
           </button>
-        </div>
-      </section>
+        </section>
 
-      <section v-if="featuredTools.length" class="featured-section">
-        <div class="section-head">
-          <div>
-            <span class="section-kicker">精选入口</span>
-            <h2>适合一打开就用的高频工具</h2>
-          </div>
-        </div>
-
-        <div class="featured-grid">
+        <section class="tool-grid" :class="{ 'is-empty': !filteredTools.length }">
           <button
-            v-for="tool in featuredTools"
-            :key="tool.slug"
-            class="featured-card"
-            @click="goToTool(tool.slug)"
-          >
-            <div class="featured-card__top">
-              <span class="featured-card__icon" :style="{ background: tool.accent }">
-                <component :is="iconMap[tool.icon]" />
-              </span>
-              <div class="featured-card__badges">
-                <span v-if="tool.featured" class="badge badge--featured">精选</span>
-                <span v-if="tool.isNew" class="badge badge--new">新增</span>
-              </div>
-            </div>
-            <h3>{{ tool.name }}</h3>
-            <p>{{ tool.description }}</p>
-            <div class="tag-row">
-              <span v-for="tag in tool.tags" :key="tag" class="tag">{{ tag }}</span>
-            </div>
-          </button>
-        </div>
-      </section>
-
-      <section
-        v-for="section in visibleSections"
-        :key="section.category.key"
-        class="tools-section"
-      >
-        <div class="section-head">
-          <div>
-            <span class="section-kicker">{{ section.category.label }}</span>
-            <h2>{{ section.category.description }}</h2>
-          </div>
-          <span class="section-count">{{ section.tools.length }} 个工具</span>
-        </div>
-
-        <div class="tools-grid">
-          <button
-            v-for="tool in section.tools"
+            v-for="tool in filteredTools"
             :key="tool.slug"
             class="tool-card"
+            type="button"
             @click="goToTool(tool.slug)"
           >
-            <div class="tool-card__top">
-              <span class="tool-card__icon" :style="{ background: tool.accent }">
-                <component :is="iconMap[tool.icon]" />
-              </span>
-              <span v-if="tool.isNew" class="badge badge--new">新</span>
-            </div>
-            <h3>{{ tool.name }}</h3>
-            <p>{{ tool.description }}</p>
-            <div class="tag-row">
-              <span v-for="tag in tool.tags" :key="tag" class="tag">{{ tag }}</span>
-            </div>
+            <span class="tool-icon" :style="{ background: tool.accent }">
+              <component :is="iconMap[tool.icon]" />
+            </span>
+            <span class="tool-copy">
+              <strong>
+                {{ tool.name }}
+                <em v-if="tool.isNew">NEW</em>
+              </strong>
+              <small>{{ tool.description }}</small>
+              <span class="tag-line">{{ tool.tags.slice(0, 3).join(" / ") }}</span>
+            </span>
           </button>
-        </div>
-      </section>
 
-      <div v-if="visibleSections.length === 0" class="empty-wrap">
-        <el-empty description="没有找到匹配的工具，换个关键词试试。" />
-      </div>
+          <el-empty
+            v-if="!filteredTools.length"
+            description="没有找到匹配的工具，换个关键词试试。"
+          />
+        </section>
+      </main>
     </div>
   </SimpleLayout>
 </template>
@@ -223,47 +141,46 @@ const iconMap: Record<ToolIconKey, Component> = {
   Brush,
 };
 
-const filterOptions: Array<{ key: FilterKey; label: string }> = [
-  { key: "all", label: "全部" },
+const categoryCounts = computed(() =>
+  TOOL_CATEGORIES.reduce<Record<string, number>>((result, category) => {
+    result[category.key] = TOOL_CATALOG.filter((tool) => tool.category === category.key).length;
+    return result;
+  }, {}),
+);
+
+const filterOptions = computed(() => [
+  { key: "all" as const, label: "全部工具", count: TOOL_CATALOG.length },
   ...TOOL_CATEGORIES.map((category) => ({
     key: category.key,
     label: category.label,
+    count: categoryCounts.value[category.key] || 0,
   })),
-];
+]);
+
+const normalizedKeyword = computed(() => searchQuery.value.trim().toLowerCase());
 
 const filteredTools = computed(() => {
-  const keyword = searchQuery.value.trim().toLowerCase();
+  const keyword = normalizedKeyword.value;
 
   return TOOL_CATALOG.filter((tool) => {
     const matchFilter =
       activeFilter.value === "all" || tool.category === activeFilter.value;
+    const searchable = [
+      tool.name,
+      tool.description,
+      TOOL_CATEGORIES.find((category) => category.key === tool.category)?.label || "",
+      ...tool.tags,
+    ].join(" ").toLowerCase();
 
-    const matchKeyword =
-      !keyword ||
-      tool.name.toLowerCase().includes(keyword) ||
-      tool.description.toLowerCase().includes(keyword) ||
-      tool.tags.some((tag) => tag.toLowerCase().includes(keyword));
-
-    return matchFilter && matchKeyword;
+    return matchFilter && (!keyword || searchable.includes(keyword));
   });
 });
 
-const featuredTools = computed(() =>
-  filteredTools.value.filter((tool) => tool.featured).slice(0, 4)
-);
-
-const visibleSections = computed(() =>
-  TOOL_CATEGORIES.map((category) => ({
-    category,
-    tools: filteredTools.value.filter((tool) => tool.category === category.key),
-  })).filter((section) => section.tools.length > 0)
-);
-
 const metrics = computed(() => [
-  { label: "工具总数", value: `${TOOL_CATALOG.length}` },
-  { label: "精选推荐", value: `${FEATURED_TOOLS.length}` },
-  { label: "最近使用", value: `${recentTools.value.length}` },
-  { label: "工具分类", value: `${TOOL_CATEGORIES.length}` },
+  { label: "当前结果", value: `${filteredTools.value.length}` },
+  { label: "精选工具", value: `${FEATURED_TOOLS.length}` },
+  { label: "新增能力", value: `${TOOL_CATALOG.filter((tool) => tool.isNew).length}` },
+  { label: "分类", value: `${TOOL_CATEGORIES.length}` },
 ]);
 
 const goToTool = (tool: string) => {
@@ -272,304 +189,339 @@ const goToTool = (tool: string) => {
 
 const startWithFirstMatch = () => {
   const target = filteredTools.value[0];
-  if (target) {
-    goToTool(target.slug);
-  }
-};
-
-const openRecentTool = () => {
-  const target = recentTools.value[0];
-  if (target) {
-    goToTool(target.slug);
-  }
+  if (target) goToTool(target.slug);
 };
 </script>
 
 <style scoped>
-.tools-home {
-  min-height: calc(100vh - 80px);
-  padding: 12px 0 24px;
-}
-
-.hero-section,
-.filter-section,
-.recent-section,
-.featured-section,
-.tools-section {
-  margin-bottom: 24px;
-}
-
-.hero-card {
+.tool-desk {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.8fr);
-  gap: 24px;
-  padding: 28px 32px;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.78)),
-    linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(15, 23, 42, 0.02));
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 18px;
+  height: calc(100vh - 92px);
+  min-height: 620px;
+  padding: 8px 0 24px;
+  overflow: hidden;
 }
 
-.hero-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.desk-sidebar,
+.desk-toolbar,
+.desk-stats article,
+.quick-row,
+.tool-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.hero-eyebrow,
-.section-kicker {
-  display: inline-flex;
-  width: fit-content;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--theme-primary-light);
-  color: var(--theme-primary);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.hero-copy h1 {
-  margin: 0;
-  max-width: 580px;
-  font-size: clamp(24px, 2.8vw, 34px);
-  line-height: 1.22;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-}
-
-.hero-copy p,
-.tool-card p,
-.featured-card p,
-.recent-card span {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.hero-actions,
-.filters,
-.tag-row,
-.filter-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.hero-metrics {
+.desk-sidebar {
+  position: sticky;
+  top: 88px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px;
+  height: fit-content;
+  padding: 10px;
+}
+
+.desk-brand,
+.nav-item,
+.tool-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.metric-card {
-  padding: 16px 18px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+.desk-brand {
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0f172a, #155e75);
+  color: white;
 }
 
-.metric-card strong {
-  display: block;
-  margin-bottom: 4px;
-  color: #0f172a;
+.desk-brand span,
+.toolbar-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.desk-brand strong {
   font-size: 22px;
-  font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
 }
 
-.metric-card span,
-.section-count,
-.filter-meta span {
+.nav-item {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.nav-item strong {
   color: #94a3b8;
   font-size: 12px;
 }
 
-.filter-section {
+.nav-item:hover,
+.nav-item.active {
+  border-color: rgba(20, 184, 166, 0.26);
+  background: rgba(20, 184, 166, 0.09);
+  color: #0f766e;
+}
+
+.desk-main {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
-.filter-chip,
-.clear-btn {
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  border-radius: 999px;
-  padding: 7px 14px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.filter-chip:hover,
-.filter-chip.active,
-.clear-btn:hover {
-  background: var(--theme-primary);
-  border-color: var(--theme-primary);
-  color: white;
-}
-
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: flex-end;
-  margin-bottom: 14px;
-}
-
-.section-head h2 {
-  margin: 6px 0 0;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: #0f172a;
-}
-
-.recent-grid,
-.featured-grid,
-.tools-grid {
+.desk-toolbar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.78fr);
+  gap: 18px;
+  align-items: end;
+  padding: 18px;
 }
 
-.recent-card,
-.featured-card,
+.toolbar-kicker {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: #0f766e;
+}
+
+.desk-toolbar h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.desk-toolbar p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.toolbar-search {
+  display: flex;
+  gap: 10px;
+}
+
+.desk-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.desk-stats article {
+  padding: 12px;
+}
+
+.desk-stats strong,
+.desk-stats span {
+  display: block;
+}
+
+.desk-stats strong {
+  color: #0f172a;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.desk-stats span {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.quick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+  overflow-x: auto;
+}
+
+.quick-row span {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.quick-row button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #f1f5f9;
+  color: #334155;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: 12px;
+  flex: 1;
+  margin-top: 12px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.tool-grid.is-empty {
+  display: block;
+  padding: 40px 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .tool-card {
-  width: 100%;
-  border: none;
-  padding: 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.06);
+  min-height: 92px;
+  padding: 12px;
   text-align: left;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.recent-card:hover,
-.featured-card:hover,
 .tool-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 22px 36px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(20, 184, 166, 0.34);
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
 }
 
-.recent-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.recent-card__icon,
-.featured-card__icon,
-.tool-card__icon {
-  width: 52px;
-  height: 52px;
+.tool-icon {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border-radius: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   color: white;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.featured-card__top,
-.tool-card__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 18px;
-}
-
-.featured-card__badges {
-  display: flex;
-  gap: 8px;
-}
-
-.featured-card h3,
-.tool-card h3 {
-  margin: 0 0 10px;
-  color: #0f172a;
   font-size: 20px;
-  line-height: 1.3;
 }
 
-.tag {
-  display: inline-flex;
-  padding: 6px 10px;
+.tool-copy {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  flex: 1;
+}
+
+.tool-copy strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.tool-copy em {
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
-  color: #475569;
+  padding: 2px 6px;
+  background: rgba(15, 118, 110, 0.12);
+  color: #0f766e;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.tool-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.tag-line {
+  overflow: hidden;
+  color: #94a3b8;
   font-size: 12px;
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.badge {
-  display: inline-flex;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.badge--featured {
-  background: rgba(79, 70, 229, 0.12);
-  color: var(--theme-primary);
-}
-
-.badge--new {
-  background: rgba(15, 23, 42, 0.08);
-  color: #0f172a;
-}
-
-.empty-wrap {
-  padding: 42px 0;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.78);
-}
-
-@media (max-width: 1200px) {
-  .hero-card {
+@media (max-width: 1180px) {
+  .tool-desk {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
-  .recent-grid,
-  .featured-grid,
-  .tools-grid {
+  .desk-sidebar {
+    position: static;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .desk-brand {
+    grid-column: 1 / -1;
+  }
+
+  .tool-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-y: auto;
   }
 }
 
-@media (max-width: 768px) {
-  .hero-card,
-  .recent-card,
-  .featured-card,
-  .tool-card {
-    padding: 18px;
-  }
-
-  .hero-metrics,
-  .recent-grid,
-  .featured-grid,
-  .tools-grid {
+@media (max-width: 760px) {
+  .desk-toolbar,
+  .tool-grid {
     grid-template-columns: 1fr;
   }
 
-  .section-head {
+  .desk-toolbar {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .desk-toolbar h1 {
+    font-size: 24px;
+  }
+
+  .desk-toolbar p,
+  .desk-stats,
+  .quick-row {
+    display: none;
+  }
+
+  .desk-sidebar {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .desk-brand,
+  .nav-item {
+    min-width: 138px;
+  }
+
+  .toolbar-search {
     flex-direction: column;
-    align-items: flex-start;
+  }
+
+  .tool-card {
+    min-height: 82px;
   }
 }
 </style>

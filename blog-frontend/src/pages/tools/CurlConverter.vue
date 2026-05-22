@@ -1,385 +1,508 @@
 <template>
-  <SimpleLayout>
-    <div class="curl-converter">
-      <div class="tool-container">
-        <div class="page-header">
-          <el-button type="primary" link @click="router.back()" class="back-btn">
-            <el-icon><ArrowLeft /></el-icon>
-            返回
-          </el-button>
-          <h1>curl转requests</h1>
+  <ToolPageShell
+    title="curl 转代码"
+    description="解析 curl 命令，生成 Python requests、JavaScript fetch，并展示请求摘要。"
+    eyebrow="开发调试"
+    :meta="meta"
+  >
+    <div class="workbench">
+      <section class="panel input-panel">
+        <div class="panel-head">
+          <div>
+            <h2>curl 命令</h2>
+            <p>支持常见 header、cookie、query、JSON body、表单和文件上传参数。</p>
+          </div>
+          <el-button text :icon="Delete" @click="clearAll">清空</el-button>
         </div>
 
-        <div class="tool-content">
-          <div class="input-section">
-            <h3>输入curl命令</h3>
-            <el-input
-              v-model="curlInput"
-              type="textarea"
-              :rows="10"
-              :placeholder="curlPlaceholder"
-            />
-            <div class="button-group">
-              <el-button type="primary" @click="convertCurl" class="action-btn">
-                <el-icon><RefreshRight /></el-icon>
-                转换
-              </el-button>
-              <el-button @click="clearInput" class="action-btn">
-                清空
-              </el-button>
-            </div>
-          </div>
+        <el-input v-model="curlInput" type="textarea" :rows="16" :placeholder="placeholder" />
 
-          <div class="output-section">
-            <h3>Python requests代码</h3>
-            <div class="result-box">
-              <div class="code-header">
-                <span>python</span>
-                <el-button @click="copyResult" class="copy-btn" size="small">
-                  <el-icon><DocumentCopy /></el-icon>
-                  复制代码
-                </el-button>
-              </div>
-              <div class="code-wrapper">
-                <pre><code>{{ pythonCode }}</code></pre>
-              </div>
-            </div>
+        <div class="example-grid">
+          <button v-for="item in examples" :key="item.title" class="example-card" @click="useExample(item.curl)">
+            <strong>{{ item.title }}</strong>
+            <span>{{ item.description }}</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <div>
+            <h2>输出代码</h2>
+            <p>切换语言后会保留同一份解析结果。</p>
+          </div>
+          <div class="inline-actions">
+            <el-segmented v-model="target" :options="targetOptions" />
+            <el-button :icon="DocumentCopy" @click="copy(outputCode)">复制</el-button>
           </div>
         </div>
 
-        <div class="examples-section" v-if="examples.length > 0">
-          <h3>示例</h3>
-          <div class="examples-grid">
-            <div v-for="(example, index) in examples" :key="index" class="example-card" @click="useExample(example)">
-              <h4>{{ example.title }}</h4>
-              <p>{{ example.description }}</p>
-            </div>
-          </div>
+        <el-alert v-if="parseError" :title="parseError" type="error" show-icon :closable="false" class="alert" />
+        <pre class="code-block"><code>{{ outputCode || "转换结果会显示在这里" }}</code></pre>
+      </section>
+
+      <section class="panel summary-panel">
+        <div class="summary-item">
+          <span>Method</span>
+          <strong>{{ requestInfo.method || "-" }}</strong>
         </div>
-      </div>
+        <div class="summary-item summary-item--url">
+          <span>URL</span>
+          <strong>{{ requestInfo.url || "-" }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Headers</span>
+          <strong>{{ Object.keys(requestInfo.headers).length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Body</span>
+          <strong>{{ bodyLabel }}</strong>
+        </div>
+      </section>
     </div>
-  </SimpleLayout>
+  </ToolPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { ArrowLeft, DocumentCopy, RefreshRight } from '@element-plus/icons-vue'
-import SimpleLayout from '@/layout/SimpleLayout.vue'
+import { computed, reactive, ref, watch } from "vue";
+import { Delete, DocumentCopy } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 
-const router = useRouter()
-const curlPlaceholder = `请输入curl命令，例如：
-curl -X POST https://api.example.com/data \\
-  -H 'Content-Type: application/json' \\
-  -d '{"key": "value"}'`
-const curlInput = ref('')
-const pythonCode = ref('')
+type Target = "python" | "fetch" | "feapder";
 
-const examples = ref([
+interface ParsedRequest {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  cookies: Record<string, string>;
+  data: string;
+  forms: Record<string, string>;
+  files: Record<string, string>;
+  params: Record<string, string>;
+}
+
+const placeholder = `curl -X POST https://api.example.com/users \\
+  -H "Authorization: Bearer token" \\
+  -H "Content-Type: application/json" \\
+  -d '{"name":"MyBlob"}'`;
+
+const curlInput = ref(placeholder);
+const target = ref<Target>("python");
+const parseError = ref("");
+const requestInfo = reactive<ParsedRequest>({
+  method: "",
+  url: "",
+  headers: {},
+  cookies: {},
+  data: "",
+  forms: {},
+  files: {},
+  params: {},
+});
+
+const targetOptions = [
+  { label: "Python", value: "python" },
+  { label: "fetch", value: "fetch" },
+  { label: "feapder", value: "feapder" },
+];
+
+const examples = [
   {
-    title: 'GET请求',
-    description: '简单的GET请求示例',
-    curl: `curl https://api.example.com/users`
+    title: "JSON POST",
+    description: "带认证头和 JSON body",
+    curl: placeholder,
   },
   {
-    title: 'POST请求',
-    description: '带JSON数据的POST请求',
-    curl: `curl -X POST https://api.example.com/users \\
-  -H 'Content-Type: application/json' \\
-  -d '{"name": "John", "email": "john@example.com"}'`
+    title: "Query GET",
+    description: "带 query 参数",
+    curl: `curl 'https://api.example.com/search?q=myblob&page=1' -H 'Accept: application/json'`,
   },
   {
-    title: '带认证',
-    description: '带Authorization头的请求',
-    curl: `curl -X GET https://api.example.com/protected \\
-  -H 'Authorization: Bearer your-token-here'`
+    title: "文件上传",
+    description: "multipart/form-data",
+    curl: `curl -X POST https://api.example.com/upload -F 'file=@/tmp/report.pdf' -F 'name=report'`,
   },
-  {
-    title: '文件上传',
-    description: 'multipart/form-data文件上传',
-    curl: `curl -X POST https://api.example.com/upload \\
-  -F 'file=@/path/to/file.txt' \\
-  -F 'description=My file'`
+];
+
+const hasBody = computed(() => Boolean(requestInfo.data || Object.keys(requestInfo.forms).length || Object.keys(requestInfo.files).length));
+const bodyLabel = computed(() => {
+  if (requestInfo.data) return "raw/json";
+  if (Object.keys(requestInfo.files).length) return "multipart";
+  if (Object.keys(requestInfo.forms).length) return "form";
+  return "none";
+});
+
+const outputCode = computed(() => {
+  if (parseError.value || !requestInfo.url) return "";
+  if (target.value === "python") return toPython(requestInfo);
+  if (target.value === "feapder") return toFeapder(requestInfo);
+  return toFetch(requestInfo);
+});
+
+const meta = computed(() => [
+  { label: "请求方法", value: requestInfo.method || "-" },
+  { label: "Header 数", value: `${Object.keys(requestInfo.headers).length}` },
+  { label: "Body 类型", value: bodyLabel.value },
+]);
+
+const resetRequest = () => {
+  requestInfo.method = "GET";
+  requestInfo.url = "";
+  requestInfo.headers = {};
+  requestInfo.cookies = {};
+  requestInfo.data = "";
+  requestInfo.forms = {};
+  requestInfo.files = {};
+  requestInfo.params = {};
+};
+
+const tokenize = (input: string) => {
+  const tokens: string[] = [];
+  let current = "";
+  let quote = "";
+  let escaped = false;
+  const normalized = input.replace(/\\\r?\n/g, " ");
+
+  for (const char of normalized) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) quote = "";
+      else current += char;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (/\s/.test(char)) {
+      if (current) {
+        tokens.push(current);
+        current = "";
+      }
+      continue;
+    }
+    current += char;
   }
-])
 
-const convertCurl = () => {
-  if (!curlInput.value.trim()) {
-    ElMessage.warning('请输入curl命令')
-    return
-  }
+  if (current) tokens.push(current);
+  return tokens;
+};
 
+const setUrl = (value: string) => {
   try {
-    pythonCode.value = parseCurl(curlInput.value)
-    ElMessage.success('转换成功！')
-  } catch (error) {
-    ElMessage.error('转换失败，请检查curl命令格式')
-    pythonCode.value = '# 转换失败，请检查curl命令格式'
+    const parsed = new URL(value);
+    parsed.searchParams.forEach((paramValue, key) => {
+      requestInfo.params[key] = paramValue;
+    });
+    parsed.search = "";
+    requestInfo.url = parsed.toString();
+  } catch {
+    requestInfo.url = value;
   }
-}
+};
 
-const parseCurl = (curlCmd: string): string => {
-  let url = ''
-  let method = 'GET'
-  const headers: { [key: string]: string } = {}
-  let data = ''
-  let dataType = ''
-  const files: { [key: string]: string } = {}
+const parseCurl = () => {
+  parseError.value = "";
+  resetRequest();
 
-  const lines = curlCmd.replace(/\\\r?\n/g, ' ').split(/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+  const tokens = tokenize(curlInput.value.trim());
+  if (!tokens.length || tokens[0] !== "curl") {
+    parseError.value = "请输入以 curl 开头的命令";
+    return;
+  }
 
-  let i = 0
-  while (i < lines.length) {
-    const token = lines[i].trim()
-    if (!token || token === 'curl') {
-      i++
-      continue
+  for (let index = 1; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    const next = tokens[index + 1];
+
+    if ((token === "-X" || token === "--request") && next) {
+      requestInfo.method = next.toUpperCase();
+      index += 1;
+    } else if ((token === "-H" || token === "--header") && next) {
+      const [key, ...rest] = next.split(":");
+      if (key && rest.length) requestInfo.headers[key.trim()] = rest.join(":").trim();
+      index += 1;
+    } else if ((token === "-b" || token === "--cookie") && next) {
+      next.split(";").forEach((part) => {
+        const [key, value] = part.split("=");
+        if (key && value) requestInfo.cookies[key.trim()] = value.trim();
+      });
+      index += 1;
+    } else if (["-d", "--data", "--data-raw", "--data-binary", "--data-urlencode"].includes(token) && next) {
+      requestInfo.data = next;
+      if (requestInfo.method === "GET") requestInfo.method = "POST";
+      index += 1;
+    } else if ((token === "-F" || token === "--form") && next) {
+      const [key, value = ""] = next.split("=");
+      if (value.startsWith("@")) requestInfo.files[key] = value.slice(1);
+      else requestInfo.forms[key] = value;
+      if (requestInfo.method === "GET") requestInfo.method = "POST";
+      index += 1;
+    } else if (token.startsWith("http")) {
+      setUrl(token);
     }
+  }
 
-    if (token === '-X' || token === '--request') {
-      method = lines[i + 1].toUpperCase()
-      i += 2
-    } else if (token === '-H' || token === '--header') {
-      const header = lines[i + 1].replace(/^['"]|['"]$/g, '')
-      const [key, value] = header.split(/:\s*/, 2)
-      if (key && value) {
-        headers[key] = value
+  if (!requestInfo.url) {
+    parseError.value = "未识别到请求 URL";
+  }
+};
+
+const quote = (value: string) => JSON.stringify(value);
+
+const objectLiteral = (value: Record<string, string>, indent = "  ") => {
+  const entries = Object.entries(value);
+  if (!entries.length) return "{}";
+  return `{\n${entries.map(([key, item]) => `${indent}${quote(key)}: ${quote(item)}`).join(",\n")}\n}`;
+};
+
+const isJsonBody = (info: ParsedRequest) => {
+  return (info.headers["Content-Type"] || info.headers["content-type"] || "").includes("json") || /^[\[{]/.test(info.data.trim());
+};
+
+const toPython = (info: ParsedRequest) => {
+  const lines = ["import requests", ""];
+  lines.push(`url = ${quote(info.url)}`);
+  if (Object.keys(info.params).length) lines.push(`params = ${objectLiteral(info.params, "    ")}`);
+  if (Object.keys(info.headers).length) lines.push(`headers = ${objectLiteral(info.headers, "    ")}`);
+  if (Object.keys(info.cookies).length) lines.push(`cookies = ${objectLiteral(info.cookies, "    ")}`);
+  if (info.data) {
+    if (isJsonBody(info)) {
+      try {
+        lines.push(`json_data = ${JSON.stringify(JSON.parse(info.data), null, 4)}`);
+      } catch {
+        lines.push(`data = ${quote(info.data)}`);
       }
-      i += 2
-    } else if (token === '-d' || token === '--data' || token === '--data-raw' || token === '--data-binary') {
-      data = lines[i + 1].replace(/^['"]|['"]$/g, '')
-      dataType = 'json'
-      i += 2
-    } else if (token === '-F' || token === '--form') {
-      const form = lines[i + 1].replace(/^['"]|['"]$/g, '')
-      const [key, value] = form.split('=', 2)
-      if (value && value.startsWith('@')) {
-        files[key] = value.slice(1)
-      }
-      i += 2
-    } else if (token.startsWith('http')) {
-      url = token
-      i++
-    } else if (token.startsWith('-')) {
-      i += 2
     } else {
-      i++
+      lines.push(`data = ${quote(info.data)}`);
     }
   }
+  if (Object.keys(info.forms).length) lines.push(`data = ${objectLiteral(info.forms, "    ")}`);
+  if (Object.keys(info.files).length) {
+    lines.push("files = {");
+    Object.entries(info.files).forEach(([key, path]) => lines.push(`    ${quote(key)}: open(${quote(path)}, "rb"),`));
+    lines.push("}");
+  }
 
-  let code = 'import requests\n\n'
+  const args = ["url"];
+  if (Object.keys(info.params).length) args.push("params=params");
+  if (Object.keys(info.headers).length) args.push("headers=headers");
+  if (Object.keys(info.cookies).length) args.push("cookies=cookies");
+  if (info.data && isJsonBody(info)) args.push("json=json_data");
+  else if (info.data || Object.keys(info.forms).length) args.push("data=data");
+  if (Object.keys(info.files).length) args.push("files=files");
+  lines.push("");
+  lines.push(`response = requests.${info.method.toLowerCase()}(${args.join(", ")})`);
+  lines.push("response.raise_for_status()");
+  lines.push("print(response.text)");
+  return lines.join("\n");
+};
 
-  if (Object.keys(headers).length > 0) {
-    code += 'headers = {\n'
-    for (const [key, value] of Object.entries(headers)) {
-      code += `    '${key}': '${value}',\n`
+const toFetch = (info: ParsedRequest) => {
+  const headers = { ...info.headers };
+  let body = "";
+
+  if (info.data) {
+    body = isJsonBody(info) ? `JSON.stringify(${JSON.stringify(JSON.parse(info.data), null, 2)})` : quote(info.data);
+  } else if (Object.keys(info.forms).length) {
+    body = `new URLSearchParams(${objectLiteral(info.forms)})`;
+  }
+
+  const url = Object.keys(info.params).length
+    ? `${info.url}?${new URLSearchParams(info.params).toString()}`
+    : info.url;
+
+  const options = [`method: ${quote(info.method)}`];
+  if (Object.keys(headers).length) options.push(`headers: ${objectLiteral(headers)}`);
+  if (body) options.push(`body: ${body}`);
+
+  return `const response = await fetch(${quote(url)}, {\n  ${options.join(",\n  ")}\n});\n\nif (!response.ok) {\n  throw new Error(\`HTTP \${response.status}\`);\n}\n\nconst data = await response.text();\nconsole.log(data);`;
+};
+
+const toFeapder = (info: ParsedRequest) => {
+  const lines = ["import feapder", "", "class DemoSpider(feapder.AirSpider):", "    def start_requests(self):"];
+  const args = [`${quote(info.url)}`];
+  args.push(`method=${quote(info.method)}`);
+  if (Object.keys(info.params).length) args.push(`params=${objectLiteral(info.params, "            ")}`);
+  if (Object.keys(info.headers).length) args.push(`headers=${objectLiteral(info.headers, "            ")}`);
+  if (Object.keys(info.cookies).length) args.push(`cookies=${objectLiteral(info.cookies, "            ")}`);
+  if (info.data && isJsonBody(info)) {
+    try {
+      args.push(`json=${JSON.stringify(JSON.parse(info.data), null, 12).replace(/\n/g, "\n        ")}`);
+    } catch {
+      args.push(`data=${quote(info.data)}`);
     }
-    code += '}\n\n'
+  } else if (info.data) {
+    args.push(`data=${quote(info.data)}`);
   }
+  lines.push(`        yield feapder.Request(${args.join(", ")})`);
+  lines.push("");
+  lines.push("    def parse(self, request, response):");
+  lines.push("        print(response.status_code)");
+  lines.push("        print(response.text)");
+  lines.push("");
+  lines.push("if __name__ == \"__main__\":");
+  lines.push("    DemoSpider().start()");
+  return lines.join("\n");
+};
 
-  if (data) {
-    if (dataType === 'json') {
-      code += `data = ${data}\n\n`
-    } else {
-      code += `data = '${data}'\n\n`
-    }
+const copy = async (value: string) => {
+  if (!value) {
+    ElMessage.warning("没有内容可复制");
+    return;
   }
+  await navigator.clipboard.writeText(value);
+  ElMessage.success("已复制");
+};
 
-  if (Object.keys(files).length > 0) {
-    code += 'files = {\n'
-    for (const [key, value] of Object.entries(files)) {
-      code += `    '${key}': open('${value}', 'rb'),\n`
-    }
-    code += '}\n\n'
-  }
+const clearAll = () => {
+  curlInput.value = "";
+  resetRequest();
+};
 
-  code += `response = requests.${method.toLowerCase()}('${url}'`
+const useExample = (value: string) => {
+  curlInput.value = value;
+};
 
-  if (Object.keys(headers).length > 0) {
-    code += ', headers=headers'
-  }
-
-  if (data && dataType === 'json') {
-    code += ', json=data'
-  } else if (data) {
-    code += ', data=data'
-  }
-
-  if (Object.keys(files).length > 0) {
-    code += ', files=files'
-  }
-
-  code += ')\n\n'
-  code += 'print(response.status_code)\n'
-  code += 'print(response.text)\n'
-
-  return code
-}
-
-const clearInput = () => {
-  curlInput.value = ''
-  pythonCode.value = ''
-}
-
-const useExample = (example: any) => {
-  curlInput.value = example.curl
-  convertCurl()
-}
-
-const copyResult = () => {
-  if (!pythonCode.value) {
-    ElMessage.warning('没有内容可复制')
-    return
-  }
-  navigator.clipboard.writeText(pythonCode.value)
-  ElMessage.success('已复制到剪贴板')
-}
+watch(curlInput, parseCurl, { immediate: true });
 </script>
 
 <style scoped>
-.curl-converter {
-  background: var(--theme-background);
-  min-height: calc(100vh - 80px);
-  padding: 24px 0;
-}
-
-.tool-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.back-btn {
-  padding: 0;
-}
-
-.page-header h1 {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--theme-text);
-  margin: 0;
-}
-
-.tool-content {
+.workbench {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.input-section,
-.output-section {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
 }
 
-.input-section h3,
-.output-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--theme-text);
-  margin: 0;
+.panel {
+  padding: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
-.button-group {
-  display: flex;
+.summary-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 120px 120px;
   gap: 12px;
 }
 
-.action-btn {
-  align-self: flex-start;
-}
-
-.result-box {
-  background: #1e1e1e;
-  border-radius: 12px;
-  overflow: hidden;
-  flex: 1;
+.panel-head {
   display: flex;
-  flex-direction: column;
-}
-
-.code-header {
-  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #2d2d2d;
-  border-bottom: 1px solid #404040;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.code-header span {
-  color: #888;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.code-wrapper {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
-}
-
-.code-wrapper pre {
+h2 {
   margin: 0;
-}
-
-.code-wrapper code {
-  color: #d4d4d4;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.examples-section h3 {
+  color: #0f172a;
   font-size: 18px;
-  font-weight: 600;
-  color: var(--theme-text);
-  margin: 0 0 16px 0;
 }
 
-.examples-grid {
+p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.example-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .example-card {
-  background: var(--theme-card);
-  border-radius: 12px;
-  padding: 20px;
+  padding: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: #f8fafc;
+  text-align: left;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
 }
 
 .example-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: var(--theme-primary);
+  border-color: #14b8a6;
 }
 
-.example-card h4 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--theme-text);
-  margin: 0 0 8px 0;
+.example-card strong,
+.example-card span,
+.summary-item span,
+.summary-item strong {
+  display: block;
 }
 
-.example-card p {
-  font-size: 14px;
-  color: var(--theme-text-secondary);
+.example-card strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.example-card span,
+.summary-item span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.code-block {
+  min-height: 410px;
   margin: 0;
+  padding: 14px;
+  overflow: auto;
+  border-radius: 8px;
+  background: #111827;
+  color: #e5e7eb;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.alert {
+  margin-bottom: 12px;
+}
+
+.summary-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.summary-item strong {
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 15px;
+  word-break: break-all;
+}
+
+@media (max-width: 980px) {
+  .workbench,
+  .summary-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .example-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

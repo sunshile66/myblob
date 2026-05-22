@@ -1,9 +1,6 @@
 <template>
   <SimpleLayout>
     <div class="tool-shell">
-      <div class="tool-shell__glow tool-shell__glow--left" />
-      <div class="tool-shell__glow tool-shell__glow--right" />
-
       <div class="tool-shell__container">
         <section class="tool-shell__hero">
           <div class="tool-shell__copy">
@@ -72,29 +69,7 @@ const goBack = () => {
 .tool-shell {
   position: relative;
   overflow: hidden;
-  padding: 8px 0 32px;
-}
-
-.tool-shell__glow {
-  position: absolute;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.28;
-  pointer-events: none;
-}
-
-.tool-shell__glow--left {
-  top: 20px;
-  left: -100px;
-  background: rgba(34, 197, 94, 0.24);
-}
-
-.tool-shell__glow--right {
-  top: 60px;
-  right: -120px;
-  background: rgba(59, 130, 246, 0.22);
+  padding: 8px 0 28px;
 }
 
 .tool-shell__container {
@@ -106,17 +81,13 @@ const goBack = () => {
 .tool-shell__hero {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
-  gap: 24px;
-  margin-bottom: 28px;
-  padding: 28px;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.74)),
-    linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(59, 130, 246, 0.06));
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 .tool-shell__copy {
@@ -138,21 +109,21 @@ const goBack = () => {
 .tool-shell__eyebrow {
   display: inline-flex;
   width: fit-content;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--theme-primary);
-  font-size: 13px;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
 }
 
 .tool-shell__hero h1 {
   margin: 0;
-  font-size: clamp(22px, 2.6vw, 30px);
+  font-size: 28px;
   line-height: 1.25;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
@@ -166,16 +137,15 @@ const goBack = () => {
 
 .tool-shell__meta {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   align-content: start;
 }
 
 .tool-shell__meta-card {
-  padding: 18px;
-  border-radius: 22px;
+  padding: 14px;
+  border-radius: 8px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: #f8fafc;
 }
 
 .tool-shell__meta-card span {
@@ -199,8 +169,7 @@ const goBack = () => {
 @media (max-width: 960px) {
   .tool-shell__hero {
     grid-template-columns: 1fr;
-    padding: 22px;
-    border-radius: 24px;
+    padding: 18px;
   }
 }
 
@@ -211,7 +180,6 @@ const goBack = () => {
 
   .tool-shell__hero {
     gap: 18px;
-    padding: 18px;
     margin-bottom: 20px;
   }
 

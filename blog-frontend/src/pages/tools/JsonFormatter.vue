@@ -16,7 +16,17 @@
             <el-button type="primary" @click="formatJson">格式化</el-button>
             <el-button @click="minifyJson">压缩</el-button>
             <el-button @click="validateJson">校验</el-button>
+            <el-button @click="loadSample">示例</el-button>
           </div>
+        </div>
+
+        <div class="option-row">
+          <el-select v-model="indentSize" style="width: 130px" @change="formatJson">
+            <el-option label="2 空格" :value="2" />
+            <el-option label="4 空格" :value="4" />
+            <el-option label="Tab" :value="'\t'" />
+          </el-select>
+          <el-checkbox v-model="sortKeys" @change="formatJson">按键名排序</el-checkbox>
         </div>
 
         <el-input
@@ -54,6 +64,15 @@
         />
 
         <pre class="code-block">{{ outputJson || placeholder }}</pre>
+
+        <div class="path-finder">
+          <el-input v-model="jsonPath" placeholder="查询路径，例如 user.profile.name 或 items[0].id">
+            <template #append>
+              <el-button @click="queryJsonPath">查询</el-button>
+            </template>
+          </el-input>
+          <pre v-if="pathResult" class="path-result">{{ pathResult }}</pre>
+        </div>
       </section>
     </div>
   </ToolPageShell>
@@ -67,7 +86,23 @@ import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 const inputJson = ref("");
 const outputJson = ref("");
 const parseError = ref("");
+const indentSize = ref<number | "\t">(2);
+const sortKeys = ref(false);
+const jsonPath = ref("");
+const pathResult = ref("");
 const placeholder = "处理结果会显示在这里。";
+
+const jsonStats = computed(() => {
+  if (!outputJson.value) {
+    return { keys: 0, arrays: 0, objects: 0, depth: 0 };
+  }
+
+  try {
+    return collectStats(JSON.parse(outputJson.value));
+  } catch {
+    return { keys: 0, arrays: 0, objects: 0, depth: 0 };
+  }
+});
 
 const outputSummary = computed(() => {
   if (!outputJson.value) {
@@ -93,8 +128,58 @@ const outputLines = computed(() =>
 const toolMeta = computed(() => [
   { label: "当前状态", value: parseError.value ? "存在错误" : "可处理" },
   { label: "结果摘要", value: outputSummary.value },
+  { label: "结构深度", value: `${jsonStats.value.depth} 层` },
   { label: "输出行数", value: outputLines.value },
 ]);
+
+const sortObjectKeys = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(sortObjectKeys);
+  }
+  if (value && typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>)
+      .sort((left, right) => left.localeCompare(right))
+      .reduce<Record<string, unknown>>((result, key) => {
+        result[key] = sortObjectKeys((value as Record<string, unknown>)[key]);
+        return result;
+      }, {});
+  }
+  return value;
+};
+
+const collectStats = (value: unknown, depth = 1) => {
+  if (Array.isArray(value)) {
+    return value.reduce(
+      (stats, item) => {
+        const child = collectStats(item, depth + 1);
+        return {
+          keys: stats.keys + child.keys,
+          arrays: stats.arrays + child.arrays,
+          objects: stats.objects + child.objects,
+          depth: Math.max(stats.depth, child.depth),
+        };
+      },
+      { keys: 0, arrays: 1, objects: 0, depth }
+    );
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).reduce(
+      (stats, [, item]) => {
+        const child = collectStats(item, depth + 1);
+        return {
+          keys: stats.keys + 1 + child.keys,
+          arrays: stats.arrays + child.arrays,
+          objects: stats.objects + child.objects,
+          depth: Math.max(stats.depth, child.depth),
+        };
+      },
+      { keys: 0, arrays: 0, objects: 1, depth }
+    );
+  }
+
+  return { keys: 0, arrays: 0, objects: 0, depth };
+};
 
 const parseInput = () => {
   parseError.value = "";
@@ -104,23 +189,27 @@ const parseInput = () => {
   } catch {
     parseError.value = "JSON 格式错误，请检查逗号、引号或括号是否完整。";
     ElMessage.error(parseError.value);
-    return null;
+    return undefined;
   }
 };
 
 const formatJson = () => {
-  const parsed = parseInput();
-  if (parsed === null) {
+  let parsed = parseInput();
+  if (parsed === undefined) {
     return;
   }
 
-  outputJson.value = JSON.stringify(parsed, null, 2);
+  if (sortKeys.value) {
+    parsed = sortObjectKeys(parsed);
+  }
+
+  outputJson.value = JSON.stringify(parsed, null, indentSize.value);
   ElMessage.success("格式化完成");
 };
 
 const minifyJson = () => {
   const parsed = parseInput();
-  if (parsed === null) {
+  if (parsed === undefined) {
     return;
   }
 
@@ -130,18 +219,63 @@ const minifyJson = () => {
 
 const validateJson = () => {
   const parsed = parseInput();
-  if (parsed === null) {
+  if (parsed === undefined) {
     return;
   }
 
-  outputJson.value = JSON.stringify(parsed, null, 2);
+  outputJson.value = JSON.stringify(sortKeys.value ? sortObjectKeys(parsed) : parsed, null, indentSize.value);
   ElMessage.success("JSON 校验通过");
+};
+
+const queryJsonPath = () => {
+  const parsed = outputJson.value ? JSON.parse(outputJson.value) : parseInput();
+  if (parsed === undefined) {
+    return;
+  }
+
+  const tokens = jsonPath.value
+    .replace(/\[(\d+)\]/g, ".$1")
+    .split(".")
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  const result = tokens.reduce<unknown>((current, token) => {
+    if (current === undefined || current === null) return undefined;
+    return (current as Record<string, unknown>)[token];
+  }, parsed);
+
+  if (result === undefined) {
+    pathResult.value = "未找到该路径";
+    return;
+  }
+
+  pathResult.value = typeof result === "string" ? result : JSON.stringify(result, null, 2);
+};
+
+const loadSample = () => {
+  inputJson.value = JSON.stringify(
+    {
+      user: {
+        id: 1001,
+        profile: { name: "MyBlob", role: "author" },
+      },
+      items: [
+        { id: "post-1", title: "UI polish", published: true },
+        { id: "tool-1", title: "JSON formatter", published: false },
+      ],
+    },
+    null,
+    2
+  );
+  formatJson();
 };
 
 const clearAll = () => {
   inputJson.value = "";
   outputJson.value = "";
   parseError.value = "";
+  jsonPath.value = "";
+  pathResult.value = "";
 };
 
 const copyText = async (text: string, successMessage: string) => {
@@ -179,11 +313,11 @@ const downloadOutput = () => {
 }
 
 .panel {
-  padding: 22px;
-  border-radius: 24px;
+  padding: 16px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 .panel-header {
@@ -196,7 +330,7 @@ const downloadOutput = () => {
 .panel-header h2 {
   margin: 0 0 6px;
   color: #0f172a;
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .panel-header p {
@@ -206,10 +340,16 @@ const downloadOutput = () => {
 }
 
 .actions,
-.sub-actions {
+.sub-actions,
+.option-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.option-row {
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .sub-actions {
@@ -226,12 +366,30 @@ const downloadOutput = () => {
   margin: 0;
   padding: 18px;
   overflow: auto;
-  border-radius: 18px;
+  border-radius: 8px;
   background: #0f172a;
   color: #e2e8f0;
   font-size: 14px;
   line-height: 1.7;
   font-family: "Consolas", "Monaco", monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.path-finder {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.path-result {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }

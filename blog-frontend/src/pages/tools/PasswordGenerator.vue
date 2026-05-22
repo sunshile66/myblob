@@ -1,402 +1,409 @@
 <template>
-  <SimpleLayout>
-    <div class="tool-page">
-      <div class="tool-container">
-        <div class="page-header">
-          <div class="header-with-back">
-            <el-button @click="router.push('/tools')" class="back-btn">
-              <el-icon><ArrowLeft /></el-icon>
-              返回
-            </el-button>
-            <div class="header-text">
-              <h1>🔐 密码生成器</h1>
-              <p>安全、随机的强密码生成</p>
-            </div>
+  <ToolPageShell
+    title="密码生成器"
+    description="生成随机密码、PIN 和可读口令，支持批量生成、排除易混字符与强度评估。"
+    eyebrow="安全与标识"
+    :meta="meta"
+  >
+    <div class="workbench">
+      <section class="panel panel--main">
+        <div class="section-head">
+          <div>
+            <h2>生成结果</h2>
+            <p>优先使用浏览器加密随机数，生成后可直接复制或批量导出。</p>
+          </div>
+          <el-button type="primary" :icon="Refresh" @click="generatePasswords">重新生成</el-button>
+        </div>
+
+        <div class="primary-result">
+          <el-input v-model="primaryPassword" readonly size="large" placeholder="生成结果会显示在这里">
+            <template #append>
+              <el-button :icon="DocumentCopy" @click="copy(primaryPassword)">复制</el-button>
+            </template>
+          </el-input>
+          <div class="strength-row">
+            <span>{{ strength.label }}</span>
+            <el-progress :percentage="strength.score" :color="strength.color" :show-text="false" />
+            <strong :style="{ color: strength.color }">{{ strengthText }}</strong>
           </div>
         </div>
 
-        <div class="tool-card">
-          <div class="result-section">
-            <div class="password-display">
-              <el-input
-                v-model="generatedPassword"
-                readonly
-                placeholder="点击生成密码"
-                size="large"
-              >
-                <template #append>
-                  <el-button @click="copyPassword" :icon="DocumentCopy"
-                    >复制</el-button
-                  >
-                </template>
-              </el-input>
-            </div>
-            <div class="strength-indicator">
-              <span>密码强度:</span>
-              <div class="strength-bar">
-                <div
-                  class="strength-fill"
-                  :style="{
-                    width: strengthPercent + '%',
-                    background: strengthColor,
-                  }"
-                ></div>
-              </div>
-              <span class="strength-text" :style="{ color: strengthColor }">{{
-                strengthText
-              }}</span>
+        <div class="batch-list">
+          <div class="batch-head">
+            <h3>批量结果</h3>
+            <div class="batch-actions">
+              <el-button text :icon="DocumentCopy" @click="copy(batchPasswords.join('\n'))">复制全部</el-button>
+              <el-button text :icon="Delete" @click="clearHistory">清空历史</el-button>
             </div>
           </div>
 
-          <div class="options-section">
-            <div class="option-group">
-              <label>密码长度</label>
-              <div class="length-control">
-                <el-slider
-                  v-model="passwordLength"
-                  :min="4"
-                  :max="64"
-                  show-input
-                />
-              </div>
-            </div>
+          <button
+            v-for="password in batchPasswords"
+            :key="password"
+            class="password-row"
+            @click="copy(password)"
+          >
+            <code>{{ password }}</code>
+            <span>点击复制</span>
+          </button>
 
-            <div class="option-group">
-              <label>字符类型</label>
-              <div class="checkbox-group">
-                <el-checkbox v-model="includeUppercase"
-                  >大写字母 (A-Z)</el-checkbox
-                >
-                <el-checkbox v-model="includeLowercase"
-                  >小写字母 (a-z)</el-checkbox
-                >
-                <el-checkbox v-model="includeNumbers">数字 (0-9)</el-checkbox>
-                <el-checkbox v-model="includeSymbols"
-                  >特殊符号 (!@#$%^&*)</el-checkbox
-                >
-              </div>
-            </div>
+          <el-empty v-if="!batchPasswords.length" description="暂无生成结果" />
+        </div>
+      </section>
 
-            <el-button
-              type="primary"
-              size="large"
-              @click="generatePassword"
-              class="generate-btn"
-            >
-              <el-icon><Refresh /></el-icon>
-              生成密码
-            </el-button>
-          </div>
+      <aside class="panel panel--settings">
+        <h2>生成设置</h2>
 
-          <div class="history-section">
-            <h3>历史记录</h3>
-            <div class="history-list">
-              <div
-                v-for="(pwd, index) in passwordHistory"
-                :key="index"
-                class="history-item"
-              >
-                <span class="history-password">{{ pwd }}</span>
-                <div class="history-actions">
-                  <el-button
-                    size="small"
-                    @click="copyToClipboard(pwd)"
-                    :icon="DocumentCopy"
-                  />
-                  <el-button
-                    size="small"
-                    type="danger"
-                    @click="removeHistory(index)"
-                    :icon="Delete"
-                  />
-                </div>
-              </div>
-              <div v-if="passwordHistory.length === 0" class="empty-history">
-                暂无历史记录
-              </div>
-            </div>
+        <div class="setting-group">
+          <label>生成模式</label>
+          <el-segmented v-model="mode" :options="modeOptions" @change="generatePasswords" />
+        </div>
+
+        <div class="setting-group">
+          <label>长度：{{ length }}</label>
+          <el-slider v-model="length" :min="mode === 'pin' ? 4 : 8" :max="mode === 'passphrase' ? 8 : 96" @change="generatePasswords" />
+        </div>
+
+        <div class="setting-group">
+          <label>批量数量：{{ count }}</label>
+          <el-slider v-model="count" :min="1" :max="20" @change="generatePasswords" />
+        </div>
+
+        <div v-if="mode === 'password'" class="setting-group">
+          <label>字符集</label>
+          <div class="check-grid">
+            <el-checkbox v-model="options.uppercase" @change="generatePasswords">大写字母</el-checkbox>
+            <el-checkbox v-model="options.lowercase" @change="generatePasswords">小写字母</el-checkbox>
+            <el-checkbox v-model="options.numbers" @change="generatePasswords">数字</el-checkbox>
+            <el-checkbox v-model="options.symbols" @change="generatePasswords">符号</el-checkbox>
           </div>
         </div>
-      </div>
+
+        <div class="setting-group">
+          <label>可读性</label>
+          <el-checkbox v-model="excludeAmbiguous" @change="generatePasswords">排除 0/O、1/l/I 等易混字符</el-checkbox>
+          <el-checkbox v-if="mode === 'password'" v-model="mustIncludeEachType" @change="generatePasswords">确保每类字符至少出现一次</el-checkbox>
+        </div>
+
+        <div class="setting-group">
+          <label>自定义符号</label>
+          <el-input v-model="customSymbols" :disabled="mode !== 'password' || !options.symbols" @change="generatePasswords" />
+        </div>
+      </aside>
     </div>
-  </SimpleLayout>
+  </ToolPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import {
-  DocumentCopy,
-  Refresh,
-  Delete,
-  ArrowLeft,
-} from "@element-plus/icons-vue";
-import SimpleLayout from "@/layout/SimpleLayout.vue";
+import { computed, reactive, ref, watch } from "vue";
+import { Delete, DocumentCopy, Refresh } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 
-const router = useRouter();
+type Mode = "password" | "pin" | "passphrase";
 
-const generatedPassword = ref("");
-const passwordLength = ref(16);
-const includeUppercase = ref(true);
-const includeLowercase = ref(true);
-const includeNumbers = ref(true);
-const includeSymbols = ref(true);
-const passwordHistory = ref<string[]>([]);
+const mode = ref<Mode>("password");
+const length = ref(18);
+const count = ref(5);
+const excludeAmbiguous = ref(true);
+const mustIncludeEachType = ref(true);
+const customSymbols = ref("!@#$%^&*_-+=?");
+const batchPasswords = ref<string[]>([]);
 
-const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
-const NUMBERS = "0123456789";
-const SYMBOLS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+const options = reactive({
+  uppercase: true,
+  lowercase: true,
+  numbers: true,
+  symbols: true,
+});
 
-const getCharset = () => {
-  let charset = "";
-  if (includeUppercase.value) charset += UPPERCASE;
-  if (includeLowercase.value) charset += LOWERCASE;
-  if (includeNumbers.value) charset += NUMBERS;
-  if (includeSymbols.value) charset += SYMBOLS;
-  return charset;
+const modeOptions = [
+  { label: "随机密码", value: "password" },
+  { label: "数字 PIN", value: "pin" },
+  { label: "可读口令", value: "passphrase" },
+];
+
+const WORDS = [
+  "river", "stone", "forest", "cloud", "orbit", "harbor", "silver", "ember",
+  "north", "canvas", "maple", "signal", "bright", "anchor", "summer", "planet",
+  "copper", "garden", "velvet", "matrix", "rocket", "winter", "meadow", "summit",
+];
+
+const CHARSETS = {
+  uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  lowercase: "abcdefghijklmnopqrstuvwxyz",
+  numbers: "0123456789",
+};
+
+const ambiguousChars = /[0O1lI]/g;
+
+const primaryPassword = computed(() => batchPasswords.value[0] || "");
+
+const activePools = computed(() => {
+  if (mode.value === "pin") {
+    return ["0123456789"];
+  }
+
+  const pools: string[] = [];
+  if (options.uppercase) pools.push(cleanCharset(CHARSETS.uppercase));
+  if (options.lowercase) pools.push(cleanCharset(CHARSETS.lowercase));
+  if (options.numbers) pools.push(cleanCharset(CHARSETS.numbers));
+  if (options.symbols) pools.push(cleanCharset(customSymbols.value));
+  return pools.filter(Boolean);
+});
+
+const charsetSize = computed(() => {
+  if (mode.value === "passphrase") return WORDS.length;
+  return new Set(activePools.value.join("").split("")).size;
+});
+
+const entropy = computed(() => {
+  if (!primaryPassword.value || charsetSize.value <= 1) return 0;
+  const units = mode.value === "passphrase" ? length.value : primaryPassword.value.length;
+  return Math.round(units * Math.log2(charsetSize.value));
+});
+
+const strength = computed(() => {
+  const bits = entropy.value;
+  if (bits >= 90) return { label: "很强", score: 100, color: "#059669" };
+  if (bits >= 70) return { label: "强", score: 82, color: "#0d9488" };
+  if (bits >= 50) return { label: "中等", score: 62, color: "#d97706" };
+  if (bits >= 30) return { label: "偏弱", score: 38, color: "#ea580c" };
+  return { label: "弱", score: 18, color: "#dc2626" };
+});
+
+const strengthText = computed(() => `${strength.value.label} · 约 ${entropy.value} bits`);
+
+const meta = computed(() => [
+  { label: "生成模式", value: modeOptions.find((item) => item.value === mode.value)?.label || "随机密码" },
+  { label: "熵估算", value: `${entropy.value} bits` },
+  { label: "批量数量", value: `${batchPasswords.value.length}` },
+]);
+
+const cleanCharset = (value: string) => {
+  const cleaned = excludeAmbiguous.value ? value.replace(ambiguousChars, "") : value;
+  return Array.from(new Set(cleaned.split(""))).join("");
+};
+
+const randomIndex = (max: number) => {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return array[0] % max;
+};
+
+const shuffle = (items: string[]) => {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = randomIndex(index + 1);
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
 };
 
 const generatePassword = () => {
-  const charset = getCharset();
-  if (charset === "") {
-    ElMessage.warning("请至少选择一种字符类型");
+  const pools = activePools.value;
+  if (!pools.length) {
+    ElMessage.warning("请至少选择一种字符集");
+    return "";
+  }
+
+  const chars: string[] = [];
+  if (mode.value === "password" && mustIncludeEachType.value) {
+    pools.forEach((pool) => chars.push(pool[randomIndex(pool.length)]));
+  }
+
+  const fullPool = pools.join("");
+  while (chars.length < length.value) {
+    chars.push(fullPool[randomIndex(fullPool.length)]);
+  }
+
+  return shuffle(chars).join("");
+};
+
+const generatePin = () => {
+  return Array.from({ length: length.value }, () => String(randomIndex(10))).join("");
+};
+
+const generatePassphrase = () => {
+  return Array.from({ length: length.value }, () => WORDS[randomIndex(WORDS.length)]).join("-");
+};
+
+const generateOne = () => {
+  if (mode.value === "pin") return generatePin();
+  if (mode.value === "passphrase") return generatePassphrase();
+  return generatePassword();
+};
+
+const generatePasswords = () => {
+  const results = new Set<string>();
+  while (results.size < count.value) {
+    const next = generateOne();
+    if (!next) break;
+    results.add(next);
+  }
+  batchPasswords.value = Array.from(results);
+};
+
+const copy = async (value: string) => {
+  if (!value) {
+    ElMessage.warning("没有内容可复制");
     return;
   }
-
-  let password = "";
-  const array = new Uint32Array(passwordLength.value);
-  crypto.getRandomValues(array);
-
-  for (let i = 0; i < passwordLength.value; i++) {
-    password += charset[array[i] % charset.length];
-  }
-
-  generatedPassword.value = password;
-
-  if (password && !passwordHistory.value.includes(password)) {
-    passwordHistory.value.unshift(password);
-    if (passwordHistory.value.length > 10) {
-      passwordHistory.value.pop();
-    }
-  }
+  await navigator.clipboard.writeText(value);
+  ElMessage.success("已复制到剪贴板");
 };
 
-const copyPassword = () => {
-  if (generatedPassword.value) {
-    copyToClipboard(generatedPassword.value);
-  }
+const clearHistory = () => {
+  batchPasswords.value = [];
 };
 
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text).then(() => {
-    ElMessage.success("已复制到剪贴板");
-  });
-};
-
-const removeHistory = (index: number) => {
-  passwordHistory.value.splice(index, 1);
-};
-
-const strengthPercent = computed(() => {
-  let score = 0;
-  if (passwordLength.value >= 8) score += 20;
-  if (passwordLength.value >= 12) score += 20;
-  if (passwordLength.value >= 16) score += 20;
-  if (includeUppercase.value) score += 10;
-  if (includeLowercase.value) score += 10;
-  if (includeNumbers.value) score += 10;
-  if (includeSymbols.value) score += 10;
-  return Math.min(score, 100);
+watch(mode, (value) => {
+  length.value = value === "pin" ? 6 : value === "passphrase" ? 4 : 18;
+  generatePasswords();
 });
 
-const strengthColor = computed(() => {
-  if (strengthPercent.value < 40) return "#ef4444";
-  if (strengthPercent.value < 70) return "#f59e0b";
-  return "#10b981";
-});
-
-const strengthText = computed(() => {
-  if (strengthPercent.value < 40) return "弱";
-  if (strengthPercent.value < 70) return "中等";
-  return "强";
-});
-
-generatePassword();
+generatePasswords();
 </script>
 
 <style scoped>
-.tool-page {
-  background: var(--theme-background);
-  min-height: calc(100vh - 80px);
-  padding: 40px 0;
-}
-
-.tool-container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.page-header {
-  margin-bottom: 40px;
-}
-
-.header-with-back {
-  display: flex;
-  align-items: center;
+.workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 16px;
 }
 
-.back-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--theme-text);
+.panel {
+  padding: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
-.back-btn:hover {
-  border-color: var(--theme-primary);
-  color: var(--theme-primary);
-}
-
-.header-text {
-  flex: 1;
-  text-align: center;
-}
-
-.page-header h1 {
-  font-size: 32px;
-  font-weight: 800;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 10px 0;
-}
-
-.page-header p {
-  font-size: 15px;
-  color: var(--theme-text-secondary);
-  margin: 0;
-}
-
-.tool-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  box-shadow: var(--glass-shadow);
-}
-
-.result-section {
-  margin-bottom: 32px;
-}
-
-.password-display {
-  margin-bottom: 20px;
-}
-
-.strength-indicator {
+.section-head,
+.batch-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
-  font-size: 14px;
-  color: var(--theme-text-secondary);
+  margin-bottom: 14px;
 }
 
-.strength-bar {
-  flex: 1;
-  height: 8px;
-  background: var(--theme-border);
-  border-radius: 4px;
-  overflow: hidden;
+h2,
+h3 {
+  margin: 0;
+  color: #0f172a;
+  letter-spacing: 0;
 }
 
-.strength-fill {
-  height: 100%;
-  transition: all var(--transition-normal);
+h2 {
+  font-size: 18px;
 }
 
-.strength-text {
-  font-weight: 600;
-  min-width: 40px;
-}
-
-.options-section {
-  margin-bottom: 32px;
-}
-
-.option-group {
-  margin-bottom: 24px;
-}
-
-.option-group label {
-  display: block;
+h3 {
   font-size: 15px;
-  font-weight: 600;
-  color: var(--theme-text);
-  margin-bottom: 12px;
 }
 
-.length-control {
-  padding: 0 10px;
+p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.checkbox-group {
+.primary-result {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  margin-bottom: 18px;
 }
 
-.generate-btn {
+.strength-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 120px;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.batch-list {
+  display: grid;
+  gap: 8px;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.password-row {
   width: 100%;
-  font-weight: 600;
-}
-
-.history-section h3 {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--theme-text);
-  margin: 0 0 16px 0;
-}
-
-.history-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.history-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  border-radius: var(--radius-md);
-  margin-bottom: 8px;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
 }
 
-.history-password {
-  font-family: monospace;
-  font-size: 14px;
-  color: var(--theme-text);
+.password-row:hover {
+  border-color: #14b8a6;
+  background: rgba(20, 184, 166, 0.08);
 }
 
-.empty-history {
-  text-align: center;
-  color: var(--theme-text-secondary);
-  padding: 32px;
+.password-row code {
+  color: #0f172a;
+  font-size: 13px;
+  word-break: break-all;
 }
 
-@media (max-width: 768px) {
-  .tool-card {
-    padding: 20px;
+.password-row span {
+  flex-shrink: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.setting-group {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.setting-group label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+}
+
+@media (max-width: 960px) {
+  .workbench {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .section-head,
+  .batch-head,
+  .password-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .checkbox-group {
+  .strength-row {
+    grid-template-columns: 1fr;
+  }
+
+  .check-grid {
     grid-template-columns: 1fr;
   }
 }
