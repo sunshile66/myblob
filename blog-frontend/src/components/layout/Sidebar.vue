@@ -150,16 +150,16 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border-radius: 10px;
-  color: #475569;
+  border-radius: var(--radius-md);
+  color: var(--theme-text-secondary);
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition: background var(--transition-fast), color var(--transition-fast);
   font-weight: 500;
 }
 
 .quick-link:hover {
-  background: #dbeafe;
-  color: #2563eb;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
 }
 
 .category-menu {
@@ -173,7 +173,7 @@ onMounted(() => {
 }
 
 .tag-item:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  background: var(--gradient-primary) !important;
   color: #fff !important;
 }
 </style>

@@ -65,13 +65,20 @@ const formatDate = (dateStr: string) => {
 .post-card {
   margin-bottom: 24px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   overflow: hidden;
 }
 
 .post-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card,
+  .post-card:hover {
+    transform: none;
+  }
 }
 
 .post-cover {
@@ -101,18 +108,18 @@ const formatDate = (dateStr: string) => {
 .post-title {
   font-size: 22px;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--theme-text);
   margin: 0;
   line-height: 1.4;
-  transition: color 0.3s ease;
+  transition: color var(--transition-fast);
 }
 
 .post-card:hover .post-title {
-  color: #667eea;
+  color: var(--theme-primary);
 }
 
 .post-summary {
-  color: #5a6c7d;
+  color: var(--theme-text-secondary);
   font-size: 15px;
   line-height: 1.8;
   margin: 0;
@@ -125,7 +132,7 @@ const formatDate = (dateStr: string) => {
 .post-meta {
   display: flex;
   gap: 20px;
-  color: #8b95a5;
+  color: var(--theme-text-tertiary);
   font-size: 14px;
   flex-wrap: wrap;
 }
@@ -143,13 +150,9 @@ const formatDate = (dateStr: string) => {
 }
 
 .post-tags :deep(.el-tag) {
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.1) 0%,
-    rgba(118, 75, 162, 0.1) 100%
-  );
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  color: #667eea;
+  background: var(--theme-primary-light);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  color: var(--theme-primary);
   font-weight: 500;
 }
 </style>

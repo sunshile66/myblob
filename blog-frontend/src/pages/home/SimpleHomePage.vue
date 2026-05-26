@@ -343,13 +343,13 @@ onMounted(() => {
   line-height: 1.25;
   letter-spacing: -0.02em;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .hero-copy p {
   margin: 0;
   max-width: 560px;
-  color: #475569;
+  color: var(--theme-text-secondary);
   font-size: 14px;
   line-height: 1.4;
 }
@@ -401,13 +401,13 @@ onMounted(() => {
 
 .tool-preview strong {
   display: block;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 11px;
   font-weight: 700;
 }
 
 .tool-preview span:last-child {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 10px;
   line-height: 1.2;
 }
@@ -419,11 +419,11 @@ onMounted(() => {
 }
 
 .tag-cloud__item {
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--theme-border);
   border-radius: 999px;
   padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #334155;
+  background: var(--theme-card);
+  color: var(--theme-text);
   font-size: 10px;
   font-weight: 500;
   cursor: pointer;
@@ -462,12 +462,12 @@ onMounted(() => {
   font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .section-head p {
   margin: 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   line-height: 1.3;
 }
@@ -578,12 +578,12 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 700;
   line-height: 1.3;
-  color: #0f172a;
+  color: var(--theme-text);
 }
 
 .panel-head a,
 .panel-meta {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
@@ -607,8 +607,8 @@ onMounted(() => {
   gap: 6px;
   padding: 4px 6px;
   border-radius: 6px;
-  background: rgba(15, 23, 42, 0.04);
-  color: #0f172a;
+  background: var(--theme-hover);
+  color: var(--theme-text);
   font-size: 12px;
   font-weight: 600;
   text-align: left;

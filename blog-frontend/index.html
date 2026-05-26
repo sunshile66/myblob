@@ -6,15 +6,23 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的博客</title>
+
+  <!-- 字体预连接 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --theme-primary: #ff2442;
-      --theme-secondary: #667eea;
-      --theme-background: #f5f5f5;
-      --theme-card: #ffffff;
-      --theme-text: #333333;
-      --theme-text-secondary: #666666;
-      --theme-border: #e5e5e5;
+      --theme-primary: #4F46E5;
+      --theme-primary-light: rgba(79, 70, 229, 0.10);
+      --theme-secondary: #6366F1;
+      --theme-background: #FAFAFB;
+      --theme-card: #FFFFFF;
+      --theme-text: #0F172A;
+      --theme-text-secondary: #64748B;
+      --theme-border: #E5E7EB;
+      --theme-hover: #F1F5F9;
     }
 
     * {
@@ -24,80 +32,12 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-family: "Inter", "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background: var(--theme-background);
       color: var(--theme-text);
       min-height: 100vh;
     }
   </style>
-  <script>
-    (function () {
-      const themeColors = {
-        light: {
-          primary: '#ff2442',
-          secondary: '#667eea',
-          background: '#f5f5f5',
-          card: '#ffffff',
-          text: '#333333',
-          textSecondary: '#666666',
-          border: '#e5e5e5',
-        },
-        dark: {
-          primary: '#ff4d6f',
-          secondary: '#8b5cf6',
-          background: '#1a1a1a',
-          card: '#2d2d2d',
-          text: '#f5f5f5',
-          textSecondary: '#a0a0a0',
-          border: '#404040',
-        },
-        pink: {
-          primary: '#ff6b9d',
-          secondary: '#f093fb',
-          background: '#fff5f7',
-          card: '#ffffff',
-          text: '#4a4a4a',
-          textSecondary: '#888888',
-          border: '#ffd6e0',
-        },
-        blue: {
-          primary: '#3b82f6',
-          secondary: '#60a5fa',
-          background: '#eff6ff',
-          card: '#ffffff',
-          text: '#1e3a5f',
-          textSecondary: '#64748b',
-          border: '#bfdbfe',
-        },
-        purple: {
-          primary: '#8b5cf6',
-          secondary: '#a78bfa',
-          background: '#f5f3ff',
-          card: '#ffffff',
-          text: '#4c1d95',
-          textSecondary: '#7c3aed',
-          border: '#ddd6fe',
-        },
-      };
-
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      const colors = themeColors[savedTheme] || themeColors.light;
-      const root = document.documentElement;
-
-      root.style.setProperty('--theme-primary', colors.primary);
-      root.style.setProperty('--theme-secondary', colors.secondary);
-      root.style.setProperty('--theme-background', colors.background);
-      root.style.setProperty('--theme-card', colors.card);
-      root.style.setProperty('--theme-text', colors.text);
-      root.style.setProperty('--theme-text-secondary', colors.textSecondary);
-      root.style.setProperty('--theme-border', colors.border);
-
-      if (savedTheme === 'dark') {
-        root.classList.add('dark');
-      }
-    })();
-  </script>
 </head>
 
 <body>

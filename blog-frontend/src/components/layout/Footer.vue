@@ -28,9 +28,8 @@ const currentYear = new Date().getFullYear();
 .footer {
   margin-top: 60px;
   padding: 42px 0 34px;
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
-  background:
-    linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(255, 255, 255, 0.98));
+  border-top: 1px solid var(--theme-border);
+  background: var(--theme-background);
 }
 
 .footer-content {
@@ -51,8 +50,8 @@ const currentYear = new Date().getFullYear();
   width: fit-content;
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
-  color: #0f172a;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -63,7 +62,7 @@ const currentYear = new Date().getFullYear();
   margin: 0;
   font-size: 13px;
   line-height: 1.7;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .footer-links {
@@ -73,11 +72,11 @@ const currentYear = new Date().getFullYear();
 }
 
 .footer-links a {
-  color: #334155;
+  color: var(--theme-text);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
-  transition: color 0.2s ease;
+  transition: color var(--transition-fast);
 }
 
 .footer-links a:hover {

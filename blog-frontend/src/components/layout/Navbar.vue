@@ -52,7 +52,7 @@
                   收藏
                 </el-dropdown-item>
                 <el-dropdown-item command="membership" divided>
-                  <el-icon><Crown /></el-icon>
+                  <el-icon><GoldMedal /></el-icon>
                   会员中心
                 </el-dropdown-item>
                 <el-dropdown-item command="orders">
@@ -99,7 +99,7 @@ import {
   Setting,
   SwitchButton,
   Plus,
-  Crown,
+  GoldMedal,
   Tickets,
   Wallet,
 } from "@element-plus/icons-vue";
@@ -161,8 +161,8 @@ const handleCommand = async (command: string) => {
 
 <style scoped>
 .navbar {
-  background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -196,10 +196,7 @@ const handleCommand = async (command: string) => {
 .logo-text {
   font-size: 22px;
   font-weight: 700;
-  background: linear-gradient(135deg, #ff2442 0%, #ff6a7f 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--theme-primary);
 }
 
 .navbar-center {
@@ -219,19 +216,20 @@ const handleCommand = async (command: string) => {
 }
 
 .nav-link {
-  color: #333;
+  color: var(--theme-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 15px;
-  transition: color 0.2s ease;
+  transition: color var(--transition-fast);
 }
 
 .nav-link:hover {
-  color: #ff2442;
+  color: var(--theme-primary);
 }
 
 .register-link {
-  color: #ff2442;
+  color: var(--theme-primary);
+  font-weight: 600;
 }
 
 .publish-btn {
@@ -239,26 +237,33 @@ const handleCommand = async (command: string) => {
   align-items: center;
   gap: 6px;
   padding: 8px 20px;
-  background: linear-gradient(135deg, #ff2442 0%, #ff6a7f 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: #fff;
   border-radius: 24px;
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .publish-btn:hover {
-  transform: scale(1.03);
-  box-shadow: 0 4px 14px rgba(255, 36, 66, 0.35);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .user-info {
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
 }
 
 .user-info:hover {
   transform: scale(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-info,
+  .user-info:hover {
+    transform: none;
+  }
 }
 </style>

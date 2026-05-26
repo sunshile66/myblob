@@ -137,7 +137,6 @@ const loadMorePosts = () => {
 }
 
 const viewNote = (slug: string) => {
-  console.log('查看笔记:', slug)
   router.push(`/note/${slug}`)
 }
 
@@ -170,47 +169,47 @@ onMounted(() => {
 .tabs {
   display: flex;
   gap: 8px;
-  background: white;
+  background: var(--theme-card);
   padding: 8px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .tab-item {
   padding: 10px 24px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 500;
-  color: #666;
+  color: var(--theme-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .tab-item:hover {
-  background-color: #fff0f2;
-  color: #ff2442;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, #ff2442 0%, #ff6a7f 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: #fff;
 }
 
 .loading-section {
-  background: white;
+  background: var(--theme-card);
   padding: 24px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .notes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .empty-section {
-  background: white;
+  background: var(--theme-card);
   padding: 60px 24px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   text-align: center;
 }
 
