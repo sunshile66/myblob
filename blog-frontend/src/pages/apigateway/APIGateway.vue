@@ -25,15 +25,15 @@
               <div class="services-grid">
                 <div v-for="service in services" :key="service.id" class="service-card" @click="viewService(service)">
                   <div class="service-header">
-                    <div class="service-icon" :style="{ background: getCategoryColor(service.category) }">
-                      <el-icon :size="32"><component :is="getCategoryIcon(service.category)" /></el-icon>
+                    <div class="service-icon" :style="{ background: getCategoryColor(service.category || 'tools') }">
+                      <el-icon :size="32"><component :is="getCategoryIcon(service.category || 'tools')" /></el-icon>
                     </div>
-                    <div class="service-status" :class="service.status">{{ getStatusText(service.status) }}</div>
+                    <div class="service-status" :class="getServiceStatus(service)">{{ getStatusText(getServiceStatus(service)) }}</div>
                   </div>
                   <h3>{{ service.name }}</h3>
                   <p class="service-desc">{{ service.description }}</p>
                   <div class="service-meta">
-                    <span class="meta-item"><el-icon><Tickets /></el-icon> v{{ service.version }}</span>
+                    <span class="meta-item"><el-icon><Tickets /></el-icon> {{ service.code }}</span>
                     <span class="meta-item" v-if="service.is_paid"><el-icon><Money /></el-icon> 付费</span>
                     <span class="meta-item" v-else><el-icon><Coin /></el-icon> 免费</span>
                   </div>
@@ -45,15 +45,15 @@
               <div class="services-grid">
                 <div v-for="service in myServices" :key="service.id" class="service-card" @click="viewService(service)">
                   <div class="service-header">
-                    <div class="service-icon" :style="{ background: getCategoryColor(service.category) }">
-                      <el-icon :size="32"><component :is="getCategoryIcon(service.category)" /></el-icon>
+                    <div class="service-icon" :style="{ background: getCategoryColor(service.category || 'tools') }">
+                      <el-icon :size="32"><component :is="getCategoryIcon(service.category || 'tools')" /></el-icon>
                     </div>
-                    <div class="service-status" :class="service.status">{{ getStatusText(service.status) }}</div>
+                    <div class="service-status" :class="getServiceStatus(service)">{{ getStatusText(getServiceStatus(service)) }}</div>
                   </div>
                   <h3>{{ service.name }}</h3>
                   <p class="service-desc">{{ service.description }}</p>
                   <div class="service-meta">
-                    <span class="meta-item"><el-icon><Tickets /></el-icon> v{{ service.version }}</span>
+                    <span class="meta-item"><el-icon><Tickets /></el-icon> {{ service.code }}</span>
                     <span class="meta-item"><el-icon><View /></el-icon> {{ service.endpoints?.length || 0 }} 个端点</span>
                   </div>
                 </div>
@@ -69,16 +69,16 @@
                       <el-tag :type="getMethodType(row.request_method)">{{ row.request_method }}</el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="request_url" label="URL" show-overflow-tooltip />
+                  <el-table-column prop="request_path" label="URL" show-overflow-tooltip />
                   <el-table-column prop="response_status" label="状态码" width="100">
                     <template #default="{ row }">
                       <el-tag :type="row.response_status < 400 ? 'success' : 'danger'">{{ row.response_status }}</el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="execution_time" label="耗时" width="120">
-                    <template #default="{ row }">{{ row.execution_time.toFixed(3) }}s</template>
+                  <el-table-column prop="response_time" label="耗时" width="120">
+                    <template #default="{ row }">{{ formatDuration(row.response_time) }}</template>
                   </el-table-column>
-                  <el-table-column prop="call_time" label="时间" width="180" />
+                  <el-table-column prop="created_at" label="时间" width="180" />
                 </el-table>
               </div>
             </el-tab-pane>
@@ -121,10 +121,10 @@
           <div class="key-item" v-for="key in apiKeys" :key="key.id">
             <div class="key-info">
               <div class="key-name">{{ key.name }}</div>
-              <div class="key-value">{{ key.key }}</div>
+              <div class="key-value">{{ key.api_key }}</div>
               <div class="key-meta">
-                <span>速率: {{ key.rate_limit_per_minute }}/分钟</span>
-                <span>创建: {{ key.created_time }}</span>
+                <span>日限额: {{ key.daily_limit }}</span>
+                <span>创建: {{ key.created_at }}</span>
               </div>
             </div>
             <div class="key-actions">
@@ -156,7 +156,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
   Plus, Key, Tickets, Money, Coin, View, 
@@ -164,8 +163,6 @@ import {
 } from '@element-plus/icons-vue'
 import SimpleLayout from '@/layout/SimpleLayout.vue'
 import request from '@/utils/request'
-
-const router = useRouter()
 
 const activeTab = ref('market')
 const services = ref<any[]>([])
@@ -213,6 +210,19 @@ const getCategoryColor = (category: string) => {
   return colors[category] || colors.other
 }
 
+const getList = <T,>(payload: T[] | { results?: T[] }) => {
+  return Array.isArray(payload) ? payload : payload.results || []
+}
+
+const getServiceStatus = (service: any) => {
+  return service.status || (service.is_active ? 'published' : 'deprecated')
+}
+
+const formatDuration = (value?: number) => {
+  if (value === undefined || value === null) return '-'
+  return value >= 1000 ? `${(value / 1000).toFixed(2)}s` : `${value}ms`
+}
+
 const getStatusText = (status: string) => {
   const texts: Record<string, string> = {
     draft: '草稿',
@@ -235,9 +245,10 @@ const getMethodType = (method: string) => {
 
 const loadServices = async () => {
   try {
-    const res = await request.get('/api/apigateway/services/')
-    services.value = res.data.filter((s: any) => s.status === 'published')
-    myServices.value = res.data
+    const res = await request.get<any[]>('/gateway/services/')
+    const list = getList(res)
+    services.value = list.filter((s: any) => getServiceStatus(s) === 'published')
+    myServices.value = list
   } catch (error) {
     console.error('加载服务失败')
   }
@@ -245,8 +256,8 @@ const loadServices = async () => {
 
 const loadLogs = async () => {
   try {
-    const res = await request.get('/api/apigateway/logs/')
-    logs.value = res.data
+    const res = await request.get<{ results: any[] }>('/gateway/call-logs/')
+    logs.value = getList(res)
   } catch (error) {
     console.error('加载日志失败')
   }
@@ -254,8 +265,8 @@ const loadLogs = async () => {
 
 const loadKeys = async () => {
   try {
-    const res = await request.get('/api/apigateway/keys/')
-    apiKeys.value = res.data
+    const res = await request.get<any[]>('/gateway/api-keys/')
+    apiKeys.value = getList(res)
   } catch (error) {
     console.error('加载密钥失败')
   }
@@ -267,7 +278,13 @@ const viewService = (service: any) => {
 
 const createService = async () => {
   try {
-    await request.post('/api/apigateway/services/', newService.value)
+    await request.post('/gateway/services/', {
+      name: newService.value.name,
+      code: newService.value.slug,
+      base_url: newService.value.base_url,
+      description: newService.value.description,
+      is_active: true
+    })
     ElMessage.success('服务发布成功')
     showCreateService.value = false
     newService.value = {
@@ -287,14 +304,14 @@ const createService = async () => {
 }
 
 const copyKey = (key: any) => {
-  navigator.clipboard.writeText(key.key).then(() => {
+  navigator.clipboard.writeText(key.api_key).then(() => {
     ElMessage.success('密钥已复制')
   })
 }
 
 const createKey = async () => {
   try {
-    await request.post('/api/apigateway/keys/', newKey.value)
+    await request.post('/gateway/api-keys/', newKey.value)
     ElMessage.success('密钥创建成功')
     showCreateKey.value = false
     newKey.value = { name: '' }
@@ -306,7 +323,7 @@ const createKey = async () => {
 
 const deleteKey = async (key: any) => {
   try {
-    await request.delete(`/api/apigateway/keys/${key.id}/`)
+    await request.delete(`/gateway/api-keys/${key.id}/`)
     ElMessage.success('密钥已删除')
     loadKeys()
   } catch (error) {

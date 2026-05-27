@@ -20,6 +20,18 @@ export const toolRoutes: RouteRecordRaw[] = [
     meta: { title: "加密解密" },
   },
   {
+    path: "/tools/rc4",
+    name: "Rc4Tool",
+    component: () => import("@features/tools/pages/EncryptToolPage.vue"),
+    meta: { title: "RC4 加密解密", encryptTab: "rc4" },
+  },
+  {
+    path: "/tools/sm3",
+    name: "Sm3Tool",
+    component: () => import("@features/tools/pages/EncryptToolPage.vue"),
+    meta: { title: "SM3 国密摘要", encryptTab: "sm3" },
+  },
+  {
     path: "/tools/encode",
     name: "EncodeTool",
     component: () => import("@features/tools/pages/EncodeToolPage.vue"),
@@ -107,13 +119,41 @@ export const toolRoutes: RouteRecordRaw[] = [
     path: "/tools/curl-converter",
     name: "CurlConverter",
     component: () => import("@/pages/tools/CurlConverter.vue"),
-    meta: { title: "curl 转 requests" },
+    meta: { title: "curl 转代码" },
+  },
+  {
+    path: "/tools/curl-to-requests",
+    redirect: "/tools/curl-converter",
   },
   {
     path: "/tools/code-formatter",
     name: "CodeFormatter",
     component: () => import("@/pages/tools/CodeFormatter.vue"),
     meta: { title: "JS/HTML 格式化" },
+  },
+  {
+    path: "/tools/js-formatter",
+    name: "JsFormatter",
+    component: () => import("@/pages/tools/CodeFormatter.vue"),
+    meta: { title: "JS 格式化", codeMode: "javascript" },
+  },
+  {
+    path: "/tools/js-obfuscator",
+    name: "JsObfuscator",
+    component: () => import("@/pages/tools/CodeFormatter.vue"),
+    meta: { title: "JS 混淆解码", codeMode: "obfuscator" },
+  },
+  {
+    path: "/tools/html-formatter",
+    name: "HtmlFormatter",
+    component: () => import("@/pages/tools/CodeFormatter.vue"),
+    meta: { title: "HTML 格式化", codeMode: "html" },
+  },
+  {
+    path: "/tools/css-formatter",
+    name: "CssFormatter",
+    component: () => import("@/pages/tools/CodeFormatter.vue"),
+    meta: { title: "CSS 格式化", codeMode: "css" },
   },
   {
     path: "/tools/header-formatter",

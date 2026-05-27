@@ -1,21 +1,39 @@
 <template>
   <ToolPageShell
     title="curl 转代码"
-    description="解析 curl 命令，生成 Python requests、JavaScript fetch，并展示请求摘要。"
+    description="基于 curlconverter 开源核心重写，支持多语言转换、请求摘要、警告提示。"
     eyebrow="开发调试"
     :meta="meta"
   >
-    <div class="workbench">
+    <div class="curl-lab">
       <section class="panel input-panel">
-        <div class="panel-head">
+        <header class="panel-head">
           <div>
             <h2>curl 命令</h2>
-            <p>支持常见 header、cookie、query、JSON body、表单和文件上传参数。</p>
+            <p>支持浏览器复制的 bash/zsh curl，多 header、cookie、query、JSON、表单、文件上传和常见 curl 参数。</p>
           </div>
-          <el-button text :icon="Delete" @click="clearAll">清空</el-button>
-        </div>
+          <div class="head-actions">
+            <el-switch v-model="autoConvert" active-text="自动转换" />
+            <el-button text :icon="Delete" @click="clearAll">清空</el-button>
+          </div>
+        </header>
 
-        <el-input v-model="curlInput" type="textarea" :rows="16" :placeholder="placeholder" />
+        <el-input
+          v-model="curlInput"
+          class="curl-input"
+          type="textarea"
+          resize="none"
+          spellcheck="false"
+          :placeholder="placeholder"
+          @keydown.ctrl.enter.prevent="convert"
+          @keydown.meta.enter.prevent="convert"
+        />
+
+        <div class="input-actions">
+          <el-button type="primary" @click="convert">转换 Ctrl/⌘ + Enter</el-button>
+          <el-button @click="copy(curlInput)">复制 curl</el-button>
+          <el-button @click="loadBrowserExample">浏览器示例</el-button>
+        </div>
 
         <div class="example-grid">
           <button v-for="item in examples" :key="item.title" class="example-card" @click="useExample(item.curl)">
@@ -25,98 +43,287 @@
         </div>
       </section>
 
+      <aside class="panel target-panel">
+        <header class="panel-head compact-head">
+          <div>
+            <h2>输出目标</h2>
+            <p>{{ activeConverter?.description || "选择一个转换目标。" }}</p>
+          </div>
+        </header>
+
+        <el-input v-model="targetKeyword" clearable placeholder="搜索 Python / Go / HAR..." />
+
+        <div class="target-list">
+          <button
+            v-for="item in filteredTargets"
+            :key="item.value"
+            class="target-item"
+            :class="{ active: target === item.value }"
+            @click="target = item.value"
+          >
+            <span>{{ item.label }}</span>
+            <small>{{ item.group }}</small>
+          </button>
+        </div>
+      </aside>
+
       <section class="panel output-panel">
-        <div class="panel-head">
+        <header class="panel-head">
           <div>
             <h2>输出代码</h2>
-            <p>切换语言后会保留同一份解析结果。</p>
+            <p>转换结果在浏览器本地生成，不上传 curl 内容。</p>
           </div>
-          <div class="inline-actions">
-            <el-segmented v-model="target" :options="targetOptions" />
-            <el-button :icon="DocumentCopy" @click="copy(outputCode)">复制</el-button>
+          <div class="head-actions">
+            <el-button :icon="DocumentCopy" @click="copy(outputCode)">复制结果</el-button>
+            <el-button @click="downloadOutput">下载</el-button>
           </div>
-        </div>
+        </header>
 
         <el-alert v-if="parseError" :title="parseError" type="error" show-icon :closable="false" class="alert" />
+
+        <div v-if="warnings.length" class="warning-box">
+          <strong>转换提示</strong>
+          <ul>
+            <li v-for="(warning, index) in warnings" :key="`${warning[0]}-${index}`">
+              <span>{{ warning[0] }}</span>
+              <em>{{ warning[1] }}</em>
+            </li>
+          </ul>
+        </div>
+
         <pre class="code-block"><code>{{ outputCode || "转换结果会显示在这里" }}</code></pre>
       </section>
 
-      <section class="panel summary-panel">
-        <div class="summary-item">
+      <section class="browser-guide">
+        <h2>从浏览器复制 curl 命令</h2>
+        <p>从浏览器的开发者工具中复制任意网络请求为 curl 命令，粘贴到上方输入框中即可转换。</p>
+        <div class="browser-steps">
+          <article class="browser-step">
+            <h3>Chrome / Edge</h3>
+            <ol>
+              <li>打开 DevTools（F12）</li>
+              <li>切换到 Network 标签页</li>
+              <li>右键点击（或 Ctrl+点击）一个请求</li>
+              <li>选择 "Copy" → "Copy as cURL (bash)"</li>
+            </ol>
+          </article>
+          <article class="browser-step">
+            <h3>Safari</h3>
+            <ol>
+              <li>打开 Developer Tools（Cmd+Option+I）</li>
+              <li>切换到 Network 标签页</li>
+              <li>右键点击（或双指点击）一个请求</li>
+              <li>选择 "Copy as cURL"</li>
+            </ol>
+          </article>
+          <article class="browser-step">
+            <h3>Firefox</h3>
+            <ol>
+              <li>打开 DevTools（F12）</li>
+              <li>切换到 Network Monitor 标签页</li>
+              <li>右键点击一个请求</li>
+              <li>选择 "Copy" → "Copy as cURL"</li>
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <article class="summary-item">
           <span>Method</span>
           <strong>{{ requestInfo.method || "-" }}</strong>
-        </div>
-        <div class="summary-item summary-item--url">
+        </article>
+        <article class="summary-item summary-item--url">
           <span>URL</span>
           <strong>{{ requestInfo.url || "-" }}</strong>
-        </div>
-        <div class="summary-item">
+        </article>
+        <article class="summary-item">
           <span>Headers</span>
-          <strong>{{ Object.keys(requestInfo.headers).length }}</strong>
-        </div>
-        <div class="summary-item">
+          <strong>{{ countRecord(requestInfo.headers) }}</strong>
+        </article>
+        <article class="summary-item">
+          <span>Cookies</span>
+          <strong>{{ countRecord(requestInfo.cookies) }}</strong>
+        </article>
+        <article class="summary-item">
+          <span>Query</span>
+          <strong>{{ countRecord(requestInfo.queries) }}</strong>
+        </article>
+        <article class="summary-item">
           <span>Body</span>
           <strong>{{ bodyLabel }}</strong>
-        </div>
+        </article>
       </section>
     </div>
   </ToolPageShell>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import { Delete, DocumentCopy } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import {
+  toAnsibleWarn,
+  toCWarn,
+  toCFMLWarn,
+  toClojureWarn,
+  toCSharpWarn,
+  toDartWarn,
+  toElixirWarn,
+  toGoWarn,
+  toHarStringWarn,
+  toHTTPWarn,
+  toHttpieWarn,
+  toJavaWarn,
+  toJavaHttpUrlConnectionWarn,
+  toJavaJsoupWarn,
+  toJavaOkHttpWarn,
+  toJavaScriptWarn,
+  toJavaScriptJqueryWarn,
+  toJavaScriptXHRWarn,
+  toJsonObjectWarn,
+  toJsonStringWarn,
+  toJuliaWarn,
+  toKotlinWarn,
+  toLuaWarn,
+  toMATLABWarn,
+  toNodeAxiosWarn,
+  toNodeFetchWarn,
+  toNodeGotWarn,
+  toNodeHttpWarn,
+  toNodeKyWarn,
+  toNodeRequestWarn,
+  toNodeSuperAgentWarn,
+  toObjectiveCWarn,
+  toOCamlWarn,
+  toPerlWarn,
+  toPhpWarn,
+  toPhpGuzzleWarn,
+  toPhpRequestsWarn,
+  toPowershellRestMethodWarn,
+  toPowershellWebRequestWarn,
+  toPythonWarn,
+  toPythonHttpWarn,
+  toRWarn,
+  toRHttr2Warn,
+  toRubyWarn,
+  toRubyHttpartyWarn,
+  toRustWarn,
+  toSwiftWarn,
+  toWgetWarn,
+} from "curlconverter";
+import type { JSONOutput, Warnings } from "curlconverter";
 import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 
-type Target = "python" | "fetch" | "feapder";
+type Target =
+  | "python"
+  | "python-http"
+  | "fetch"
+  | "jquery"
+  | "xhr"
+  | "node-fetch"
+  | "axios"
+  | "node-got"
+  | "node-ky"
+  | "node-request"
+  | "node-superagent"
+  | "node-http"
+  | "go"
+  | "java-okhttp"
+  | "java-httpclient"
+  | "java-httpurlconnection"
+  | "java-jsoup"
+  | "php"
+  | "php-guzzle"
+  | "php-requests"
+  | "ruby"
+  | "ruby-httparty"
+  | "rust"
+  | "csharp"
+  | "powershell"
+  | "powershell-webrequest"
+  | "http"
+  | "httpie"
+  | "wget"
+  | "har"
+  | "json"
+  | "ansible"
+  | "c"
+  | "cfml"
+  | "clojure"
+  | "dart"
+  | "elixir"
+  | "julia"
+  | "kotlin"
+  | "lua"
+  | "matlab"
+  | "ocaml"
+  | "objectivec"
+  | "perl"
+  | "swift"
+  | "r"
+  | "r-httr2"
+  | "feapder";
 
-interface ParsedRequest {
-  method: string;
-  url: string;
-  headers: Record<string, string>;
-  cookies: Record<string, string>;
-  data: string;
-  forms: Record<string, string>;
-  files: Record<string, string>;
-  params: Record<string, string>;
+interface ConverterOption {
+  value: Target;
+  label: string;
+  group: string;
+  description: string;
+  extension: string;
+  convert: (command: string) => [string, Warnings];
 }
 
-const placeholder = `curl -X POST https://api.example.com/users \\
-  -H "Authorization: Bearer token" \\
-  -H "Content-Type: application/json" \\
-  -d '{"name":"MyBlob"}'`;
+const placeholder = `curl 'https://api.example.com/users?source=browser' \\
+  -X POST \\
+  -H 'Authorization: Bearer token' \\
+  -H 'Content-Type: application/json' \\
+  -H 'Accept: application/json' \\
+  --data-raw '{"name":"MyBlob","roles":["admin","editor"]}'`;
+
+const browserExample = `curl 'https://example.com/api/search?q=myblob&page=1' \\
+  -H 'accept: application/json, text/plain, */*' \\
+  -H 'user-agent: Mozilla/5.0' \\
+  -H 'cookie: sessionid=abc123; theme=light' \\
+  --compressed`;
 
 const curlInput = ref(placeholder);
 const target = ref<Target>("python");
+const targetKeyword = ref("");
+const outputCode = ref("");
 const parseError = ref("");
-const requestInfo = reactive<ParsedRequest>({
-  method: "",
-  url: "",
-  headers: {},
-  cookies: {},
-  data: "",
-  forms: {},
-  files: {},
-  params: {},
-});
-
-const targetOptions = [
-  { label: "Python", value: "python" },
-  { label: "fetch", value: "fetch" },
-  { label: "feapder", value: "feapder" },
-];
+const warnings = ref<Warnings>([]);
+const requestInfo = ref<JSONOutput | undefined>();
+const autoConvert = ref(true);
+const route = useRoute();
+let convertTimer: number | undefined;
 
 const examples = [
   {
+    title: "GET 请求",
+    description: "简单 GET、query 参数",
+    curl: `curl 'https://api.example.com/users?page=1&limit=10' -H 'Accept: application/json'`,
+  },
+  {
     title: "JSON POST",
-    description: "带认证头和 JSON body",
+    description: "认证头、JSON body、query 参数",
     curl: placeholder,
   },
   {
-    title: "Query GET",
-    description: "带 query 参数",
-    curl: `curl 'https://api.example.com/search?q=myblob&page=1' -H 'Accept: application/json'`,
+    title: "Basic Auth",
+    description: "Authorization: Basic 认证",
+    curl: `curl -u admin:secret123 https://api.example.com/admin/users`,
+  },
+  {
+    title: "浏览器复制",
+    description: "Cookie、UA、压缩响应",
+    curl: browserExample,
+  },
+  {
+    title: "表单提交",
+    description: "application/x-www-form-urlencoded",
+    curl: `curl -X POST https://api.example.com/login -d 'username=demo&password=secret'`,
   },
   {
     title: "文件上传",
@@ -125,285 +332,316 @@ const examples = [
   },
 ];
 
-const hasBody = computed(() => Boolean(requestInfo.data || Object.keys(requestInfo.forms).length || Object.keys(requestInfo.files).length));
+const emptyWarnings = (): Warnings => [];
+
+const converterOptions: ConverterOption[] = [
+  // Python
+  { value: "python", label: "Python requests", group: "Python", description: "最常用的 requests 写法。", extension: "py", convert: (command) => toPythonWarn(command, emptyWarnings()) },
+  { value: "python-http", label: "Python http.client", group: "Python", description: "标准库 http.client 写法。", extension: "py", convert: (command) => toPythonHttpWarn(command, emptyWarnings()) },
+
+  // JavaScript
+  { value: "fetch", label: "Browser fetch", group: "JavaScript", description: "浏览器 fetch 写法。", extension: "js", convert: (command) => toJavaScriptWarn(command, emptyWarnings()) },
+  { value: "jquery", label: "JavaScript jQuery", group: "JavaScript", description: "jQuery.ajax 写法。", extension: "js", convert: (command) => toJavaScriptJqueryWarn(command, emptyWarnings()) },
+  { value: "xhr", label: "JavaScript XHR", group: "JavaScript", description: "XMLHttpRequest 写法。", extension: "js", convert: (command) => toJavaScriptXHRWarn(command, emptyWarnings()) },
+
+  // Node.js
+  { value: "node-fetch", label: "Node.js fetch", group: "Node.js", description: "Node.js fetch 写法。", extension: "js", convert: (command) => toNodeFetchWarn(command, emptyWarnings()) },
+  { value: "axios", label: "Node.js Axios", group: "Node.js", description: "axios 请求写法。", extension: "js", convert: (command) => toNodeAxiosWarn(command, emptyWarnings()) },
+  { value: "node-got", label: "Node.js Got", group: "Node.js", description: "Got 请求写法。", extension: "js", convert: (command) => toNodeGotWarn(command, emptyWarnings()) },
+  { value: "node-ky", label: "Node.js Ky", group: "Node.js", description: "Ky 请求写法。", extension: "js", convert: (command) => toNodeKyWarn(command, emptyWarnings()) },
+  { value: "node-request", label: "Node.js Request", group: "Node.js", description: "Request 请求写法。", extension: "js", convert: (command) => toNodeRequestWarn(command, emptyWarnings()) },
+  { value: "node-superagent", label: "Node.js SuperAgent", group: "Node.js", description: "SuperAgent 请求写法。", extension: "js", convert: (command) => toNodeSuperAgentWarn(command, emptyWarnings()) },
+  { value: "node-http", label: "Node.js http", group: "Node.js", description: "原生 http/https 模块写法。", extension: "js", convert: (command) => toNodeHttpWarn(command, emptyWarnings()) },
+
+  // Java
+  { value: "java-okhttp", label: "Java OkHttp", group: "Java", description: "OkHttpClient 写法。", extension: "java", convert: (command) => toJavaOkHttpWarn(command, emptyWarnings()) },
+  { value: "java-httpclient", label: "Java HttpClient", group: "Java", description: "java.net.http.HttpClient 写法。", extension: "java", convert: (command) => toJavaWarn(command, emptyWarnings()) },
+  { value: "java-httpurlconnection", label: "Java HttpURLConnection", group: "Java", description: "HttpURLConnection 写法。", extension: "java", convert: (command) => toJavaHttpUrlConnectionWarn(command, emptyWarnings()) },
+  { value: "java-jsoup", label: "Java jsoup", group: "Java", description: "jsoup 连接写法。", extension: "java", convert: (command) => toJavaJsoupWarn(command, emptyWarnings()) },
+
+  // PHP
+  { value: "php", label: "PHP cURL", group: "PHP", description: "PHP curl 扩展写法。", extension: "php", convert: (command) => toPhpWarn(command, emptyWarnings()) },
+  { value: "php-guzzle", label: "PHP Guzzle", group: "PHP", description: "GuzzleHttp 客户端写法。", extension: "php", convert: (command) => toPhpGuzzleWarn(command, emptyWarnings()) },
+  { value: "php-requests", label: "PHP Requests", group: "PHP", description: "Requests 库写法。", extension: "php", convert: (command) => toPhpRequestsWarn(command, emptyWarnings()) },
+
+  // PowerShell
+  { value: "powershell", label: "PowerShell RestMethod", group: "PowerShell", description: "Invoke-RestMethod 写法。", extension: "ps1", convert: (command) => toPowershellRestMethodWarn(command, emptyWarnings()) },
+  { value: "powershell-webrequest", label: "PowerShell WebRequest", group: "PowerShell", description: "Invoke-WebRequest 写法。", extension: "ps1", convert: (command) => toPowershellWebRequestWarn(command, emptyWarnings()) },
+
+  // Go
+  { value: "go", label: "Go", group: "Go", description: "Go net/http 写法。", extension: "go", convert: (command) => toGoWarn(command, emptyWarnings()) },
+
+  // Ruby
+  { value: "ruby", label: "Ruby Net::HTTP", group: "Ruby", description: "Net::HTTP 写法。", extension: "rb", convert: (command) => toRubyWarn(command, emptyWarnings()) },
+  { value: "ruby-httparty", label: "Ruby HTTParty", group: "Ruby", description: "HTTParty 写法。", extension: "rb", convert: (command) => toRubyHttpartyWarn(command, emptyWarnings()) },
+
+  // R
+  { value: "r", label: "R httr", group: "R", description: "httr 库写法。", extension: "r", convert: (command) => toRWarn(command, emptyWarnings()) },
+  { value: "r-httr2", label: "R httr2", group: "R", description: "httr2 库写法。", extension: "r", convert: (command) => toRHttr2Warn(command, emptyWarnings()) },
+
+  // Shell
+  { value: "http", label: "Raw HTTP", group: "Shell", description: "标准 HTTP 报文预览。", extension: "http", convert: (command) => toHTTPWarn(command, emptyWarnings()) },
+  { value: "httpie", label: "HTTPie", group: "Shell", description: "httpie 命令写法。", extension: "sh", convert: (command) => toHttpieWarn(command, emptyWarnings()) },
+  { value: "wget", label: "Wget", group: "Shell", description: "wget 命令写法。", extension: "sh", convert: (command) => toWgetWarn(command, emptyWarnings()) },
+
+  // Data
+  { value: "har", label: "HAR", group: "Data", description: "HAR JSON，请求回放和接口归档可用。", extension: "har", convert: (command) => toHarStringWarn(command, emptyWarnings()) },
+  { value: "json", label: "Request JSON", group: "Data", description: "结构化请求对象，便于二次处理。", extension: "json", convert: (command) => toJsonStringWarn(command, emptyWarnings()) },
+
+  // Crawler
+  { value: "feapder", label: "feapder", group: "Crawler", description: "结合请求结构生成 feapder.AirSpider 模板。", extension: "py", convert: convertToFeapder },
+
+  // Other Languages
+  { value: "ansible", label: "Ansible", group: "Other", description: "Ansible uri 模块写法。", extension: "yml", convert: (command) => toAnsibleWarn(command, emptyWarnings()) },
+  { value: "c", label: "C (libcurl)", group: "Other", description: "C libcurl 写法。", extension: "c", convert: (command) => toCWarn(command, emptyWarnings()) },
+  { value: "csharp", label: "C#", group: "Other", description: "C# HttpClient 写法。", extension: "cs", convert: (command) => toCSharpWarn(command, emptyWarnings()) },
+  { value: "cfml", label: "ColdFusion", group: "Other", description: "ColdFusion cfhttp 写法。", extension: "cfm", convert: (command) => toCFMLWarn(command, emptyWarnings()) },
+  { value: "clojure", label: "Clojure", group: "Other", description: "clj-http 写法。", extension: "clj", convert: (command) => toClojureWarn(command, emptyWarnings()) },
+  { value: "dart", label: "Dart", group: "Other", description: "Dart http 包写法。", extension: "dart", convert: (command) => toDartWarn(command, emptyWarnings()) },
+  { value: "elixir", label: "Elixir", group: "Other", description: "Elixir HTTPoison 写法。", extension: "ex", convert: (command) => toElixirWarn(command, emptyWarnings()) },
+  { value: "julia", label: "Julia", group: "Other", description: "Julia HTTP 包写法。", extension: "jl", convert: (command) => toJuliaWarn(command, emptyWarnings()) },
+  { value: "kotlin", label: "Kotlin", group: "Other", description: "Kotlin java.net.URL 写法。", extension: "kt", convert: (command) => toKotlinWarn(command, emptyWarnings()) },
+  { value: "lua", label: "Lua", group: "Other", description: "Lua socket.http 写法。", extension: "lua", convert: (command) => toLuaWarn(command, emptyWarnings()) },
+  { value: "matlab", label: "MATLAB", group: "Other", description: "MATLAB webread 写法。", extension: "m", convert: (command) => toMATLABWarn(command, emptyWarnings()) },
+  { value: "ocaml", label: "OCaml", group: "Other", description: "OCaml cohttp 写法。", extension: "ml", convert: (command) => toOCamlWarn(command, emptyWarnings()) },
+  { value: "objectivec", label: "Objective-C", group: "Other", description: "Objective-C NSURLSession 写法。", extension: "m", convert: (command) => toObjectiveCWarn(command, emptyWarnings()) },
+  { value: "perl", label: "Perl", group: "Other", description: "Perl LWP::UserAgent 写法。", extension: "pl", convert: (command) => toPerlWarn(command, emptyWarnings()) },
+  { value: "rust", label: "Rust", group: "Other", description: "Rust reqwest 写法。", extension: "rs", convert: (command) => toRustWarn(command, emptyWarnings()) },
+  { value: "swift", label: "Swift", group: "Other", description: "Swift URLSession 写法。", extension: "swift", convert: (command) => toSwiftWarn(command, emptyWarnings()) },
+];
+
+const activeConverter = computed(() => converterOptions.find((item) => item.value === target.value));
+
+const filteredTargets = computed(() => {
+  const keyword = targetKeyword.value.trim().toLowerCase();
+  if (!keyword) return converterOptions;
+  return converterOptions.filter((item) =>
+    [item.label, item.group, item.description, item.value].join(" ").toLowerCase().includes(keyword),
+  );
+});
+
 const bodyLabel = computed(() => {
-  if (requestInfo.data) return "raw/json";
-  if (Object.keys(requestInfo.files).length) return "multipart";
-  if (Object.keys(requestInfo.forms).length) return "form";
+  const info = requestInfo.value;
+  if (!info) return "none";
+  if (info.files && Object.keys(info.files).length) return "multipart";
+  if (info.data !== undefined) return typeof info.data === "string" ? "raw/form" : "json/object";
   return "none";
 });
 
-const outputCode = computed(() => {
-  if (parseError.value || !requestInfo.url) return "";
-  if (target.value === "python") return toPython(requestInfo);
-  if (target.value === "feapder") return toFeapder(requestInfo);
-  return toFetch(requestInfo);
-});
-
 const meta = computed(() => [
-  { label: "请求方法", value: requestInfo.method || "-" },
-  { label: "Header 数", value: `${Object.keys(requestInfo.headers).length}` },
-  { label: "Body 类型", value: bodyLabel.value },
+  { label: "目标", value: activeConverter.value?.label || "-" },
+  { label: "Method", value: requestInfo.value?.method?.toUpperCase() || "-" },
+  { label: "Header", value: `${countRecord(requestInfo.value?.headers)}` },
+  { label: "提示", value: `${warnings.value.length}` },
 ]);
 
-const resetRequest = () => {
-  requestInfo.method = "GET";
-  requestInfo.url = "";
-  requestInfo.headers = {};
-  requestInfo.cookies = {};
-  requestInfo.data = "";
-  requestInfo.forms = {};
-  requestInfo.files = {};
-  requestInfo.params = {};
-};
+function countRecord(value?: Record<string, unknown>) {
+  return value ? Object.keys(value).length : 0;
+}
 
-const tokenize = (input: string) => {
-  const tokens: string[] = [];
-  let current = "";
-  let quote = "";
-  let escaped = false;
-  const normalized = input.replace(/\\\r?\n/g, " ");
+function normalizeCommand(command: string) {
+  return command.trim().replace(/^\$\s*/, "");
+}
 
-  for (const char of normalized) {
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (quote) {
-      if (char === quote) quote = "";
-      else current += char;
-      continue;
-    }
-    if (char === "'" || char === '"') {
-      quote = char;
-      continue;
-    }
-    if (/\s/.test(char)) {
-      if (current) {
-        tokens.push(current);
-        current = "";
-      }
-      continue;
-    }
-    current += char;
-  }
-
-  if (current) tokens.push(current);
-  return tokens;
-};
-
-const setUrl = (value: string) => {
-  try {
-    const parsed = new URL(value);
-    parsed.searchParams.forEach((paramValue, key) => {
-      requestInfo.params[key] = paramValue;
-    });
-    parsed.search = "";
-    requestInfo.url = parsed.toString();
-  } catch {
-    requestInfo.url = value;
-  }
-};
-
-const parseCurl = () => {
+function convert() {
   parseError.value = "";
-  resetRequest();
+  warnings.value = [];
+  outputCode.value = "";
+  requestInfo.value = undefined;
 
-  const tokens = tokenize(curlInput.value.trim());
-  if (!tokens.length || tokens[0] !== "curl") {
-    parseError.value = "请输入以 curl 开头的命令";
+  const command = normalizeCommand(curlInput.value);
+  if (!command) {
+    parseError.value = "请输入 curl 命令";
+    return;
+  }
+  if (!/^curl(\s|$)/i.test(command)) {
+    parseError.value = "命令需要以 curl 开头";
     return;
   }
 
-  for (let index = 1; index < tokens.length; index += 1) {
-    const token = tokens[index];
-    const next = tokens[index + 1];
+  try {
+    const [json, jsonWarnings] = toJsonObjectWarn(command, emptyWarnings());
+    requestInfo.value = json;
+    warnings.value = jsonWarnings;
 
-    if ((token === "-X" || token === "--request") && next) {
-      requestInfo.method = next.toUpperCase();
-      index += 1;
-    } else if ((token === "-H" || token === "--header") && next) {
-      const [key, ...rest] = next.split(":");
-      if (key && rest.length) requestInfo.headers[key.trim()] = rest.join(":").trim();
-      index += 1;
-    } else if ((token === "-b" || token === "--cookie") && next) {
-      next.split(";").forEach((part) => {
-        const [key, value] = part.split("=");
-        if (key && value) requestInfo.cookies[key.trim()] = value.trim();
-      });
-      index += 1;
-    } else if (["-d", "--data", "--data-raw", "--data-binary", "--data-urlencode"].includes(token) && next) {
-      requestInfo.data = next;
-      if (requestInfo.method === "GET") requestInfo.method = "POST";
-      index += 1;
-    } else if ((token === "-F" || token === "--form") && next) {
-      const [key, value = ""] = next.split("=");
-      if (value.startsWith("@")) requestInfo.files[key] = value.slice(1);
-      else requestInfo.forms[key] = value;
-      if (requestInfo.method === "GET") requestInfo.method = "POST";
-      index += 1;
-    } else if (token.startsWith("http")) {
-      setUrl(token);
-    }
+    const converter = activeConverter.value || converterOptions[0];
+    const [code, codeWarnings] = converter.convert(command);
+    outputCode.value = code;
+    warnings.value = mergeWarnings(jsonWarnings, codeWarnings);
+  } catch (error) {
+    parseError.value = error instanceof Error ? error.message : "curl 解析失败，请检查引号、换行和参数";
   }
+}
 
-  if (!requestInfo.url) {
-    parseError.value = "未识别到请求 URL";
+function mergeWarnings(left: Warnings, right: Warnings) {
+  const seen = new Set<string>();
+  return [...left, ...right].filter((warning) => {
+    const key = warning.join("::");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function convertToFeapder(command: string): [string, Warnings] {
+  const [json, nextWarnings] = toJsonObjectWarn(command, emptyWarnings());
+  return [buildFeapderTemplate(json), nextWarnings];
+}
+
+function buildFeapderTemplate(info: JSONOutput) {
+  const args: string[] = [toPythonLiteral(info.url)];
+  if (info.method && info.method.toUpperCase() !== "GET") args.push(`method=${toPythonLiteral(info.method.toUpperCase())}`);
+  if (info.queries && Object.keys(info.queries).length) args.push(`params=${toPythonLiteral(info.queries, 3)}`);
+  if (info.headers && Object.keys(info.headers).length) args.push(`headers=${toPythonLiteral(info.headers, 3)}`);
+  if (info.cookies && Object.keys(info.cookies).length) args.push(`cookies=${toPythonLiteral(info.cookies, 3)}`);
+  if (info.data !== undefined) {
+    const contentType = Object.entries(info.headers || {}).find(([key]) => key.toLowerCase() === "content-type")?.[1];
+    const key = typeof info.data === "object" && String(contentType || "").includes("json") ? "json" : "data";
+    args.push(`${key}=${toPythonLiteral(info.data, 3)}`);
   }
-};
+  if (info.files && Object.keys(info.files).length) args.push(`files=${toPythonLiteral(info.files, 3)}`);
+  if (info.follow_redirects) args.push("allow_redirects=True");
+  if (info.timeout) args.push(`timeout=${info.timeout}`);
+  if (info.proxy) args.push(`proxies=${toPythonLiteral({ http: info.proxy, https: info.proxy }, 3)}`);
 
-const quote = (value: string) => JSON.stringify(value);
+  return [
+    "import feapder",
+    "",
+    "",
+    "class CurlSpider(feapder.AirSpider):",
+    "    def start_requests(self):",
+    `        yield feapder.Request(${args.join(", ")})`,
+    "",
+    "    def parse(self, request, response):",
+    "        print(response.status_code)",
+    "        print(response.text)",
+    "",
+    "",
+    "if __name__ == \"__main__\":",
+    "    CurlSpider().start()",
+  ].join("\n");
+}
 
-const objectLiteral = (value: Record<string, string>, indent = "  ") => {
-  const entries = Object.entries(value);
+function toPythonLiteral(value: unknown, indent = 0): string {
+  const pad = "    ".repeat(indent);
+  const nextPad = "    ".repeat(indent + 1);
+  if (value === null || value === undefined) return "None";
+  if (typeof value === "boolean") return value ? "True" : "False";
+  if (typeof value === "number") return Number.isFinite(value) ? String(value) : "None";
+  if (typeof value === "string") return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    if (!value.length) return "[]";
+    return `[\n${value.map((item) => `${nextPad}${toPythonLiteral(item, indent + 1)}`).join(",\n")}\n${pad}]`;
+  }
+  const entries = Object.entries(value as Record<string, unknown>).filter(([, item]) => item !== undefined);
   if (!entries.length) return "{}";
-  return `{\n${entries.map(([key, item]) => `${indent}${quote(key)}: ${quote(item)}`).join(",\n")}\n}`;
-};
+  return `{\n${entries
+    .map(([key, item]) => `${nextPad}${JSON.stringify(key)}: ${toPythonLiteral(item, indent + 1)}`)
+    .join(",\n")}\n${pad}}`;
+}
 
-const isJsonBody = (info: ParsedRequest) => {
-  return (info.headers["Content-Type"] || info.headers["content-type"] || "").includes("json") || /^[\[{]/.test(info.data.trim());
-};
-
-const toPython = (info: ParsedRequest) => {
-  const lines = ["import requests", ""];
-  lines.push(`url = ${quote(info.url)}`);
-  if (Object.keys(info.params).length) lines.push(`params = ${objectLiteral(info.params, "    ")}`);
-  if (Object.keys(info.headers).length) lines.push(`headers = ${objectLiteral(info.headers, "    ")}`);
-  if (Object.keys(info.cookies).length) lines.push(`cookies = ${objectLiteral(info.cookies, "    ")}`);
-  if (info.data) {
-    if (isJsonBody(info)) {
-      try {
-        lines.push(`json_data = ${JSON.stringify(JSON.parse(info.data), null, 4)}`);
-      } catch {
-        lines.push(`data = ${quote(info.data)}`);
-      }
-    } else {
-      lines.push(`data = ${quote(info.data)}`);
-    }
-  }
-  if (Object.keys(info.forms).length) lines.push(`data = ${objectLiteral(info.forms, "    ")}`);
-  if (Object.keys(info.files).length) {
-    lines.push("files = {");
-    Object.entries(info.files).forEach(([key, path]) => lines.push(`    ${quote(key)}: open(${quote(path)}, "rb"),`));
-    lines.push("}");
-  }
-
-  const args = ["url"];
-  if (Object.keys(info.params).length) args.push("params=params");
-  if (Object.keys(info.headers).length) args.push("headers=headers");
-  if (Object.keys(info.cookies).length) args.push("cookies=cookies");
-  if (info.data && isJsonBody(info)) args.push("json=json_data");
-  else if (info.data || Object.keys(info.forms).length) args.push("data=data");
-  if (Object.keys(info.files).length) args.push("files=files");
-  lines.push("");
-  lines.push(`response = requests.${info.method.toLowerCase()}(${args.join(", ")})`);
-  lines.push("response.raise_for_status()");
-  lines.push("print(response.text)");
-  return lines.join("\n");
-};
-
-const toFetch = (info: ParsedRequest) => {
-  const headers = { ...info.headers };
-  let body = "";
-
-  if (info.data) {
-    body = isJsonBody(info) ? `JSON.stringify(${JSON.stringify(JSON.parse(info.data), null, 2)})` : quote(info.data);
-  } else if (Object.keys(info.forms).length) {
-    body = `new URLSearchParams(${objectLiteral(info.forms)})`;
-  }
-
-  const url = Object.keys(info.params).length
-    ? `${info.url}?${new URLSearchParams(info.params).toString()}`
-    : info.url;
-
-  const options = [`method: ${quote(info.method)}`];
-  if (Object.keys(headers).length) options.push(`headers: ${objectLiteral(headers)}`);
-  if (body) options.push(`body: ${body}`);
-
-  return `const response = await fetch(${quote(url)}, {\n  ${options.join(",\n  ")}\n});\n\nif (!response.ok) {\n  throw new Error(\`HTTP \${response.status}\`);\n}\n\nconst data = await response.text();\nconsole.log(data);`;
-};
-
-const toFeapder = (info: ParsedRequest) => {
-  const lines = ["import feapder", "", "class DemoSpider(feapder.AirSpider):", "    def start_requests(self):"];
-  const args = [`${quote(info.url)}`];
-  args.push(`method=${quote(info.method)}`);
-  if (Object.keys(info.params).length) args.push(`params=${objectLiteral(info.params, "            ")}`);
-  if (Object.keys(info.headers).length) args.push(`headers=${objectLiteral(info.headers, "            ")}`);
-  if (Object.keys(info.cookies).length) args.push(`cookies=${objectLiteral(info.cookies, "            ")}`);
-  if (info.data && isJsonBody(info)) {
-    try {
-      args.push(`json=${JSON.stringify(JSON.parse(info.data), null, 12).replace(/\n/g, "\n        ")}`);
-    } catch {
-      args.push(`data=${quote(info.data)}`);
-    }
-  } else if (info.data) {
-    args.push(`data=${quote(info.data)}`);
-  }
-  lines.push(`        yield feapder.Request(${args.join(", ")})`);
-  lines.push("");
-  lines.push("    def parse(self, request, response):");
-  lines.push("        print(response.status_code)");
-  lines.push("        print(response.text)");
-  lines.push("");
-  lines.push("if __name__ == \"__main__\":");
-  lines.push("    DemoSpider().start()");
-  return lines.join("\n");
-};
-
-const copy = async (value: string) => {
+async function copy(value: string) {
   if (!value) {
     ElMessage.warning("没有内容可复制");
     return;
   }
   await navigator.clipboard.writeText(value);
   ElMessage.success("已复制");
-};
+}
 
-const clearAll = () => {
+function downloadOutput() {
+  if (!outputCode.value) {
+    ElMessage.warning("请先生成转换结果");
+    return;
+  }
+  const converter = activeConverter.value || converterOptions[0];
+  const blob = new Blob([outputCode.value], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `curl-${converter.value}.${converter.extension}`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAll() {
   curlInput.value = "";
-  resetRequest();
-};
+  outputCode.value = "";
+  requestInfo.value = undefined;
+  parseError.value = "";
+  warnings.value = [];
+}
 
-const useExample = (value: string) => {
+function useExample(value: string) {
   curlInput.value = value;
-};
+}
 
-watch(curlInput, parseCurl, { immediate: true });
+function loadBrowserExample() {
+  curlInput.value = browserExample;
+}
+
+function scheduleConvert() {
+  window.clearTimeout(convertTimer);
+  if (!autoConvert.value) return;
+  convertTimer = window.setTimeout(convert, 240);
+}
+
+watch([curlInput, target], scheduleConvert, { immediate: true });
+watch(autoConvert, (enabled) => {
+  if (enabled) convert();
+});
+watch(
+  () => route.meta.curlTarget,
+  (value) => {
+    if (value === "feapder") target.value = "feapder";
+    else if (value === "fetch") target.value = "fetch";
+    else target.value = "python";
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
-.workbench {
+.curl-lab {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: minmax(420px, 1.05fr) 260px minmax(420px, 1.1fr);
+  gap: 14px;
 }
 
 .panel {
-  padding: 16px;
+  min-width: 0;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
 }
 
-.summary-panel {
-  grid-column: 1 / -1;
+.input-panel,
+.output-panel {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr) 120px 120px;
-  gap: 12px;
+  min-height: 640px;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+}
+
+.target-panel {
+  display: grid;
+  max-height: 640px;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: 14px;
 }
 
 .panel-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.compact-head {
+  padding: 0 0 12px;
+  border-bottom: 0;
 }
 
 h2 {
@@ -419,73 +657,158 @@ p {
   line-height: 1.6;
 }
 
-.inline-actions {
+.head-actions,
+.input-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
+}
+
+.curl-input {
+  min-height: 0;
+}
+
+.curl-input :deep(.el-textarea__inner) {
+  height: 100%;
+  min-height: 100% !important;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #0f172a;
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.input-actions {
+  justify-content: flex-start;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .example-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 12px;
+  padding: 0 16px 16px;
 }
 
-.example-card {
-  padding: 10px;
+.example-card,
+.target-item {
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f8fafc;
   text-align: left;
   cursor: pointer;
 }
 
-.example-card:hover {
-  border-color: #14b8a6;
+.example-card {
+  padding: 10px;
+}
+
+.example-card:hover,
+.target-item:hover,
+.target-item.active {
+  border-color: #0f766e;
+  background: #ecfeff;
 }
 
 .example-card strong,
 .example-card span,
+.target-item span,
+.target-item small,
 .summary-item span,
 .summary-item strong {
   display: block;
 }
 
-.example-card strong {
+.example-card strong,
+.target-item span {
   color: #0f172a;
   font-size: 13px;
+  font-weight: 900;
 }
 
 .example-card span,
+.target-item small,
 .summary-item span {
   color: #64748b;
   font-size: 12px;
 }
 
-.code-block {
-  min-height: 410px;
-  margin: 0;
-  padding: 14px;
+.target-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
   overflow: auto;
-  border-radius: 8px;
-  background: #111827;
-  color: #e5e7eb;
+  padding-right: 4px;
+}
+
+.target-item {
+  padding: 10px 11px;
+}
+
+.target-item.active span {
+  color: #0f766e;
+}
+
+.alert,
+.warning-box {
+  margin: 12px 16px 0;
+}
+
+.warning-box {
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 12px;
+}
+
+.warning-box ul {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+}
+
+.warning-box em {
+  display: block;
+  color: #b45309;
+  font-style: normal;
+  opacity: 0.82;
+}
+
+.code-block {
+  min-height: 0;
+  margin: 12px 16px 16px;
+  overflow: auto;
+  border-radius: 12px;
+  padding: 16px;
+  background: #0f172a;
+  color: #dbeafe;
+  font-family: "JetBrains Mono", "Consolas", monospace;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
   white-space: pre-wrap;
 }
 
-.alert {
-  margin-bottom: 12px;
+.summary-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 120px minmax(220px, 1fr) repeat(4, 120px);
+  gap: 10px;
 }
 
 .summary-item {
-  padding: 12px;
-  border-radius: 8px;
-  background: #f8fafc;
+  min-width: 0;
   border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
 }
 
 .summary-item strong {
@@ -495,13 +818,82 @@ p {
   word-break: break-all;
 }
 
-@media (max-width: 980px) {
-  .workbench,
-  .summary-panel {
+.browser-guide {
+  grid-column: 1 / -1;
+  margin-top: 18px;
+  padding: 18px 22px 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+.browser-guide h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.browser-guide > p {
+  margin: 6px 0 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.browser-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.browser-step h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.browser-step ol {
+  margin: 0;
+  padding: 0 0 0 18px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.browser-step li::marker {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+@media (max-width: 1280px) {
+  .curl-lab {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+
+  .output-panel {
+    grid-column: 1 / -1;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .curl-lab,
+  .summary-grid {
     grid-template-columns: 1fr;
   }
 
+  .input-panel,
+  .output-panel {
+    min-height: 520px;
+  }
+
   .example-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .browser-steps {
     grid-template-columns: 1fr;
   }
 }

@@ -3,7 +3,7 @@
     <div class="my-posts-page">
       <div class="page-header">
         <h2>我的文章</h2>
-        <el-button type="primary">写文章</el-button>
+        <el-button type="primary" @click="$router.push('/post/create')">写文章</el-button>
       </div>
       <div v-if="loading" class="loading">
         <el-skeleton :rows="5" animated />
@@ -21,8 +21,8 @@
           <el-table-column prop="like_count" label="点赞" width="80" />
           <el-table-column label="操作" width="200">
             <template #default="{ row }">
-              <el-button type="primary" size="small" link>编辑</el-button>
-              <el-button type="danger" size="small" link>删除</el-button>
+              <el-button type="primary" size="small" link @click="handleEdit(row)">编辑</el-button>
+              <el-button type="danger" size="small" link @click="handleDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -34,10 +34,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
-import { getPosts } from '@/api/post'
+import { getMyPosts, deletePost } from '@/api/post'
 import type { Post } from '@/types'
 
+const router = useRouter()
 const posts = ref<Post[]>([])
 const loading = ref(false)
 
@@ -61,13 +64,36 @@ const getStatusText = (status: string) => {
   return map[status] || status
 }
 
+const handleEdit = (row: Post) => {
+  router.push(`/post/${row.slug}/edit`)
+}
+
+const handleDelete = async (row: Post) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这篇文章吗？此操作不可撤销。', '删除确认', {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    await deletePost(row.slug)
+    ElMessage.success('文章已删除')
+    loadPosts()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('Failed to delete post:', error)
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
 const loadPosts = async () => {
   loading.value = true
   try {
-    const response = await getPosts({ ordering: '-created_at' })
-    posts.value = response.results
+    const response = await getMyPosts({})
+    posts.value = response.results || []
   } catch (error) {
     console.error('Failed to load posts:', error)
+    ElMessage.error('加载失败')
   } finally {
     loading.value = false
   }

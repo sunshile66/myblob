@@ -5,6 +5,18 @@ export const getUserProfile = () => {
   return request.get<User>('/auth/profile/')
 }
 
+export const getUserById = (id: number) => {
+  return request.get<User>(`/auth/users/${id}/`)
+}
+
+export const followUser = (id: number) => {
+  return request.post(`/auth/users/${id}/follow/`)
+}
+
+export const unfollowUser = (id: number) => {
+  return request.delete(`/auth/users/${id}/follow/`)
+}
+
 export const updateUserProfile = (data: Partial<User>) => {
   return request.put<User>('/auth/profile/', data)
 }
@@ -17,16 +29,4 @@ export const uploadAvatar = (file: File) => {
       'Content-Type': 'multipart/form-data',
     },
   })
-}
-
-export const getUser = (userId: number) => {
-  return request.get<User>(`/auth/users/${userId}/`)
-}
-
-export const followUser = (userId: number) => {
-  return request.post(`/auth/users/${userId}/follow/`)
-}
-
-export const unfollowUser = (userId: number) => {
-  return request.delete(`/auth/users/${userId}/follow/`)
 }

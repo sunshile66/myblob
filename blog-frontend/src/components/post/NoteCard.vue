@@ -114,7 +114,7 @@ onMounted(() => {
   border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
   box-shadow: var(--glass-shadow);
 }
 
@@ -238,7 +238,7 @@ onMounted(() => {
   cursor: pointer;
   padding: 4px 10px;
   border-radius: 20px;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
   background: transparent;
 }
 
@@ -250,7 +250,7 @@ onMounted(() => {
 .like-info .el-icon {
   color: var(--theme-text-secondary);
   font-size: 14px;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .like-info:hover .el-icon {
@@ -260,5 +260,25 @@ onMounted(() => {
 .like-info .el-icon.liked {
   color: var(--theme-primary);
   fill: var(--theme-primary);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .note-card {
+    transition: none;
+  }
+
+  .note-card:hover {
+    transform: none;
+  }
+
+  .note-card:hover .note-image {
+    transform: none;
+  }
+
+  .like-info,
+  .like-info .el-icon {
+    transition: none;
+  }
 }
 </style>

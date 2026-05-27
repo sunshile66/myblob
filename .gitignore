@@ -1,16 +1,27 @@
-# Python
+# Java / Maven
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+target/
+*.log
+
+# Python / local Django leftovers
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
 .Python
-env/
-venv/
 .venv/
+venv/
+env/
 ENV/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -23,19 +34,15 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Django
-*.log
-local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media/
-/static/
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Local uploads and screenshots
+/media/
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
 
 # IDE
 .vscode/
@@ -44,6 +51,11 @@ db.sqlite3-journal
 *.swo
 *~
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Node modules
 node_modules/
 
@@ -51,9 +63,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Logs
-logs/
-*.log
+# Package manager logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

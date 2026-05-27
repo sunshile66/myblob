@@ -7,7 +7,7 @@
             <el-icon><ArrowLeft /></el-icon>
             返回
           </el-button>
-          <h1>📝 Markdown预览</h1>
+          <h1><el-icon><EditPen /></el-icon> Markdown预览</h1>
         </div>
 
         <div class="editor-content">
@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { ArrowLeft, EditPen } from '@element-plus/icons-vue'
 import SimpleLayout from '@/layout/SimpleLayout.vue'
 import MarkdownIt from 'markdown-it'
 

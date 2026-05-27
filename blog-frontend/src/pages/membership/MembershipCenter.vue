@@ -34,7 +34,7 @@
             </div>
           </div>
           <div v-else class="no-membership">
-            <el-icon :size="64"><Crown /></el-icon>
+            <el-icon :size="64"><GoldMedal /></el-icon>
             <p>您还不是会员</p>
             <p class="hint">开通会员，解锁更多精彩功能</p>
           </div>
@@ -107,7 +107,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Crown, SuccessFilled } from "@element-plus/icons-vue";
+import { GoldMedal, SuccessFilled } from "@element-plus/icons-vue";
 import SimpleLayout from "@/layout/SimpleLayout.vue";
 import { getMembershipPlans, getMyMembership } from "@/api/membership";
 import { createOrder, payOrder } from "@/api/payments";

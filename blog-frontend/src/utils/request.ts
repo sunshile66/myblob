@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
-import { ElNotification, ElMessage } from "element-plus";
+import { ElMessage } from "element-plus";
 import router from "@/app/router";
 import { useUserStore } from "@/store/user";
 
@@ -24,7 +24,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 class HttpClient {
   private instance: AxiosInstance;
   private isRefreshing = false;
-  private refreshSubscribers: ((token: string) => void)[] = [];
 
   constructor() {
     this.instance = axios.create({
@@ -86,7 +85,6 @@ class HttpClient {
               ElMessage.error("登录已过期，请重新登录");
             } finally {
               this.isRefreshing = false;
-              this.refreshSubscribers = [];
             }
           }
         }
@@ -113,24 +111,29 @@ class HttpClient {
     );
   }
 
+  private unwrap<T>(response: AxiosResponse<ApiResponse<T>>): T {
+    const body = response.data;
+    return (body.data ?? body) as T;
+  }
+
   public get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.get<ApiResponse<T>>(url, config).then((res) => res.data.data || res.data);
+    return this.instance.get<ApiResponse<T>>(url, config).then((res) => this.unwrap<T>(res));
   }
 
   public post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.post<ApiResponse<T>>(url, data, config).then((res) => res.data.data || res.data);
+    return this.instance.post<ApiResponse<T>>(url, data, config).then((res) => this.unwrap<T>(res));
   }
 
   public put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.put<ApiResponse<T>>(url, data, config).then((res) => res.data.data || res.data);
+    return this.instance.put<ApiResponse<T>>(url, data, config).then((res) => this.unwrap<T>(res));
   }
 
   public delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.delete<ApiResponse<T>>(url, config).then((res) => res.data.data || res.data);
+    return this.instance.delete<ApiResponse<T>>(url, config).then((res) => this.unwrap<T>(res));
   }
 
   public patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.patch<ApiResponse<T>>(url, data, config).then((res) => res.data.data || res.data);
+    return this.instance.patch<ApiResponse<T>>(url, data, config).then((res) => this.unwrap<T>(res));
   }
 
   public upload<T = any>(url: string, formData: FormData, config?: AxiosRequestConfig): Promise<T> {
@@ -139,11 +142,11 @@ class HttpClient {
         headers: { "Content-Type": "multipart/form-data" },
         ...config,
       })
-      .then((res) => res.data.data || res.data);
+      .then((res) => this.unwrap<T>(res));
   }
 
   public request<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.instance.request<ApiResponse<T>>(config).then((res) => res.data.data || res.data);
+    return this.instance.request<ApiResponse<T>>(config).then((res) => this.unwrap<T>(res));
   }
 }
 

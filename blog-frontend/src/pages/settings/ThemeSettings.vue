@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-content">
         <div class="header-title">
-          <el-icon class="title-icon"><Palette /></el-icon>
+          <el-icon class="title-icon"><Brush /></el-icon>
           <h1>主题设置</h1>
         </div>
         <p class="header-subtitle">自定义您的界面外观，打造专属的视觉体验</p>
@@ -42,7 +42,12 @@
                   </div>
                 </div>
                 <div class="theme-details">
-                  <span class="theme-emoji">{{ theme.icon }}</span>
+                  <el-icon class="theme-icon" :style="{ color: theme.id === 'system' ? '#4F46E5' : theme.colors.primary }">
+                    <Sunny v-if="theme.icon === 'sunny'" />
+                    <Moon v-else-if="theme.icon === 'moon'" />
+                    <Monitor v-else-if="theme.icon === 'monitor'" />
+                    <MagicStick v-else />
+                  </el-icon>
                   <div class="theme-meta">
                     <span class="theme-name">{{ theme.name }}</span>
                     <span class="theme-desc">{{ theme.description }}</span>
@@ -70,7 +75,7 @@
                   :min="50"
                   :max="150"
                   :step="1"
-                  @change="onBrightnessChange"
+                  @change="(v: any) => onBrightnessChange(Number(v))"
                   class="setting-slider"
                 />
                 <div class="setting-hint">向左降低亮度，向右提高亮度</div>
@@ -86,7 +91,7 @@
                   :min="50"
                   :max="150"
                   :step="1"
-                  @change="onContrastChange"
+                  @change="(v: any) => onContrastChange(Number(v))"
                   class="setting-slider"
                 />
                 <div class="setting-hint">向左降低对比度，向右提高对比度</div>
@@ -106,7 +111,7 @@
                 @click="resetToDefault"
                 class="action-btn"
               >
-                <el-icon><RefreshCw /></el-icon>
+                <el-icon><Refresh /></el-icon>
                 恢复默认设置
               </el-button>
               <el-button
@@ -156,24 +161,24 @@
                       <span class="author-name">作者</span>
                     </div>
                     <div class="card-stats">
-                      <span class="stat-item"><Eye /> 1.2k</span>
+                      <span class="stat-item"><View /> 1.2k</span>
                       <span class="stat-item"><Message /> 45</span>
-                      <span class="stat-item"><Heart /> 234</span>
+                      <span class="stat-item"><Star /> 234</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="preview-cards-row">
                   <div class="small-card">
-                    <div class="small-card-icon" :style="{ background: currentThemeConfig.colors.primaryLight }">📝</div>
+                    <div class="small-card-icon" :style="{ background: currentThemeConfig.colors.primaryLight }"><el-icon><Edit /></el-icon></div>
                     <span class="small-card-title">写文章</span>
                   </div>
                   <div class="small-card">
-                    <div class="small-card-icon" :style="{ background: currentThemeConfig.colors.primaryLight }">📁</div>
+                    <div class="small-card-icon" :style="{ background: currentThemeConfig.colors.primaryLight }"><el-icon><Folder /></el-icon></div>
                     <span class="small-card-title">文件管理</span>
                   </div>
                   <div class="small-card">
-                    <div class="small-card-icon" :style="{ background: currentThemeConfig.colors.primaryLight }">⚙️</div>
+                    <div class="small-card-icon" :style="{ background: currentThemeConfig.colors.primaryLight }"><el-icon><Setting /></el-icon></div>
                     <span class="small-card-title">设置</span>
                   </div>
                 </div>
@@ -189,7 +194,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useThemeStore, type ThemeType } from '@/store/theme'
-import { Palette, Check, RefreshCw, Download, Eye, Message, Heart } from '@element-plus/icons-vue'
+import { Brush, Check, Refresh, Download, View, Message, Star, Sunny, Moon, Monitor, MagicStick, Edit, Folder, Setting } from '@element-plus/icons-vue'
 
 const themeStore = useThemeStore()
 
@@ -420,8 +425,9 @@ watch(currentTheme, (newTheme) => {
   align-items: center;
   gap: 12px;
 
-  .theme-emoji {
+  .theme-icon {
     font-size: 24px;
+    flex-shrink: 0;
   }
 
   .theme-meta {

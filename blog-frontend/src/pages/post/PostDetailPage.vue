@@ -9,6 +9,16 @@
               <span class="meta-item">
                 <el-icon><User /></el-icon>
                 {{ post.author.nickname || post.author.username }}
+                <el-button
+                  v-if="!isAuthor && userStore.isLoggedIn"
+                  :type="post.author.is_following ? 'default' : 'primary'"
+                  size="small"
+                  text
+                  @click="toggleFollowAuthor"
+                  style="margin-left: 4px;"
+                >
+                  {{ post.author.is_following ? '已关注' : '+ 关注' }}
+                </el-button>
               </span>
               <span class="meta-item">
                 <el-icon><Calendar /></el-icon>
@@ -40,6 +50,14 @@
 
         <el-card class="actions-card">
           <div class="post-actions">
+            <el-button v-if="isAuthor" type="warning" @click="handleEdit" size="large">
+              <el-icon><Edit /></el-icon>
+              编辑
+            </el-button>
+            <el-button v-if="isAuthor" type="danger" @click="handleDelete" size="large">
+              <el-icon><Delete /></el-icon>
+              删除
+            </el-button>
             <el-button :type="isLiked ? 'primary' : 'default'" @click="toggleLike" size="large">
               <el-icon><Star /></el-icon>
               {{ isLiked ? '已点赞' : '点赞' }}
@@ -67,32 +85,78 @@
             <CommentList :comments="comments" />
           </div>
         </el-card>
+
+        <el-card v-if="isAuthor" class="revisions-card">
+          <template #header>
+            <div class="revisions-header">
+              <span class="revisions-title">版本历史 ({{ revisions.length }})</span>
+              <el-button size="small" text @click="showRevisions = !showRevisions">
+                {{ showRevisions ? '收起' : '展开' }}
+              </el-button>
+            </div>
+          </template>
+          <div v-if="showRevisions" class="revisions-list">
+            <el-timeline>
+              <el-timeline-item
+                v-for="rev in revisions"
+                :key="rev.id"
+                :timestamp="formatDate(rev.created_at)"
+                placement="top"
+              >
+                <el-card shadow="hover" class="revision-item">
+                  <p><strong>标题：</strong>{{ rev.title }}</p>
+                  <p v-if="rev.summary"><strong>摘要：</strong>{{ rev.summary }}</p>
+                  <p><strong>编辑者：</strong>{{ rev.editor_name }}</p>
+                  <el-collapse>
+                    <el-collapse-item title="查看内容">
+                      <div class="revision-content" v-html="renderMarkdown(rev.content)"></div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </el-card>
+              </el-timeline-item>
+            </el-timeline>
+            <el-empty v-if="revisions.length === 0" description="暂无版本历史" />
+          </div>
+        </el-card>
       </template>
     </div>
   </DefaultLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Calendar, View, ChatDotRound, Star, Collection } from '@element-plus/icons-vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { User, Calendar, View, ChatDotRound, Star, Collection, Edit, Delete } from '@element-plus/icons-vue'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
 import CommentBox from '@/components/comment/CommentBox.vue'
 import CommentList from '@/components/comment/CommentList.vue'
-import { getPost, likePost, unlikePost, favoritePost, unfavoritePost } from '@/api/post'
+import { getPost, likePost, unlikePost, favoritePost, unfavoritePost, deletePost, getPostRevisions } from '@/api/post'
 import { getComments } from '@/api/comment'
+import { followUser, unfollowUser } from '@/api/user'
+import { useUserStore } from '@/store/user'
 import type { Post, Comment } from '@/types'
+import type { PostRevision } from '@/api/post'
 import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt()
 const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
 
 const post = ref<Post | null>(null)
 const comments = ref<Comment[]>([])
+const revisions = ref<PostRevision[]>([])
 const loading = ref(false)
 const isLiked = ref(false)
 const isFavorited = ref(false)
+const showRevisions = ref(false)
+
+/** 当前用户是否为文章作者 */
+const isAuthor = computed(() => {
+  if (!post.value || !userStore.userInfo) return false
+  return post.value.author.id === userStore.userInfo.id
+})
 
 /**
  * 渲染 Markdown 内容为 HTML
@@ -124,6 +188,8 @@ const loadPost = async () => {
   try {
     const slug = route.params.slug as string
     post.value = await getPost(slug)
+    isLiked.value = post.value.is_liked || false
+    isFavorited.value = post.value.is_favorited || false
   } catch (error) {
     console.error('Failed to load post:', error)
     ElMessage.error('加载文章失败')
@@ -138,10 +204,61 @@ const loadPost = async () => {
 const loadComments = async () => {
   if (!post.value) return
   try {
-    const response = await getComments({ post: post.value.id })
-    comments.value = response.results
+    const data: any = await getComments({ post: post.value.id })
+    comments.value = Array.isArray(data) ? data : data.results || []
   } catch (error) {
     console.error('Failed to load comments:', error)
+  }
+}
+
+/**
+ * 编辑文章
+ */
+const handleEdit = () => {
+  if (!post.value) return
+  router.push(`/post/${post.value.slug}/edit`)
+}
+
+/**
+ * 删除文章
+ */
+const handleDelete = async () => {
+  if (!post.value) return
+  try {
+    await ElMessageBox.confirm('确定要删除这篇文章吗？此操作不可撤销。', '删除确认', {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    await deletePost(post.value.slug)
+    ElMessage.success('文章已删除')
+    router.push('/')
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('Failed to delete post:', error)
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+/**
+ * 关注/取消关注作者
+ */
+const toggleFollowAuthor = async () => {
+  if (!post.value) return
+  try {
+    if (post.value.author.is_following) {
+      await unfollowUser(post.value.author.id)
+      post.value.author.is_following = false
+      ElMessage.success('已取消关注')
+    } else {
+      await followUser(post.value.author.id)
+      post.value.author.is_following = true
+      ElMessage.success('关注成功')
+    }
+  } catch (error) {
+    console.error('Failed to toggle follow:', error)
+    ElMessage.error('操作失败')
   }
 }
 
@@ -187,9 +304,22 @@ const toggleFavorite = async () => {
   }
 }
 
+/**
+ * 加载版本历史
+ */
+const loadRevisions = async () => {
+  if (!post.value) return
+  try {
+    revisions.value = await getPostRevisions(post.value.slug)
+  } catch (error) {
+    console.error('Failed to load revisions:', error)
+  }
+}
+
 onMounted(() => {
   loadPost()
   loadComments()
+  loadRevisions()
 })
 </script>
 
@@ -328,5 +458,35 @@ onMounted(() => {
 .comment-list-wrapper {
   border-top: 1px solid #e2e8f0;
   padding-top: 24px;
+}
+
+.revisions-card {
+  margin-bottom: 24px;
+  border-radius: 16px;
+}
+
+.revisions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.revisions-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.revision-item p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.revision-content {
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 8px;
 }
 </style>

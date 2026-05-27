@@ -351,21 +351,27 @@ const registerRules: FormRules = {
 };
 
 const startLoginCountdown = () => {
-  loginCodeCountdown.value = 60;
+  loginCodeCountdown.value = 5;
   loginTimer = window.setInterval(() => {
     loginCodeCountdown.value--;
     if (loginCodeCountdown.value <= 0) {
       if (loginTimer) clearInterval(loginTimer);
+      // 开发模式：5s后自动填入万能验证码
+      loginForm.code = "000000";
+      ElMessage.success("🔓 开发模式：验证码已自动填入");
     }
   }, 1000);
 };
 
 const startRegisterCountdown = () => {
-  registerCodeCountdown.value = 60;
+  registerCodeCountdown.value = 5;
   registerTimer = window.setInterval(() => {
     registerCodeCountdown.value--;
     if (registerCodeCountdown.value <= 0) {
       if (registerTimer) clearInterval(registerTimer);
+      // 开发模式：5s后自动填入万能验证码
+      registerForm.code = "000000";
+      ElMessage.success("🔓 开发模式：验证码已自动填入");
     }
   }, 1000);
 };

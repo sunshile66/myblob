@@ -12,6 +12,7 @@ import com.myblob.module.comments.entity.*;
 import com.myblob.module.comments.repository.*;
 import com.myblob.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +53,18 @@ public class CommentService {
                 .deleted(false)
                 .likeCount(0);
 
-        if (request.getNickname() != null) builder.nickname(request.getNickname());
-        if (request.getEmail() != null) builder.email(request.getEmail());
+        if (request.getNickname() != null) {
+            builder.nickname(request.getNickname());
+        } else if (user != null && user.getNickname() != null) {
+            builder.nickname(user.getNickname());
+        } else if (user != null) {
+            builder.nickname(user.getUsername());
+        }
+        if (request.getEmail() != null) {
+            builder.email(request.getEmail());
+        } else if (user != null && user.getEmail() != null) {
+            builder.email(user.getEmail());
+        }
 
         if (request.getParentId() != null) {
             Comment parent = commentRepository.findById(request.getParentId())
@@ -125,6 +136,35 @@ public class CommentService {
         commentReactionRepository.deleteByCommentIdAndUserId(commentId, userId);
     }
 
+    @Transactional
+    public CommentDTO updateComment(Long commentId, String content) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> BusinessException.notFound("评论"));
+        if (comment.getUser() == null || !comment.getUser().getId().equals(userId)) {
+            throw new BusinessException("无权编辑此评论");
+        }
+        comment.setContent(content);
+        Comment saved = commentRepository.save(comment);
+        return toDTO(saved);
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> BusinessException.notFound("评论"));
+        // Author or Admin can delete
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (comment.getUser() != null && !comment.getUser().getId().equals(userId) && !isAdmin) {
+            throw new BusinessException("无权删除此评论");
+        }
+        comment.setDeleted(true);
+        commentRepository.save(comment);
+    }
+
     @Transactional(readOnly = true)
     public Map<String, Integer> getReactions(Long commentId) {
         return commentReactionRepository.findByCommentId(commentId).stream()
@@ -177,7 +217,8 @@ public class CommentService {
                 .author(comment.getUser() != null ? toUserDTO(comment.getUser()) : null)
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .replyTo(comment.getReplyTo() != null && comment.getReplyTo().getUser() != null
-                        ? toUserDTO(comment.getReplyTo().getUser()) : null)
+                        ? toUserDTO(comment.getReplyTo().getUser())
+                        : null)
                 .nickname(comment.getNickname())
                 .content(comment.getContent())
                 .likeCount(comment.getLikeCount())

@@ -33,24 +33,6 @@ export const createComment = (data: Partial<Comment>) => {
 }
 
 /**
- * 切换点赞状态
- * @param {string} slug - 文章 slug
- * @returns {Promise<void>}
- */
-export const toggleLike = (slug: string) => {
-  return request.post(`/blog/posts/${slug}/like/`)
-}
-
-/**
- * 切换收藏状态
- * @param {string} slug - 文章 slug
- * @returns {Promise<void>}
- */
-export const toggleFavorite = (slug: string) => {
-  return request.post(`/blog/posts/${slug}/favorite/`)
-}
-
-/**
  * 文章列表查询参数
  */
 export interface PostListParams {
@@ -99,21 +81,21 @@ export const createPost = (data: Partial<Post>) => {
 
 /**
  * 更新文章
- * @param {number} id - 文章 ID
+ * @param {string} slug - 文章 slug
  * @param {Partial<Post>} data - 文章数据
  * @returns {Promise<Post>} 更新后的文章
  */
-export const updatePost = (id: number, data: Partial<Post>) => {
-  return request.put<Post>(`/blog/posts/${id}/`, data)
+export const updatePost = (slug: string, data: Partial<Post>) => {
+  return request.put<Post>(`/blog/posts/${slug}/`, data)
 }
 
 /**
  * 删除文章
- * @param {number} id - 文章 ID
+ * @param {string} slug - 文章 slug
  * @returns {Promise<void>}
  */
-export const deletePost = (id: number) => {
-  return request.delete(`/blog/posts/${id}/`)
+export const deletePost = (slug: string) => {
+  return request.delete(`/blog/posts/${slug}/`)
 }
 
 /**
@@ -174,5 +156,26 @@ export const getTags = () => {
  * @returns {Promise<PaginatedResponse<Post>>} 分页的我的文章列表
  */
 export const getMyPosts = (params?: PostListParams) => {
-  return request.get<PaginatedResponse<Post>>('/blog/posts/my_posts/', { params })
+  return request.get<PaginatedResponse<Post>>('/blog/posts/my-posts/', { params })
+}
+
+/**
+ * 文章版本历史条目
+ */
+export interface PostRevision {
+  id: number
+  title: string
+  summary: string
+  content: string
+  editor_name: string
+  created_at: string
+}
+
+/**
+ * 获取文章版本历史
+ * @param {string} slug - 文章 slug
+ * @returns {Promise<PostRevision[]>} 版本历史列表
+ */
+export const getPostRevisions = (slug: string) => {
+  return request.get<PostRevision[]>(`/blog/posts/${slug}/revisions/`)
 }

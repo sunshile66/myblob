@@ -30,14 +30,19 @@
                 </div>
               </div>
               <div class="theme-info">
-                <span class="theme-icon">{{ theme.icon }}</span>
+                <span class="theme-icon">
+                  <Sunny v-if="theme.icon === 'sunny'" />
+                  <Moon v-else-if="theme.icon === 'moon'" />
+                  <Monitor v-else-if="theme.icon === 'monitor'" />
+                  <MagicStick v-else />
+                </span>
                 <span class="theme-name">{{ theme.name }}</span>
               </div>
             </button>
           </div>
           <div class="theme-panel-footer">
             <div class="theme-hint">
-              <span class="hint-icon">💡</span>
+              <span class="hint-icon"><el-icon><Opportunity /></el-icon></span>
               <span>系统主题会自动跟随操作系统设置</span>
             </div>
           </div>
@@ -50,7 +55,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useThemeStore, type ThemeType } from '@/store/theme'
-import { Sunny, Moon } from '@element-plus/icons-vue'
+import { Sunny, Moon, Monitor, MagicStick, Opportunity } from '@element-plus/icons-vue'
 
 const themeStore = useThemeStore()
 const isOpen = ref(false)

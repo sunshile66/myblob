@@ -106,6 +106,8 @@ const htmlInput = ref("");
 const htmlResult = ref("");
 const base64Input = ref("");
 const base64Result = ref("");
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 const toolMeta = computed(() => [
   { label: "当前标签", value: activeTab.value.toUpperCase() },
@@ -170,7 +172,7 @@ const decodeHTML = () => {
 };
 
 const utf8ToBase64 = (value: string) => {
-  const bytes = new TextEncoder().encode(value);
+  const bytes = textEncoder.encode(value);
   let binary = "";
   bytes.forEach((byte) => {
     binary += String.fromCharCode(byte);
@@ -179,9 +181,9 @@ const utf8ToBase64 = (value: string) => {
 };
 
 const base64ToUtf8 = (value: string) => {
-  const binary = atob(value);
+  const binary = atob(value.replace(/\s/g, ""));
   const bytes = Uint8Array.from(binary, (item) => item.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
+  return textDecoder.decode(bytes);
 };
 
 const encodeBase64 = () => {

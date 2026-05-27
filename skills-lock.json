@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "skills": {
+    "code-review-excellence": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\code-review-skill",
+      "sourceType": "local",
+      "computedHash": "a18f11813587fbaa4a275c729373f256c6f181aae4b45f40545d76c1ec281be4"
+    },
+    "dr-jskill": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\dr-jskill",
+      "sourceType": "local",
+      "computedHash": "7ae10f1213d92e057432bab70e501662e9a941420306afb6e8cdc55d681831e0"
+    },
+    "git-version": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\youlai-skills",
+      "sourceType": "local",
+      "computedHash": "62fe9d964bf0eb5782b91503e8b5ef7ef6e088383f491e1ba08e188e42c370df"
+    },
+    "spring-boot": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\youlai-skills",
+      "sourceType": "local",
+      "computedHash": "459d10123be78c84d22a02defab2fa748a01c50e208b5bdc5f4b2dcffdff6e9e"
+    },
+    "systematic-debugging": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\superpowers",
+      "sourceType": "local",
+      "computedHash": "7246fdd3a795fc3daff0af72044ca99bf836e4e6a46844742858786fdfb86488"
+    },
+    "ui-ux-pro-max": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\ui-ux-pro-max-skill",
+      "sourceType": "local",
+      "computedHash": "6337038fe1fe6bbe1b9f252ab678ee575859190bab6f0f246f4061824eb40875"
+    },
+    "ckm:ui-styling": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\ui-ux-pro-max-skill",
+      "sourceType": "local",
+      "computedHash": "b5f892864e479f969820c353f44faeedc61981bf2d7a854367069a80e0a264e1"
+    },
+    "ckm:design": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\ui-ux-pro-max-skill",
+      "sourceType": "local",
+      "computedHash": "356a9ffc8ae2174dee4ac0b35458b383756e349dfa00de17b79394154cc99905"
+    },
+    "verification-before-completion": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\superpowers",
+      "sourceType": "local",
+      "computedHash": "9b446f0c7fe1cfb560b1d34439523b1a76d5f177290007b2c053a1c749a4a8ba"
+    },
+    "vue-admin": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\youlai-skills",
+      "sourceType": "local",
+      "computedHash": "0c4e44513c451a40688a7b9391d4774fed4d4852cc0e4bcbb416cc5e25702c9f"
+    },
+    "webapp-testing": {
+      "source": "C:\\Users\\ran\\AppData\\Local\\Temp\\awesome-claude-skills",
+      "sourceType": "local",
+      "computedHash": "5a6a18c0137cfbabec058e86fc1c8f6919d846a7b2a34ee978cc8ced866ee2e5"
+    },
+    "swagger-docs": {
+      "source": "project",
+      "sourceType": "local",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "postgresql-design": {
+      "source": "project",
+      "sourceType": "local",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}

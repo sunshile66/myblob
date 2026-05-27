@@ -69,7 +69,7 @@
                 </el-icon>
               </div>
               <div class="item-name">{{ file.filename }}</div>
-              <div class="item-size">{{ file.human_readable_size }}</div>
+              <div class="item-size">{{ formatFileSize(file.file_size) }}</div>
               <div class="item-actions">
                 <el-button
                   size="small"
@@ -161,6 +161,18 @@ const showShareDialog = ref(false);
 const currentShare = ref<any>(null);
 const shareLink = ref("");
 
+const getList = <T,>(payload: T[] | { results?: T[] }) => {
+  return Array.isArray(payload) ? payload : payload.results || [];
+};
+
+const formatFileSize = (size?: number) => {
+  if (!size) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const index = Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1);
+  const value = size / 1024 ** index;
+  return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+};
+
 const getFileIcon = (type: string) => {
   switch (type) {
     case "image":
@@ -184,22 +196,18 @@ const getFileIconClass = (type: string) => {
 
 const loadFiles = async () => {
   try {
+    const folderId = currentFolder.value?.id;
     const [foldersRes, filesRes] = await Promise.all([
-      request.get("/api/filemanager/folders/"),
-      request.get("/api/filemanager/files/"),
+      request.get<any[]>("/filemanager/folders/", {
+        params: { parent: folderId },
+      }),
+      request.get<{ results: any[] }>("/filemanager/files/", {
+        params: { folder: folderId, size: 100 },
+      }),
     ]);
 
-    if (currentFolder.value) {
-      folders.value = foldersRes.data.filter(
-        (f: any) => f.parent === currentFolder.value.id
-      );
-      files.value = filesRes.data.filter(
-        (f: any) => f.folder === currentFolder.value.id
-      );
-    } else {
-      folders.value = foldersRes.data.filter((f: any) => !f.parent);
-      files.value = filesRes.data.filter((f: any) => !f.folder);
-    }
+    folders.value = getList(foldersRes);
+    files.value = getList(filesRes);
   } catch (error) {
     ElMessage.error("加载文件失败");
   }
@@ -227,9 +235,9 @@ const createFolder = async () => {
   }
 
   try {
-    await request.post("/api/filemanager/folders/", {
+    await request.post("/filemanager/folders/", {
       name: newFolderName.value,
-      parent: currentFolder.value?.id || null,
+      parent_id: currentFolder.value?.id || null,
     });
     ElMessage.success("文件夹创建成功");
     showCreateFolder.value = false;
@@ -242,7 +250,7 @@ const createFolder = async () => {
 
 const deleteFolder = async (folder: any) => {
   try {
-    await request.delete(`/api/filemanager/folders/${folder.id}/`);
+    await request.delete(`/filemanager/folders/${folder.id}/`);
     ElMessage.success("文件夹删除成功");
     loadFiles();
   } catch (error) {
@@ -254,11 +262,11 @@ const handleFileUpload = async (file: any) => {
   const formData = new FormData();
   formData.append("file", file.raw);
   if (currentFolder.value) {
-    formData.append("folder", currentFolder.value.id);
+    formData.append("folder_id", currentFolder.value.id);
   }
 
   try {
-    await request.post("/api/filemanager/files/", formData, {
+    await request.post("/filemanager/files/", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     ElMessage.success("文件上传成功");
@@ -268,17 +276,33 @@ const handleFileUpload = async (file: any) => {
   }
 };
 
-const downloadFile = (file: any) => {
-  window.open(`/api/filemanager/files/${file.id}/download/`, "_blank");
+const downloadFile = async (file: any) => {
+  try {
+    const blob = await request.request<Blob>({
+      url: `/filemanager/files/${file.id}/download/`,
+      method: "GET",
+      responseType: "blob",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.filename || "download";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    ElMessage.error("文件下载失败");
+  }
 };
 
 const shareFile = async (file: any) => {
   try {
-    const res = await request.post("/api/filemanager/shares/", {
+    const res = await request.post<any>("/filemanager/shares/", {
       file: file.id,
     });
-    currentShare.value = res.data;
-    shareLink.value = `${window.location.origin}/share/${res.data.share_code}`;
+    currentShare.value = res;
+    shareLink.value = `${window.location.origin}/share/${res.share_code}`;
     showShareDialog.value = true;
   } catch (error) {
     ElMessage.error("创建分享失败");
@@ -293,7 +317,7 @@ const copyShareLink = () => {
 
 const deleteFile = async (file: any) => {
   try {
-    await request.delete(`/api/filemanager/files/${file.id}/`);
+    await request.delete(`/filemanager/files/${file.id}/`);
     ElMessage.success("文件删除成功");
     loadFiles();
   } catch (error) {

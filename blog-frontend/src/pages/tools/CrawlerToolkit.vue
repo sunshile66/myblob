@@ -69,6 +69,17 @@
         <el-alert v-if="errorMessage" :title="errorMessage" type="error" show-icon :closable="false" class="alert" />
 
         <iframe v-if="activeMode === 'html' && outputFormat === 'preview'" class="html-preview" :srcdoc="source" sandbox="" />
+        <div v-else-if="activeMode === 'share'" class="share-preview">
+          <div class="share-preview__header">
+            <div>
+              <span>{{ shareLanguage }}</span>
+              <strong>{{ shareTitle || "MyBlob 代码片段" }}</strong>
+            </div>
+            <small>{{ source.length }} 字符</small>
+          </div>
+          <pre><code>{{ source || "代码片段会显示在这里" }}</code></pre>
+          <div class="share-preview__link">{{ output || "分享链接会显示在这里" }}</div>
+        </div>
         <pre v-else class="result-block"><code>{{ output || "结果会显示在这里" }}</code></pre>
       </section>
 
@@ -248,10 +259,13 @@ const codecMode = ref("decodeURIComponent");
 const shareTitle = ref("MyBlob 代码片段");
 const shareLanguage = ref("javascript");
 const manualError = ref("");
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 const codecOptions = [
   { label: "URL 解码", value: "decodeURIComponent" },
   { label: "URL 编码", value: "encodeURIComponent" },
+  { label: "安全/完全转义", value: "quoteUrlPair" },
   { label: "完整 URL 编码", value: "encodeURI" },
   { label: "Base64 编码", value: "base64Encode" },
   { label: "Base64 解码", value: "base64Decode" },
@@ -328,6 +342,15 @@ const parseColonLines = (value: string) => {
 };
 
 const parseCookies = (value: string) => {
+  const text = value.trim();
+  if (text.startsWith("[")) {
+    const list = JSON.parse(text) as Array<{ name?: string; value?: string }>;
+    return list.reduce<Record<string, string>>((result, item) => {
+      if (item.name) result[item.name] = safeDecode(item.value || "");
+      return result;
+    }, {});
+  }
+
   return value.split(";").reduce<Record<string, string>>((result, part) => {
     const index = part.indexOf("=");
     if (index <= 0) return result;
@@ -420,9 +443,18 @@ const runCodec = (value: string) => {
   try {
     if (codecMode.value === "decodeURIComponent") return decodeURIComponent(value);
     if (codecMode.value === "encodeURIComponent") return encodeURIComponent(value);
+    if (codecMode.value === "quoteUrlPair") {
+      return [
+        "安全转义：",
+        encodeURI(value),
+        "",
+        "完全转义：",
+        encodeURIComponent(value),
+      ].join("\n");
+    }
     if (codecMode.value === "encodeURI") return encodeURI(value);
-    if (codecMode.value === "base64Encode") return btoa(unescape(encodeURIComponent(value)));
-    if (codecMode.value === "base64Decode") return decodeURIComponent(escape(atob(value)));
+    if (codecMode.value === "base64Encode") return encodeBase64(value);
+    if (codecMode.value === "base64Decode") return decodeBase64(value);
     if (codecMode.value === "htmlDecode") return htmlToText(value);
     return value;
   } catch (error) {
@@ -469,7 +501,7 @@ const decoderResults = computed(() => {
   const attempts: Array<[string, () => string]> = [
     ["Unicode 转义", () => decodeUnicodeEscapes(source.value)],
     ["URL 解码", () => decodeURIComponent(source.value)],
-    ["Base64 解码", () => decodeURIComponent(escape(atob(source.value.trim())))],
+    ["Base64 解码", () => decodeBase64(source.value.trim())],
     ["十六进制解码", () => decodeHex(source.value)],
     ["HTML 实体解码", () => htmlToText(source.value)],
   ];
@@ -485,24 +517,39 @@ const decoderResults = computed(() => {
 
 const buildShareLink = () => {
   if (!source.value.trim()) return "";
-  const payload = btoa(unescape(encodeURIComponent(JSON.stringify({
+  const payload = encodeBase64(JSON.stringify({
     title: shareTitle.value,
     language: shareLanguage.value,
     code: source.value,
-  }))));
+  }));
   return `${window.location.origin}/tools/code-share#${payload}`;
 };
 
 const loadFromHash = () => {
   if (activeMode.value !== "share" || !window.location.hash.slice(1)) return;
   try {
-    const payload = JSON.parse(decodeURIComponent(escape(atob(window.location.hash.slice(1)))));
+    const payload = JSON.parse(decodeBase64(window.location.hash.slice(1)));
     shareTitle.value = payload.title || "MyBlob 代码片段";
     shareLanguage.value = payload.language || "text";
     source.value = payload.code || "";
   } catch {
     // Ignore malformed local share links.
   }
+};
+
+const encodeBase64 = (value: string) => {
+  const bytes = textEncoder.encode(value);
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+};
+
+const decodeBase64 = (value: string) => {
+  const binary = atob(value.replace(/\s/g, ""));
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return textDecoder.decode(bytes);
 };
 
 const copy = async (value: string) => {
@@ -651,7 +698,8 @@ p {
 }
 
 .result-block,
-.html-preview {
+.html-preview,
+.share-preview {
   width: 100%;
   min-height: 430px;
   margin: 0;
@@ -672,6 +720,61 @@ p {
 
 .html-preview {
   background: white;
+}
+
+.share-preview {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.share-preview__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.14);
+}
+
+.share-preview__header span,
+.share-preview__header strong,
+.share-preview__header small {
+  display: block;
+}
+
+.share-preview__header span,
+.share-preview__header small {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.share-preview__header strong {
+  margin-top: 3px;
+  color: #f8fafc;
+  font-size: 16px;
+}
+
+.share-preview pre {
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.share-preview__link {
+  padding: 12px 16px;
+  overflow: hidden;
+  border-top: 1px solid rgba(226, 232, 240, 0.14);
+  color: #67e8f9;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .insight-card {

@@ -38,7 +38,7 @@
     <div class="editor-body">
       <div class="sidebar-left">
         <div v-if="publishMode !== 'video'" class="panel templates-panel">
-          <div class="panel-title">📝 模板</div>
+          <div class="panel-title"><el-icon><EditPen /></el-icon> 模板</div>
           <div class="templates-list">
             <div
               v-for="template in templates"
@@ -47,14 +47,14 @@
               :class="{ active: selectedTemplate?.id === template.id }"
               @click="applyTemplate(template)"
             >
-              <div class="template-icon">{{ template.icon }}</div>
+              <el-icon class="template-icon"><component :is="template.icon" /></el-icon>
               <div class="template-name">{{ template.name }}</div>
             </div>
           </div>
         </div>
 
         <div class="panel tools-panel">
-          <div class="panel-title">🛠️ 工具</div>
+          <div class="panel-title"><el-icon><Tools /></el-icon> 工具</div>
           <div class="tools-list">
             <div
               v-if="publishMode !== 'video'"
@@ -83,7 +83,7 @@
         </div>
 
         <div class="panel settings-panel">
-          <div class="panel-title">⚙️ 设置</div>
+          <div class="panel-title"><el-icon><Setting /></el-icon> 设置</div>
           <div class="setting-item">
             <span class="setting-label">谁可以看</span>
             <el-radio-group v-model="form.visibility" size="small">
@@ -149,7 +149,7 @@
           </div>
 
           <div v-if="publishMode === 'article'" class="article-cover-section">
-            <div class="section-title">🖼️ 封面图片（可选）</div>
+            <div class="section-title"><el-icon><Picture /></el-icon> 封面图片（可选）</div>
             <div class="cover-upload" v-if="form.images.length === 0">
               <el-upload
                 class="image-uploader"
@@ -231,7 +231,7 @@
           </div>
 
           <div class="tags-section">
-            <div class="section-title">🏷️ 添加话题</div>
+            <div class="section-title"><el-icon><CollectionTag /></el-icon> 添加话题</div>
             <div class="tags-input">
               <el-tag
                 v-for="(tag, index) in form.tags"
@@ -265,7 +265,7 @@
           </div>
 
           <div class="location-section">
-            <div class="section-title">📍 添加地点</div>
+            <div class="section-title"><el-icon><Location /></el-icon> 添加地点</div>
             <el-input
               v-model="form.location"
               placeholder="搜索地点"
@@ -296,6 +296,11 @@ import {
   Edit,
   ChatDotRound,
   List,
+  Sunny,
+  Promotion,
+  ForkSpoon,
+  Present,
+  Reading,
 } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import VideoUploader from "@/components/post/VideoUploader.vue";
@@ -331,11 +336,11 @@ const form = reactive({
 });
 
 const templates = [
-  { id: 1, name: "日常分享", icon: "🌞", content: "今天分享一下..." },
-  { id: 2, name: "美食探店", icon: "🍜", content: "今天去了一家超棒的店..." },
-  { id: 3, name: "旅行日记", icon: "✈️", content: "这次旅行真的太难忘了..." },
-  { id: 4, name: "穿搭分享", icon: "👗", content: "今日份穿搭来啦..." },
-  { id: 5, name: "学习笔记", icon: "📚", content: "今天学习到了..." },
+  { id: 1, name: "日常分享", icon: Sunny, content: "今天分享一下..." },
+  { id: 2, name: "美食探店", icon: ForkSpoon, content: "今天去了一家超棒的店..." },
+  { id: 3, name: "旅行日记", icon: Promotion, content: "这次旅行真的太难忘了..." },
+  { id: 4, name: "穿搭分享", icon: Present, content: "今日份穿搭来啦..." },
+  { id: 5, name: "学习笔记", icon: Reading, content: "今天学习到了..." },
 ];
 
 const selectedTemplate = ref<(typeof templates)[0] | null>(null);

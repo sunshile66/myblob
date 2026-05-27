@@ -49,4 +49,22 @@ export const contentRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/note/NoteEditorPage.vue"),
     meta: { title: "发布笔记" },
   },
+  {
+    path: "/post/create",
+    name: "PostCreate",
+    component: () => import("@/pages/post/PostEditorPage.vue"),
+    meta: { title: "写文章", requiresAuth: true },
+  },
+  {
+    path: "/post/:slug/edit",
+    name: "PostEdit",
+    component: () => import("@/pages/post/PostEditorPage.vue"),
+    meta: { title: "编辑文章", requiresAuth: true },
+  },
+  {
+    path: "/post/:slug",
+    name: "PostDetail",
+    component: () => import("@/pages/post/PostDetailPage.vue"),
+    meta: { title: "文章详情" },
+  },
 ];

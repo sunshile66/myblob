@@ -1,34 +1,32 @@
 <template>
-  <SimpleLayout>
+  <SimpleLayout no-footer>
     <div class="tool-shell">
-      <div class="tool-shell__container">
-        <section class="tool-shell__hero">
-          <div class="tool-shell__copy">
-            <el-button link class="tool-shell__back" @click="goBack">
-              <el-icon><ArrowLeft /></el-icon>
-              {{ backLabel }}
-            </el-button>
-            <span class="tool-shell__eyebrow">{{ eyebrow }}</span>
-            <h1>{{ title }}</h1>
-            <p>{{ description }}</p>
-          </div>
+      <header class="tool-shell__bar">
+        <div class="tool-shell__title">
+          <el-button link class="tool-shell__back" @click="goBack">
+            <el-icon><ArrowLeft /></el-icon>
+            {{ backLabel }}
+          </el-button>
+          <span>{{ eyebrow }}</span>
+          <h1>{{ title }}</h1>
+          <p>{{ description }}</p>
+        </div>
 
-          <div v-if="meta.length" class="tool-shell__meta">
-            <article
-              v-for="item in meta"
-              :key="`${item.label}-${item.value}`"
-              class="tool-shell__meta-card"
-            >
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </article>
-          </div>
-        </section>
+        <div v-if="meta.length" class="tool-shell__meta">
+          <article
+            v-for="item in meta"
+            :key="`${item.label}-${item.value}`"
+            class="tool-shell__meta-card"
+          >
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </article>
+        </div>
+      </header>
 
-        <section class="tool-shell__body">
-          <slot />
-        </section>
-      </div>
+      <main class="tool-shell__body">
+        <slot />
+      </main>
     </div>
   </SimpleLayout>
 </template>
@@ -53,7 +51,7 @@ withDefaults(
   }>(),
   {
     eyebrow: '效率工具',
-    backLabel: '返回工具箱',
+    backLabel: '工具中心',
     meta: () => [],
   },
 )
@@ -67,124 +65,142 @@ const goBack = () => {
 
 <style scoped>
 .tool-shell {
-  position: relative;
-  overflow: hidden;
-  padding: 8px 0 28px;
-}
-
-.tool-shell__container {
-  position: relative;
-  max-width: 1240px;
-  margin: 0 auto;
-}
-
-.tool-shell__hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
-  gap: 20px;
-  margin-bottom: 20px;
-  padding: 20px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: calc(100vh - 126px);
+}
+
+.tool-shell__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
-.tool-shell__copy {
+.tool-shell__title {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
 }
 
 .tool-shell__back {
-  width: fit-content;
+  flex: 0 0 auto;
   padding: 0;
-  color: var(--theme-text-secondary);
+  color: #64748b;
+  font-weight: 700;
 }
 
 .tool-shell__back:hover {
-  color: var(--theme-primary);
+  color: #0f766e;
 }
 
-.tool-shell__eyebrow {
-  display: inline-flex;
-  width: fit-content;
-  padding: 5px 10px;
+.tool-shell__title > span {
+  flex: 0 0 auto;
+  padding: 4px 8px;
   border-radius: 999px;
   background: rgba(20, 184, 166, 0.12);
   color: #0f766e;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0;
+  font-weight: 800;
 }
 
-.tool-shell__hero h1 {
+.tool-shell__title h1 {
+  flex: 0 0 auto;
   margin: 0;
-  font-size: 28px;
-  line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: 0;
   color: #0f172a;
+  font-size: 18px;
+  line-height: 1.25;
 }
 
-.tool-shell__hero p {
+.tool-shell__title p {
+  overflow: hidden;
   margin: 0;
-  max-width: 640px;
-  font-size: 14px;
-  line-height: 1.7;
   color: #64748b;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tool-shell__meta {
-  display: grid;
-  gap: 10px;
-  align-content: start;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
 }
 
 .tool-shell__meta-card {
-  padding: 14px;
+  min-width: 78px;
+  padding: 6px 9px;
   border-radius: 8px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
   background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+}
+
+.tool-shell__meta-card span,
+.tool-shell__meta-card strong {
+  display: block;
+  line-height: 1.2;
 }
 
 .tool-shell__meta-card span {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #64748b;
+  color: #94a3b8;
+  font-size: 11px;
 }
 
 .tool-shell__meta-card strong {
-  display: block;
+  margin-top: 3px;
   color: #0f172a;
-  font-size: 18px;
-  line-height: 1.4;
+  font-size: 13px;
 }
 
 .tool-shell__body {
-  position: relative;
+  min-height: 0;
 }
 
 @media (max-width: 960px) {
-  .tool-shell__hero {
-    grid-template-columns: 1fr;
-    padding: 18px;
+  .tool-shell__bar {
+    align-items: center;
+    flex-direction: row;
+    padding: 8px 10px;
+  }
+
+  .tool-shell__title {
+    flex: 1;
+  }
+
+  .tool-shell__title p {
+    display: none;
+  }
+
+  .tool-shell__meta {
+    max-width: 42%;
+    overflow-x: auto;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .tool-shell {
-    padding-top: 0;
+    min-height: calc(100vh - 112px);
   }
 
-  .tool-shell__hero {
-    gap: 18px;
-    margin-bottom: 20px;
+  .tool-shell__title > span,
+  .tool-shell__meta-card span {
+    display: none;
   }
 
-  .tool-shell__hero p {
-    font-size: 15px;
+  .tool-shell__title h1 {
+    font-size: 16px;
+  }
+
+  .tool-shell__meta-card {
+    min-width: 54px;
+    padding: 5px 7px;
   }
 }
 </style>

@@ -36,7 +36,7 @@ export const useThemeStore = defineStore('theme', () => {
     light: {
       name: '浅色主题',
       description: '极简现代蓝，明亮清爽',
-      icon: '☀️',
+      icon: 'sunny',
       colors: {
         primary: '#4F46E5',
         primaryLight: 'rgba(79, 70, 229, 0.10)',
@@ -56,7 +56,7 @@ export const useThemeStore = defineStore('theme', () => {
     dark: {
       name: '深色主题',
       description: '护眼深色模式，适合夜间使用',
-      icon: '🌙',
+      icon: 'moon',
       colors: {
         primary: '#818CF8',
         primaryLight: 'rgba(129, 140, 248, 0.16)',
@@ -76,7 +76,7 @@ export const useThemeStore = defineStore('theme', () => {
     system: {
       name: '跟随系统',
       description: '自动跟随操作系统主题',
-      icon: '🖥️',
+      icon: 'monitor',
       colors: {
         primary: '#4F46E5',
         primaryLight: 'rgba(79, 70, 229, 0.10)',
@@ -96,7 +96,7 @@ export const useThemeStore = defineStore('theme', () => {
     pink: {
       name: '粉色主题',
       description: '温柔甜美的粉色调',
-      icon: '🌸',
+      icon: 'palette',
       colors: {
         primary: '#ec4899',
         primaryLight: 'rgba(236, 72, 153, 0.15)',
@@ -116,7 +116,7 @@ export const useThemeStore = defineStore('theme', () => {
     blue: {
       name: '蓝色主题',
       description: '清新冷静的蓝色调',
-      icon: '💎',
+      icon: 'palette',
       colors: {
         primary: '#2563eb',
         primaryLight: 'rgba(37, 99, 235, 0.15)',
@@ -136,7 +136,7 @@ export const useThemeStore = defineStore('theme', () => {
     purple: {
       name: '紫色主题',
       description: '神秘优雅的紫色调',
-      icon: '💜',
+      icon: 'palette',
       colors: {
         primary: '#7c3aed',
         primaryLight: 'rgba(124, 58, 237, 0.15)',
@@ -156,7 +156,7 @@ export const useThemeStore = defineStore('theme', () => {
     cyan: {
       name: '青色主题',
       description: '清新自然的青色调',
-      icon: '🌊',
+      icon: 'palette',
       colors: {
         primary: '#06b6d4',
         primaryLight: 'rgba(6, 182, 212, 0.15)',
@@ -176,7 +176,7 @@ export const useThemeStore = defineStore('theme', () => {
     orange: {
       name: '橙色主题',
       description: '温暖活力的橙色调',
-      icon: '🍊',
+      icon: 'palette',
       colors: {
         primary: '#f97316',
         primaryLight: 'rgba(249, 115, 22, 0.15)',

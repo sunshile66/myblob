@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { Comment, PaginatedResponse } from '@/types'
+import type { Comment } from '@/types'
 
 export interface CommentListParams {
   post?: number
@@ -73,4 +73,14 @@ export const getStickers = (category?: string, isGif?: boolean) => {
 
 export const getReactionEmojis = () => {
   return request.get<{ emojis: [string, string][] }>('/comments/reaction-emojis/')
+}
+
+/** 编辑评论 */
+export const updateComment = (id: number, content: string) => {
+  return request.put<Comment>(`/comments/comments/${id}/`, { content })
+}
+
+/** 删除评论 */
+export const deleteComment = (id: number) => {
+  return request.delete(`/comments/comments/${id}/`)
 }

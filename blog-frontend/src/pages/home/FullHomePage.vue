@@ -202,8 +202,8 @@ onMounted(() => {
 
 .notes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
 }
 
 .empty-section {
@@ -237,6 +237,12 @@ onMounted(() => {
   .notes-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .notes-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

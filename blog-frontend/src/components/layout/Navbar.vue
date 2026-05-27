@@ -3,7 +3,7 @@
     <div class="navbar-container">
       <div class="navbar-left">
         <router-link to="/" class="logo">
-          <span class="logo-icon">📔</span>
+          <span class="logo-icon"><el-icon><Notebook /></el-icon></span>
           <span class="logo-text">小红书</span>
         </router-link>
       </div>
@@ -18,7 +18,6 @@
         </div>
       </div>
       <div class="navbar-right">
-        <!-- <ThemeSwitcher /> -->
         <template v-if="userStore.isLoggedIn">
           <router-link to="/write" class="publish-btn">
             <el-icon><Plus /></el-icon>
@@ -102,9 +101,9 @@ import {
   GoldMedal,
   Tickets,
   Wallet,
+  Notebook,
 } from "@element-plus/icons-vue";
 import { ElMessageBox } from "element-plus";
-// import ThemeSwitcher from "./ThemeSwitcher.vue";
 
 const router = useRouter();
 const userStore = useUserStore();

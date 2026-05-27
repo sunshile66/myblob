@@ -170,10 +170,12 @@ const handleSubmit = async () => {
 
     loading.value = true;
     try {
+      const payload = form.value as unknown as Partial<Post>;
       if (isEdit.value) {
+        await updatePost(route.params.slug as string, payload);
         ElMessage.success("文章更新成功");
       } else {
-        await createPost(form.value);
+        await createPost(payload);
         ElMessage.success("文章发布成功");
       }
       router.push("/");
