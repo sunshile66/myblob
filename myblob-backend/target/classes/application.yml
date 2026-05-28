@@ -61,6 +61,9 @@ spring:
     default-encoding: UTF-8
 
 myblob:
+  base-url: http://localhost:8000
+  email:
+    mock-mode: true # 关闭mock模式(mock-mode=false)并确保spring.mail配置正确以启用真实邮件发送
   jwt:
     secret: myblob-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
     expiration: 604800000

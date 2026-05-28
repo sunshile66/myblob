@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login/", "/api/auth/register/").permitAll()
                         .requestMatchers("/api/auth/send-verification-code/", "/api/auth/security-config/").permitAll()
+                        .requestMatchers("/api/auth/forgot-password/", "/api/auth/reset-password/").permitAll()
                         .requestMatchers("/api/core/announcements/", "/api/core/announcements/**").permitAll()
                         .requestMatchers("/api/core/ads/", "/api/core/ads/**").permitAll()
                         .requestMatchers("/api/core/site-config/").permitAll()
@@ -52,13 +53,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/blog/posts/", "/api/blog/posts/**").permitAll()
                         .requestMatchers("/api/comments/**").permitAll()
                         .requestMatchers("/api/membership/plans/", "/api/membership/plans/**").permitAll()
-                        .requestMatchers("/api/social/oauth-apps/").permitAll()
-                        .requestMatchers("/api/social/oauth/login/", "/api/social/oauth/callback/").permitAll()
                         .requestMatchers("/media/**", "/static/**", "/uploads/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -71,8 +69,7 @@ public class SecurityConfig {
                             response.setStatus(403);
                             response.getWriter().write(objectMapper.writeValueAsString(
                                     ApiResponse.error(403, "拒绝访问")));
-                        })
-                )
+                        }))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -93,10 +90,11 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003",
-                "http://127.0.0.1:3000", "http://127.0.0.1:3001", "http://127.0.0.1:3002", "http://127.0.0.1:3003"
-        ));
+                "http://127.0.0.1:3000", "http://127.0.0.1:3001", "http://127.0.0.1:3002", "http://127.0.0.1:3003"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type", "X-Requested-With",
+                "Accept", "Origin", "X-CSRF-Token"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

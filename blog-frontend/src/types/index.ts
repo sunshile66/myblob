@@ -99,6 +99,7 @@ export interface Comment {
   nickname?: string
   email?: string
   like_count?: number
+  is_liked?: boolean
   is_approved: boolean
   is_deleted: boolean
   created_at: string

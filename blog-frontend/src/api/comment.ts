@@ -84,3 +84,25 @@ export const updateComment = (id: number, content: string) => {
 export const deleteComment = (id: number) => {
   return request.delete(`/comments/comments/${id}/`)
 }
+
+// ===== 留言板 =====
+
+export interface BoardMessage {
+  id: number
+  user: { id: number; nickname: string; avatar?: string }
+  content: string
+  created_at: string
+}
+
+export const getBoardMessages = (page: number = 0, size: number = 10) => {
+  return request.get<{
+    results: BoardMessage[]
+    count: number
+    next: string | null
+    previous: string | null
+  }>('/interactions/board-messages/', { params: { page, size } })
+}
+
+export const createBoardMessage = (content: string) => {
+  return request.post<BoardMessage>('/interactions/board-messages/', { content, nickname: '用户' })
+}

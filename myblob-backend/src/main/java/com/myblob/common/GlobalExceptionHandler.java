@@ -3,12 +3,16 @@ package com.myblob.common;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +36,31 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.badRequest()
                 .body(ApiResponse.<Map<String, String>>builder().code(400).message("参数校验失败").data(errors).build());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMessageNotReadable(HttpMessageNotReadableException e) {
+        log.warn("Malformed JSON request: {}", e.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, "请求格式错误，请检查JSON格式"));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error(405, "不支持的请求方法: " + e.getMethod()));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingParam(MissingServletRequestParameterException e) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, "缺少必要参数: " + e.getParameterName()));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, "参数类型错误: " + e.getName()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)

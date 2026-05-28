@@ -13,6 +13,7 @@ import com.myblob.module.interactions.repository.BoardMessageRepository;
 import com.myblob.module.interactions.repository.FavoriteRepository;
 import com.myblob.module.interactions.repository.NotificationRepository;
 import com.myblob.module.interactions.repository.PostLikeRepository;
+import com.myblob.module.blog.dto.PostDTOAssembler;
 import com.myblob.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,12 +47,13 @@ public class InteractionService {
         Long userId = SecurityUtil.getCurrentUserIdOrNull();
         BoardMessage.BoardMessageBuilder builder = BoardMessage.builder()
                 .nickname(request.getNickname())
-                .email(request.getEmail())
+                .email(request.getEmail() != null ? request.getEmail() : "")
                 .content(request.getContent())
-                .isPublic(request.getIsPublic() != null ? request.getIsPublic() : true);
+                .isPublic(request.getIsPublic() != null ? request.getIsPublic() : true)
+                .deleted(false);
 
         if (userId != null) {
-            builder.user(userRepository.getReferenceById(userId));
+            userRepository.findById(userId).ifPresent(builder::user);
         }
 
         BoardMessage message = boardMessageRepository.save(builder.build());
@@ -83,24 +85,9 @@ public class InteractionService {
     public PageResponse<com.myblob.module.blog.dto.PostDTO> getMyFavorites(int page, int size) {
         Long userId = SecurityUtil.getCurrentUserId();
         Pageable pageable = PageRequest.of(page, size);
-        Page<com.myblob.module.blog.dto.PostDTO> favorites = favoriteRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
-                .map(f -> {
-                    var post = f.getPost();
-                    return com.myblob.module.blog.dto.PostDTO.builder()
-                            .id(post.getId())
-                            .title(post.getTitle())
-                            .slug(post.getSlug())
-                            .summary(post.getSummary())
-                            .cover(post.getCover())
-                            .postType(post.getPostType() != null ? post.getPostType().name().toLowerCase() : null)
-                            .status(post.getStatus() != null ? post.getStatus().name().toLowerCase() : null)
-                            .viewCount(post.getViewCount())
-                            .likeCount(post.getLikeCount())
-                            .commentCount(post.getCommentCount())
-                            .publishedAt(post.getPublishedAt())
-                            .createdAt(post.getCreatedAt())
-                            .build();
-                });
+        Page<com.myblob.module.blog.dto.PostDTO> favorites = favoriteRepository
+                .findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .map(f -> PostDTOAssembler.toBasicDTO(f.getPost()));
         return PageResponse.of(favorites);
     }
 

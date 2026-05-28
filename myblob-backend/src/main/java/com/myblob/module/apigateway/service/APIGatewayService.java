@@ -41,6 +41,25 @@ public class APIGatewayService {
         return apiServiceRepository.findByActiveTrue().stream().map(this::toServiceMap).toList();
     }
 
+    @Transactional
+    public Map<String, Object> createService(Map<String, Object> body) {
+        String name = requiredString(body, "name", "服务名称不能为空");
+        String code = requiredString(body, "code", "服务标识不能为空");
+        if (apiServiceRepository.existsByCode(code)) {
+            throw new BusinessException("服务标识已存在");
+        }
+
+        APIService service = APIService.builder()
+                .name(name)
+                .code(code)
+                .description((String) body.getOrDefault("description", ""))
+                .baseUrl((String) body.getOrDefault("base_url", ""))
+                .timeout(toInteger(body.get("timeout"), 30000))
+                .active(toBoolean(body.get("is_active"), true))
+                .build();
+        return toServiceMap(apiServiceRepository.save(service));
+    }
+
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getEndpoints(Long serviceId) {
         return apiEndpointRepository.findByServiceIdAndActiveTrue(serviceId).stream()
@@ -118,6 +137,31 @@ public class APIGatewayService {
         map.put("created_at", service.getCreatedAt());
         map.put("updated_at", service.getUpdatedAt());
         return map;
+    }
+
+    private String requiredString(Map<String, Object> body, String key, String message) {
+        Object value = body.get(key);
+        if (value == null || value.toString().isBlank()) {
+            throw new BusinessException(message);
+        }
+        return value.toString().trim();
+    }
+
+    private Integer toInteger(Object value, Integer fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        return Integer.valueOf(value.toString());
+    }
+
+    private Boolean toBoolean(Object value, Boolean fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        return Boolean.valueOf(value.toString());
     }
 
     private Map<String, Object> toEndpointMap(APIEndpoint endpoint) {

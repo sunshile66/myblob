@@ -28,4 +28,10 @@ public abstract class BaseEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * 软删除标记：true=已删除，false=正常
+     */
+    @Column(name = "is_deleted", columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean deleted = false;
 }

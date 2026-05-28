@@ -26,7 +26,8 @@ public class BoardMessage extends BaseEntity {
     private String nickname;
 
     @Column(length = 254)
-    private String email;
+    @Builder.Default
+    private String email = "";
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;

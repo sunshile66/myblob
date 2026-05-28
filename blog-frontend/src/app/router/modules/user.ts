@@ -61,4 +61,16 @@ export const userRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/settings/ThemeSettings.vue"),
     meta: { title: "设置", requiresAuth: true },
   },
+  {
+    path: "/admin/users",
+    name: "AdminUsers",
+    component: () => import("@/pages/admin/UserListPage.vue"),
+    meta: { title: "用户管理", requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: "/admin/site-config",
+    name: "AdminSiteConfig",
+    component: () => import("@/pages/admin/SiteConfigPage.vue"),
+    meta: { title: "站点配置", requiresAuth: true, requiresAdmin: true },
+  },
 ];

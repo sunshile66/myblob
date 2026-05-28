@@ -67,4 +67,10 @@ export const contentRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/post/PostDetailPage.vue"),
     meta: { title: "文章详情" },
   },
+  {
+    path: "/board",
+    name: "Board",
+    component: () => import("@/pages/interaction/BoardPage.vue"),
+    meta: { title: "留言板" },
+  },
 ];

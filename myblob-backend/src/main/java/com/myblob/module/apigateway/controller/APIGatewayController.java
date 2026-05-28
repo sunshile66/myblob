@@ -23,6 +23,13 @@ public class APIGatewayController {
         return ResponseEntity.ok(ApiResponse.success(apiGatewayService.getServices()));
     }
 
+    @PostMapping("/services/")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createService(
+            @RequestBody Map<String, Object> body) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(apiGatewayService.createService(body)));
+    }
+
     @GetMapping("/endpoints/")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getEndpoints(
             @RequestParam Long service_id) {

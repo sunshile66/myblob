@@ -10,4 +10,6 @@ import java.util.List;
 public interface APIServiceRepository extends JpaRepository<APIService, Long> {
 
     List<APIService> findByActiveTrue();
+
+    boolean existsByCode(String code);
 }

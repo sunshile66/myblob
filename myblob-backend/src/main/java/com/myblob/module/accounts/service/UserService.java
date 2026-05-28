@@ -1,21 +1,27 @@
 package com.myblob.module.accounts.service;
 
 import com.myblob.common.BusinessException;
+import com.myblob.common.service.EmailSender;
 import com.myblob.module.accounts.dto.*;
 import com.myblob.module.accounts.entity.Follow;
+import com.myblob.module.accounts.entity.PasswordResetToken;
 import com.myblob.module.accounts.entity.User;
 import com.myblob.module.accounts.entity.UserProfile;
 import com.myblob.module.accounts.repository.FollowRepository;
+import com.myblob.module.accounts.repository.PasswordResetTokenRepository;
 import com.myblob.module.accounts.repository.UserRepository;
 import com.myblob.module.accounts.repository.UserProfileRepository;
 import com.myblob.security.JwtUtil;
 import com.myblob.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +30,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final FollowRepository followRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final EmailSender emailSender;
+
+    @Value("${myblob.frontend-url:http://localhost:3001}")
+    private String frontendUrl;
 
     @Transactional(readOnly = true)
     public UserDTO getCurrentUser() {
@@ -98,15 +109,24 @@ public class UserService {
         if (profile == null) {
             profile = UserProfile.builder().user(user).build();
         }
-        if (request.getBio() != null) profile.setBio(request.getBio());
-        if (request.getWebsite() != null) profile.setWebsite(request.getWebsite());
-        if (request.getCompany() != null) profile.setCompany(request.getCompany());
-        if (request.getProfession() != null) profile.setProfession(request.getProfession());
-        if (request.getLocation() != null) profile.setLocation(request.getLocation());
-        if (request.getPhone() != null) profile.setPhone(request.getPhone());
-        if (request.getWechat() != null) profile.setWechat(request.getWechat());
-        if (request.getQq() != null) profile.setQq(request.getQq());
-        if (request.getWeibo() != null) profile.setWeibo(request.getWeibo());
+        if (request.getBio() != null)
+            profile.setBio(request.getBio());
+        if (request.getWebsite() != null)
+            profile.setWebsite(request.getWebsite());
+        if (request.getCompany() != null)
+            profile.setCompany(request.getCompany());
+        if (request.getProfession() != null)
+            profile.setProfession(request.getProfession());
+        if (request.getLocation() != null)
+            profile.setLocation(request.getLocation());
+        if (request.getPhone() != null)
+            profile.setPhone(request.getPhone());
+        if (request.getWechat() != null)
+            profile.setWechat(request.getWechat());
+        if (request.getQq() != null)
+            profile.setQq(request.getQq());
+        if (request.getWeibo() != null)
+            profile.setWeibo(request.getWeibo());
         userProfileRepository.save(profile);
 
         return toDTO(user, userId);
@@ -147,35 +167,80 @@ public class UserService {
     @Transactional(readOnly = true)
     public java.util.List<UserDTO> getAllUsers() {
         Long currentUserId = SecurityUtil.getCurrentUserIdOrNull();
-        return userRepository.findAll().stream()
-                .map(u -> toDTO(u, currentUserId))
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty())
+            return List.of();
+
+        List<Long> userIds = users.stream().map(User::getId).toList();
+        Set<Long> followingIds = currentUserId != null
+                ? new HashSet<>(followRepository.findFollowingIds(currentUserId, userIds))
+                : Set.of();
+        Map<Long, Long> followerCounts = followRepository.countFollowersGrouped(userIds).stream()
+                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+        Map<Long, Long> followingCounts = followRepository.countFollowingGrouped(userIds).stream()
+                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+
+        final Set<Long> finalFollowing = followingIds;
+        final Map<Long, Long> finalFollowerCounts = followerCounts;
+        final Map<Long, Long> finalFollowingCounts = followingCounts;
+        return users.stream()
+                .map(u -> UserDTOAssembler.toFullDTO(u, currentUserId, finalFollowing, finalFollowerCounts,
+                        finalFollowingCounts))
                 .toList();
     }
 
-    public UserDTO toDTO(User user, Long currentUserId) {
-        UserProfile profile = user.getProfile();
-        return UserDTO.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .avatar(user.getAvatar())
-                .emailVerified(user.getEmailVerified())
-                .role(user.getRole() != null ? user.getRole().name() : "USER")
-                .isSuperuser(Boolean.TRUE.equals(user.getSuperuser()))
-                .bio(profile != null ? profile.getBio() : null)
-                .website(profile != null ? profile.getWebsite() : null)
-                .company(profile != null ? profile.getCompany() : null)
-                .profession(profile != null ? profile.getProfession() : null)
-                .location(profile != null ? profile.getLocation() : null)
-                .phone(profile != null ? profile.getPhone() : null)
-                .wechat(profile != null ? profile.getWechat() : null)
-                .qq(profile != null ? profile.getQq() : null)
-                .weibo(profile != null ? profile.getWeibo() : null)
-                .isFollowing(currentUserId != null && !currentUserId.equals(user.getId())
-                        && followRepository.existsByFollowerIdAndFollowingId(currentUserId, user.getId()))
-                .followerCount(followRepository.countByFollowingId(user.getId()))
-                .followingCount(followRepository.countByFollowerId(user.getId()))
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        String token = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
+        token = token.substring(0, 64);
+
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .user(user)
+                .token(token)
+                .expiryTime(LocalDateTime.now().plusMinutes(30))
+                .used(false)
                 .build();
+        passwordResetTokenRepository.save(resetToken);
+
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        emailSender.sendPasswordResetEmail(email, resetLink);
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository
+                .findByTokenAndUsedFalse(token)
+                .orElseThrow(() -> new BusinessException("重置链接无效或已过期"));
+
+        if (resetToken.getExpiryTime().isBefore(LocalDateTime.now())) {
+            resetToken.setUsed(true);
+            passwordResetTokenRepository.save(resetToken);
+            throw new BusinessException("重置链接已过期，请重新申请");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+    }
+
+    public UserDTO toDTO(User user, Long currentUserId) {
+        Set<Long> followingIds = Set.of();
+        if (currentUserId != null && !currentUserId.equals(user.getId())) {
+            followingIds = followRepository.existsByFollowerIdAndFollowingId(currentUserId, user.getId())
+                    ? Set.of(user.getId())
+                    : Set.of();
+        }
+        Map<Long, Long> followerCounts = Map.of(user.getId(), followRepository.countByFollowingId(user.getId()));
+        Map<Long, Long> followingCounts = Map.of(user.getId(), followRepository.countByFollowerId(user.getId()));
+        return UserDTOAssembler.toFullDTO(user, currentUserId, followingIds, followerCounts, followingCounts);
     }
 }

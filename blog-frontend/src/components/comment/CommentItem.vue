@@ -21,6 +21,12 @@
           </div>
         </div>
         <div class="comment-actions">
+          <el-button type="text" size="small" @click="handleLike">
+            <el-icon :size="14" style="margin-right: 2px;">
+              <component :is="comment.is_liked ? 'StarFilled' : 'Star'" />
+            </el-icon>
+            {{ comment.like_count || 0 }}
+          </el-button>
           <el-button type="text" size="small" @click="showReplyBox = !showReplyBox">
             回复
           </el-button>
@@ -46,7 +52,7 @@
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CommentBox from './CommentBox.vue'
-import { updateComment, deleteComment } from '@/api/comment'
+import { updateComment, deleteComment, likeComment, unlikeComment } from '@/api/comment'
 import { useUserStore } from '@/store/user'
 import type { Comment } from '@/types'
 
@@ -61,6 +67,33 @@ const userStore = useUserStore()
 const showReplyBox = ref(false)
 const isEditing = ref(false)
 const editContent = ref('')
+
+const isDeleted = computed(() => props.comment.is_deleted)
+const isOwner = computed(() => {
+  if (!userStore.userInfo || !props.comment.user) return false
+  return userStore.userInfo.id === props.comment.user.id
+})
+
+const handleLike = async () => {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    return
+  }
+  try {
+    if (props.comment.is_liked) {
+      await unlikeComment(props.comment.id)
+      props.comment.is_liked = false
+      props.comment.like_count = Math.max(0, (props.comment.like_count || 0) - 1)
+    } else {
+      await likeComment(props.comment.id)
+      props.comment.is_liked = true
+      props.comment.like_count = (props.comment.like_count || 0) + 1
+    }
+  } catch (error) {
+    console.error('Failed to toggle like:', error)
+    ElMessage.error('操作失败')
+  }
+}
 
 const isDeleted = computed(() => props.comment.is_deleted)
 const isOwner = computed(() => {

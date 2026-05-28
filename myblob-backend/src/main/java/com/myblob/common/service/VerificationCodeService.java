@@ -4,6 +4,7 @@ import com.myblob.module.security.entity.VerificationLog;
 import com.myblob.module.security.repository.VerificationLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,9 @@ public class VerificationCodeService {
 
     private final VerificationLogRepository verificationLogRepository;
     private final EmailSender emailSender;
+
+    @Value("${myblob.email.mock-mode:true}")
+    private boolean mockMode;
 
     private static final int CODE_LENGTH = 6;
     private static final int CODE_EXPIRY_MINUTES = 5;
@@ -35,7 +39,7 @@ public class VerificationCodeService {
     public void sendEmailCode(String email, String ipAddress) {
         long count = verificationLogRepository.countByTargetAndCreatedAtAfter(
                 email, LocalDateTime.now().minusHours(1));
-        
+
         if (count >= MAX_SEND_PER_HOUR) {
             throw new RuntimeException("发送频率过高，请稍后再试");
         }
@@ -48,7 +52,7 @@ public class VerificationCodeService {
         verificationLog.setCode(code);
         verificationLog.setStatus("pending");
         verificationLog.setIpAddress(ipAddress);
-        
+
         try {
             emailSender.sendVerificationCode(email, code);
             verificationLog.setSendStatus("success");
@@ -65,6 +69,12 @@ public class VerificationCodeService {
 
     @Transactional
     public boolean verifyCode(String target, String code) {
+        // 开发模式：使用 000000 自动通过
+        if (mockMode && "000000".equals(code)) {
+            log.info("【开发模式】验证码已自动通过，target: {}", target);
+            return true;
+        }
+
         VerificationLog verificationLog = verificationLogRepository
                 .findTopByTargetAndStatusOrderByCreatedAtDesc(target, "pending")
                 .orElse(null);

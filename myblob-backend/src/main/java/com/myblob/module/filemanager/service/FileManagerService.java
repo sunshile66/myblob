@@ -12,6 +12,8 @@ import com.myblob.module.filemanager.repository.FileShareRepository;
 import com.myblob.module.filemanager.repository.FolderRepository;
 import com.myblob.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +36,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FileManagerService {
+
+    public record FileDownload(Resource resource, String filename, String contentType) {}
 
     private final FileRepository fileRepository;
     private final FolderRepository folderRepository;
@@ -125,6 +130,44 @@ public class FileManagerService {
         fileRepository.delete(file);
     }
 
+    @Transactional(readOnly = true)
+    public FileDownload getFileDownload(Long fileId) throws MalformedURLException {
+        Long userId = SecurityUtil.getCurrentUserId();
+        FileEntity file = fileRepository.findById(fileId)
+                .orElseThrow(() -> BusinessException.notFound("文件"));
+        if (!file.getUser().getId().equals(userId) && !Boolean.TRUE.equals(file.getIsPublic())) {
+            throw BusinessException.forbidden("无权下载此文件");
+        }
+
+        Path filePath = Paths.get(uploadPath).resolve(file.getFile()).normalize();
+        Resource resource = new UrlResource(filePath.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            throw BusinessException.notFound("文件资源");
+        }
+        String contentType = file.getMimeType() != null ? file.getMimeType() : "application/octet-stream";
+        return new FileDownload(resource, file.getFilename(), contentType);
+    }
+
+    @Transactional
+    public Map<String, Object> createShare(Long fileId) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        User user = userRepository.getReferenceById(userId);
+        FileEntity file = fileRepository.findById(fileId)
+                .orElseThrow(() -> BusinessException.notFound("文件"));
+        if (!file.getUser().getId().equals(userId)) {
+            throw BusinessException.forbidden("无权分享此文件");
+        }
+
+        FileShare share = FileShare.builder()
+                .file(file)
+                .createdBy(user)
+                .shareCode(UUID.randomUUID().toString().replace("-", "").substring(0, 12))
+                .downloadCount(0)
+                .expireTime(LocalDateTime.now().plusDays(7))
+                .build();
+        return toShareMap(fileShareRepository.save(share));
+    }
+
     @Transactional
     public void deleteFolder(Long folderId) {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -158,6 +201,17 @@ public class FileManagerService {
         map.put("parent_id", folder.getParent() != null ? folder.getParent().getId() : null);
         map.put("created_at", folder.getCreatedAt());
         map.put("updated_at", folder.getUpdatedAt());
+        return map;
+    }
+
+    private Map<String, Object> toShareMap(FileShare share) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", share.getId());
+        map.put("file_id", share.getFile().getId());
+        map.put("share_code", share.getShareCode());
+        map.put("expire_time", share.getExpireTime());
+        map.put("download_count", share.getDownloadCount());
+        map.put("max_downloads", share.getMaxDownloads());
         return map;
     }
 

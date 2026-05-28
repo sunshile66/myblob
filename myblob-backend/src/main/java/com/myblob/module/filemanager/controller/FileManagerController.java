@@ -4,7 +4,11 @@ import com.myblob.common.ApiResponse;
 import com.myblob.common.PageResponse;
 import com.myblob.module.filemanager.service.FileManagerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,6 +46,16 @@ public class FileManagerController {
         return ResponseEntity.ok(ApiResponse.success("文件删除成功", null));
     }
 
+    @GetMapping("/files/{id}/download/")
+    public ResponseEntity<Resource> downloadFile(@PathVariable Long id) throws IOException {
+        FileManagerService.FileDownload download = fileManagerService.getFileDownload(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(download.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(download.filename()).build().toString())
+                .body(download.resource());
+    }
+
     @GetMapping("/folders/")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyFolders(
             @RequestParam(required = false) Long parent) {
@@ -61,5 +75,12 @@ public class FileManagerController {
     public ResponseEntity<ApiResponse<Void>> deleteFolder(@PathVariable Long id) {
         fileManagerService.deleteFolder(id);
         return ResponseEntity.ok(ApiResponse.success("文件夹删除成功", null));
+    }
+
+    @PostMapping("/shares/")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createShare(@RequestBody Map<String, Object> body) {
+        Long fileId = Long.valueOf(body.get("file").toString());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(fileManagerService.createShare(fileId)));
     }
 }

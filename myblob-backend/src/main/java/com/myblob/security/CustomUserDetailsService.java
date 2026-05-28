@@ -17,19 +17,20 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        Long id;
-        try {
-            id = Long.parseLong(userId);
-        } catch (NumberFormatException e) {
-            User user = userRepository.findByUsername(userId)
-                    .or(() -> userRepository.findByEmail(userId))
-                    .orElseThrow(() -> new UsernameNotFoundException("用户不存在"));
-            return new JwtUserDetails(user);
-        }
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        // 支持用户名或邮箱登录
+        User user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .orElseThrow(() -> new UsernameNotFoundException("用户不存在"));
+        return new JwtUserDetails(user);
+    }
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("用户不存在: " + id));
+    /**
+     * 根据用户ID加载用户详情（供JWT Filter使用）
+     */
+    public UserDetails loadUserById(Long userId) throws UsernameNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("用户不存在: " + userId));
         return new JwtUserDetails(user);
     }
 }

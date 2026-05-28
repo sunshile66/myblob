@@ -30,3 +30,8 @@ export const uploadAvatar = (file: File) => {
     },
   })
 }
+
+/** 管理员获取用户列表 */
+export const getAllUsers = () => {
+  return request.get<User[]>('/auth/users/')
+}
