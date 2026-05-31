@@ -31,17 +31,14 @@ public class NewsSourceSeeder {
         }
 
         List<NewsSource> sources = List.of(
-                // Google News 综合热点
-                createSource("Google-头条", "Google News", "https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSS", "官方媒体", "CN", 1),
-                createSource("Google-Top", "Google News", "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en", "RSS", "科技财经", "EN", 2),
-                // Google News 按分类
-                createSource("Google-科技", "Google News", "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", "RSS", "科技媒体", "EN", 3),
-                createSource("Google-财经", "Google News", "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", "RSS", "科技财经", "EN", 4),
-                createSource("Google-世界", "Google News", "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", "RSS", "官方媒体", "EN", 5),
-                // Google News 按关键词搜索
-                createSource("Google-中国", "Google News", "https://news.google.com/rss/search?q=%E4%B8%AD%E5%9B%BD&hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSS", "官方媒体", "CN", 6),
-                createSource("Google-AI", "Google News", "https://news.google.com/rss/search?q=artificial+intelligence+AI+tech&hl=en-US&gl=US&ceid=US:en", "RSS", "科技媒体", "EN", 7),
-                createSource("Google-航空", "Google News", "https://news.google.com/rss/search?q=%E8%88%AA%E7%A9%BA+%E9%A3%9E%E6%9C%BA&hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSS", "国际航司", "CN", 8)
+                // Google News 综合热点（通过 RSSHub 中转，无需代理）
+                createSource("Google-头条", "Google News", "{rsshub}/google/news/%E5%A4%B4%E6%9D%A1%E6%96%B0%E9%97%BB/hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSSHUB", "官方媒体", "CN", 1),
+                createSource("Google-Top", "Google News", "{rsshub}/google/news/Top%20stories/hl=en-US&gl=US&ceid=US:en", "RSSHUB", "科技财经", "EN", 2),
+                createSource("Google-科技", "Google News", "{rsshub}/google/news/Technology/hl=en-US&gl=US&ceid=US:en", "RSSHUB", "科技媒体", "EN", 3),
+                createSource("Google-财经", "Google News", "{rsshub}/google/news/Business/hl=en-US&gl=US&ceid=US:en", "RSSHUB", "科技财经", "EN", 4),
+                createSource("Google-世界", "Google News", "{rsshub}/google/news/World/hl=en-US&gl=US&ceid=US:en", "RSSHUB", "官方媒体", "EN", 5),
+                createSource("Google-AI", "Google News", "{rsshub}/google/news/Technology/hl=en-US&gl=US&ceid=US:en", "RSSHUB", "科技媒体", "EN", 7),
+                createSource("Google-航空", "Google News", "{rsshub}/google/news/%E8%88%AA%E7%A9%BA/hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSSHUB", "国际航司", "CN", 8)
         );
 
         newsSourceRepository.saveAll(sources);

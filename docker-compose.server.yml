@@ -1,0 +1,121 @@
+# ============================================
+# Myblob 服务器部署 Docker Compose
+# 包含: Spring Boot后端 + PostgreSQL + Redis + RSSHub
+# ============================================
+# 使用方式:
+#   1. 复制此文件到服务器: cp docker-compose.server.yml docker-compose.yml
+#   2. 创建 .env 文件，填写配置
+#   3. docker compose up -d
+#
+# 代理配置说明:
+#   - RSSHub 容器通过 PROXY_PROTOCOL/PROXY_HOST/PROXY_PORT 环境变量配置代理
+#   - 代理只配置在 RSSHub 一处，Java 后端无需代理
+#   - 海外服务器(可直接访问Google)不需要代理，删除PROXY_*变量即可
+# ============================================
+
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: myblob-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-blog}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: myblob-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RSSHub - RSS聚合器 (含代理配置)
+  # Google News、Twitter、YouTube等通过此服务中转
+  # 代理只在这里配置，Java后端无需关心
+  rsshub:
+    image: diygod/rsshub
+    container_name: myblob-rsshub
+    restart: unless-stopped
+    ports:
+      - "1200:1200"
+    environment:
+      NODE_ENV: production
+      CACHE_TYPE: redis
+      REDIS_URL: redis://redis:6379/1
+      CACHE_EXPIRE: 300
+      # === 代理配置 (国内服务器需要，海外服务器删除这三行) ===
+      # 如果服务器在海外可直接访问Google，删除下面三行即可
+      PROXY_PROTOCOL: http
+      PROXY_HOST: ${RSSHUB_PROXY_HOST:-}
+      PROXY_PORT: ${RSSHUB_PROXY_PORT:-}
+    depends_on:
+      - redis
+
+  # Spring Boot 后端
+  backend:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: myblob-backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./myblob-backend/target/*.jar:/app/app.jar
+      - ./media:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      # 数据库 (连接到容器内的PostgreSQL)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-blog}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      # Redis (连接到容器内的Redis)
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      # RSSHub (连接到容器内的RSSHub)
+      RSSHUB_BASE_URL: http://rsshub:1200
+      # Java后端不需要代理！代理配置在RSSHub容器
+      HTTP_PROXY_ENABLED: "false"
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-myblob-jwt-secret-key-change-in-production}
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rsshub:
+        condition: service_started
+
+  # Vue 前端 (Nginx)
+  frontend:
+    image: nginx:alpine
+    container_name: myblob-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./blog-frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

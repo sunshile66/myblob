@@ -169,16 +169,15 @@ public class NewsFetchService {
 
     /**
      * Determine if a feed URL needs HTTP proxy.
-     * - Google News RSS: always needs proxy (blocked in China)
-     * - RSSHub sources: no proxy needed (local instance)
-     * - Other foreign RSS: use global proxy setting
+     * - RSSHub sources: no proxy needed (local instance handles it)
+     * - Direct Google News RSS: needs proxy only if configured
+     * - Other foreign RSS: needs proxy only if configured
+     * - If no proxy configured, try direct connection (works on overseas servers)
      */
     private boolean needsProxy(String feedUrl, NewsSource source) {
-        // RSSHub sources are local, no proxy needed
+        // RSSHub sources are local, proxy handled by RSSHub itself
         if ("RSSHUB".equalsIgnoreCase(source.getFetchMethod())) return false;
-        // Google News RSS needs proxy in China
-        if (feedUrl.contains("news.google.com/rss")) return true;
-        // If HTTP proxy is globally enabled, use it for all foreign sources
+        // Only use proxy if explicitly configured and enabled
         if (newsProxyConfig.getProxy().getHttp().isEnabled()) {
             String host = newsProxyConfig.getProxy().getHttp().getHost();
             return host != null && !host.isEmpty();
