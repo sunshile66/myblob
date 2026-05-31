@@ -318,10 +318,18 @@ onMounted(() => {
   loadTrending()
   loadSources()
   setupObserver()
+  // Auto refresh every 5 minutes
+  refreshTimer = setInterval(() => {
+    reload()
+    loadTrending()
+    loadSources()
+  }, 300000)
 })
 
+let refreshTimer: ReturnType<typeof setInterval>
 onUnmounted(() => {
   observer?.disconnect()
+  clearInterval(refreshTimer)
 })
 
 watch([curCat, curLang], () => {

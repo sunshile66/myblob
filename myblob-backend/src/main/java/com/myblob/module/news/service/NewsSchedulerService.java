@@ -25,7 +25,7 @@ public class NewsSchedulerService {
     private final AtomicLong lastFetchDurationMs = new AtomicLong(0);
     private final AtomicLong lastFetchTime = new AtomicLong(0);
 
-    @Scheduled(fixedRate = 900000, initialDelay = 30000) // 15 minutes, first run after 30s
+    @Scheduled(fixedRate = 300000, initialDelay = 10000) // 5 minutes, first run after 10s
     public void scheduledFetch() {
         if (!newsProxyConfig.getGlobal().isEnabled()) {
             log.debug("News fetch skipped: global switch is OFF");

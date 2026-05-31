@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getFlights, getFlightAirlines, getFlightChanges, type FlightRoute } from '@/api/news'
 
 const flights = ref<FlightRoute[]>([])
@@ -202,8 +202,6 @@ onMounted(() => {
   loadAirlines()
   timer = setInterval(() => loadFlights(true), 300000)
 })
-
-import { onUnmounted } from 'vue'
 onUnmounted(() => clearInterval(timer))
 </script>
 

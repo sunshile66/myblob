@@ -20,6 +20,32 @@ public class NewsSourceSeeder {
     public void seedDefaultSources() {
         seedGeneralSources();
         seedAirlineSources();
+        seedGoogleNewsGeneralSources();
+    }
+
+    private void seedGoogleNewsGeneralSources() {
+        // Check if Google News general sources exist by looking for a known source name
+        if (newsSourceRepository.findByName("Google-头条") != null) {
+            log.info("Google News general sources already seeded, skipping");
+            return;
+        }
+
+        List<NewsSource> sources = List.of(
+                // Google News 综合热点
+                createSource("Google-头条", "Google News", "https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSS", "官方媒体", "CN", 1),
+                createSource("Google-Top", "Google News", "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en", "RSS", "科技财经", "EN", 2),
+                // Google News 按分类
+                createSource("Google-科技", "Google News", "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", "RSS", "科技媒体", "EN", 3),
+                createSource("Google-财经", "Google News", "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", "RSS", "科技财经", "EN", 4),
+                createSource("Google-世界", "Google News", "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", "RSS", "官方媒体", "EN", 5),
+                // Google News 按关键词搜索
+                createSource("Google-中国", "Google News", "https://news.google.com/rss/search?q=%E4%B8%AD%E5%9B%BD&hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSS", "官方媒体", "CN", 6),
+                createSource("Google-AI", "Google News", "https://news.google.com/rss/search?q=artificial+intelligence+AI+tech&hl=en-US&gl=US&ceid=US:en", "RSS", "科技媒体", "EN", 7),
+                createSource("Google-航空", "Google News", "https://news.google.com/rss/search?q=%E8%88%AA%E7%A9%BA+%E9%A3%9E%E6%9C%BA&hl=zh-CN&gl=CN&ceid=CN:zh-Hans", "RSS", "国际航司", "CN", 8)
+        );
+
+        newsSourceRepository.saveAll(sources);
+        log.info("Seeded {} Google News general sources", sources.size());
     }
 
     private void seedGeneralSources() {

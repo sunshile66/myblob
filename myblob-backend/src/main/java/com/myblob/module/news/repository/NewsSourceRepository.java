@@ -20,4 +20,6 @@ public interface NewsSourceRepository extends JpaRepository<NewsSource, Long> {
     List<NewsSource> findByPlatformName(String platformName);
 
     long countByCategory(String category);
+
+    NewsSource findByName(String name);
 }
