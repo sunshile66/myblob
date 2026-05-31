@@ -4,8 +4,10 @@ import com.myblob.module.news.entity.NewsItem;
 import com.myblob.module.news.entity.NewsSource;
 import com.myblob.module.news.repository.NewsItemRepository;
 import com.myblob.module.news.repository.NewsSourceRepository;
+import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import lombok.RequiredArgsConstructor;
@@ -195,6 +197,29 @@ public class NewsFetchService {
                         .atZone(ZoneId.systemDefault()).toLocalDateTime();
             }
 
+            // Extract thumbnail and media type
+            String thumbnailUrl = extractThumbnail(entry, link);
+            String mediaType = "image";
+            String videoUrl = null;
+
+            // Detect video content (YouTube, Vimeo, etc.)
+            if (link.contains("youtube.com/watch") || link.contains("youtu.be/") || link.contains("vimeo.com/")) {
+                mediaType = "video";
+                videoUrl = link;
+                // Extract YouTube thumbnail
+                String ytId = extractYouTubeId(link);
+                if (ytId != null) {
+                    thumbnailUrl = "https://img.youtube.com/vi/" + ytId + "/hqdefault.jpg";
+                }
+            } else if (thumbnailUrl != null && (thumbnailUrl.endsWith(".mp4") || thumbnailUrl.endsWith(".webm"))) {
+                mediaType = "video";
+                videoUrl = thumbnailUrl;
+            } else if (thumbnailUrl != null) {
+                mediaType = "image";
+            } else {
+                mediaType = "text";
+            }
+
             return NewsItem.builder()
                     .title(title.length() > 500 ? title.substring(0, 497) + "..." : title)
                     .summary(summary.length() > 1000 ? summary.substring(0, 997) + "..." : summary)
@@ -203,6 +228,9 @@ public class NewsFetchService {
                     .sourceName(source.getName())
                     .category(source.getCategory())
                     .language(source.getLanguage())
+                    .thumbnailUrl(thumbnailUrl)
+                    .mediaType(mediaType)
+                    .videoUrl(videoUrl)
                     .publishedAt(publishedAt != null ? publishedAt : LocalDateTime.now())
                     .fetchedAt(LocalDateTime.now())
                     .qualityScore(50)
@@ -211,6 +239,123 @@ public class NewsFetchService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Extract thumbnail URL from RSS entry:
+     * 1. media:content / media:thumbnail namespace
+     * 2. enclosure links
+     * 3. First img in HTML description
+     */
+    private String extractThumbnail(SyndEntry entry, String link) {
+        // 1. Check enclosures (most common for media RSS)
+        List<SyndEnclosure> enclosures = entry.getEnclosures();
+        if (enclosures != null && !enclosures.isEmpty()) {
+            for (SyndEnclosure enc : enclosures) {
+                String url = enc.getUrl();
+                String type = enc.getType();
+                if (url != null && type != null && type.startsWith("image/")) {
+                    return url;
+                }
+                if (url != null && (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png") || url.endsWith(".webp"))) {
+                    return url;
+                }
+            }
+        }
+
+        // 2. Check foreign markup (media:content, media:thumbnail)
+        try {
+            List<org.jdom2.Element> foreignMarkup = entry.getForeignMarkup();
+            if (foreignMarkup != null) {
+                for (org.jdom2.Element el : foreignMarkup) {
+                    String name = el.getName();
+                    if ("content".equals(name) || "thumbnail".equals(name)) {
+                        String url = el.getAttributeValue("url");
+                        if (url != null && !url.isEmpty()) return url;
+                    }
+                    // Check group > content
+                    if ("group".equals(name)) {
+                        for (org.jdom2.Element child : el.getChildren()) {
+                            if ("content".equals(child.getName()) || "thumbnail".equals(child.getName())) {
+                                String url = child.getAttributeValue("url");
+                                if (url != null && !url.isEmpty()) return url;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Ignore foreign markup parsing errors
+        }
+
+        // 3. Extract from HTML description
+        if (entry.getDescription() != null) {
+            String html = entry.getDescription().getValue();
+            if (html != null) {
+                String imgUrl = extractImgFromHtml(html);
+                if (imgUrl != null) return imgUrl;
+            }
+        }
+
+        // 4. Check contents (Atom feeds)
+        List<SyndContent> contents = entry.getContents();
+        if (contents != null && !contents.isEmpty()) {
+            for (SyndContent content : contents) {
+                String val = content.getValue();
+                if (val != null) {
+                    String imgUrl = extractImgFromHtml(val);
+                    if (imgUrl != null) return imgUrl;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** Extract first img src from HTML string */
+    private String extractImgFromHtml(String html) {
+        if (html == null || html.isEmpty()) return null;
+        try {
+            Document doc = Jsoup.parse(html);
+            Element img = doc.selectFirst("img[src]");
+            if (img != null) {
+                String src = img.attr("src");
+                if (src != null && !src.isEmpty() && src.startsWith("http")) return src;
+            }
+        } catch (Exception e) {
+            // Fallback to regex
+            int idx = html.indexOf("<img");
+            if (idx >= 0) {
+                int srcIdx = html.indexOf("src=", idx);
+                if (srcIdx >= 0) {
+                    char quote = html.charAt(srcIdx + 4);
+                    int endIdx = html.indexOf(quote, srcIdx + 5);
+                    if (endIdx > srcIdx + 5) {
+                        String url = html.substring(srcIdx + 5, endIdx);
+                        if (url.startsWith("http")) return url;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Extract YouTube video ID from URL */
+    private String extractYouTubeId(String url) {
+        if (url == null) return null;
+        if (url.contains("youtube.com/watch")) {
+            int idx = url.indexOf("v=");
+            if (idx >= 0) {
+                String id = url.substring(idx + 2);
+                int amp = id.indexOf('&');
+                return amp > 0 ? id.substring(0, amp) : id;
+            }
+        } else if (url.contains("youtu.be/")) {
+            String id = url.substring(url.indexOf("youtu.be/") + 9);
+            int q = id.indexOf('?');
+            return q > 0 ? id.substring(0, q) : id;
+        }
+        return null;
     }
 
     private List<NewsItem> fetchApi(NewsSource source) {

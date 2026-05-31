@@ -42,25 +42,43 @@ public class NewsSourceSeeder {
                 createSource("机器之心", "机器之心", "https://www.jiqizhixin.com/rss", "RSS", "科技财经", "CN", 11),
                 createSource("爱范儿", "爱范儿", "https://www.ifanr.com/feed", "RSS", "科技财经", "CN", 12),
                 createSource("果壳", "果壳", "https://www.guokr.com/rss/", "RSS", "科技财经", "CN", 13),
+                // 新增中文源
+                createSource("IT之家", "IT之家", "https://www.ithome.com/rss/", "RSS", "科技财经", "CN", 14),
+                createSource("钛媒体", "钛媒体", "https://www.tmtpost.com/rss.xml", "RSS", "科技财经", "CN", 15),
+                createSource("界面新闻", "界面新闻", "https://www.jiemian.com/lists/4.rss", "RSS", "科技财经", "CN", 16),
+                createSource("澎湃新闻", "澎湃新闻", "https://www.thepaper.cn/rss_newsDetail_channel_25950", "RSS", "官方媒体", "CN", 17),
+                createSource("观察者网", "观察者网", "https://www.guancha.cn/rss/feed.xml", "RSS", "官方媒体", "CN", 18),
+                createSource("快科技", "快科技", "https://www.mydrivers.com/rss.aspx", "RSS", "科技财经", "CN", 19),
                 // 海外社交媒体
-                createSource("Reddit", "Reddit", "REDDIT_API", "API", "社交媒体", "EN", 14),
+                createSource("Reddit", "Reddit", "REDDIT_API", "API", "社交媒体", "EN", 20),
                 // 海外科技媒体
-                createSource("HackerNews", "HackerNews", "HN_API", "API", "科技媒体", "EN", 17),
-                createSource("TechCrunch", "TechCrunch", "https://techcrunch.com/feed/", "RSS", "科技媒体", "EN", 18),
-                createSource("Dev.to", "Dev.to", "https://dev.to/feed", "RSS", "科技媒体", "EN", 19),
-                createSource("The Verge", "The Verge", "https://www.theverge.com/rss/index.xml", "RSS", "科技媒体", "EN", 20),
-                createSource("Ars Technica", "Ars Technica", "https://feeds.arstechnica.com/arstechnica/index", "RSS", "科技媒体", "EN", 21),
+                createSource("HackerNews", "HackerNews", "HN_API", "API", "科技媒体", "EN", 21),
+                createSource("TechCrunch", "TechCrunch", "https://techcrunch.com/feed/", "RSS", "科技媒体", "EN", 22),
+                createSource("Dev.to", "Dev.to", "https://dev.to/feed", "RSS", "科技媒体", "EN", 23),
+                createSource("The Verge", "The Verge", "https://www.theverge.com/rss/index.xml", "RSS", "科技媒体", "EN", 24),
+                createSource("Ars Technica", "Ars Technica", "https://feeds.arstechnica.com/arstechnica/index", "RSS", "科技媒体", "EN", 25),
+                createSource("Wired", "Wired", "https://www.wired.com/feed/rss", "RSS", "科技媒体", "EN", 26),
+                createSource("Engadget", "Engadget", "https://www.engadget.com/rss.xml", "RSS", "科技媒体", "EN", 27),
+                createSource("ZDNet", "ZDNet", "https://www.zdnet.com/news/rss.xml", "RSS", "科技媒体", "EN", 28),
                 // 开源开发者
-                createSource("GitHub Trending", "GitHub Trending", "GITHUB_TRENDING", "JSOUP", "开源开发者", "EN", 22),
-                createSource("Product Hunt", "Product Hunt", "https://www.producthunt.com/feed", "RSS", "开源开发者", "EN", 23),
-                // RSSHub依赖源（默认禁用，部署RSSHub后可启用）
-                createDisabled("央视新闻", "央视新闻", "{rsshub}/cctv/world", "RSSHUB", "官方媒体", "CN", 30),
-                createDisabled("小红书", "小红书", "{rsshub}/xiaohongshu/explore", "RSSHUB", "社交媒体", "CN", 31),
-                createDisabled("抖音热点", "抖音热点", "{rsshub}/douyin/hot", "RSSHUB", "社交媒体", "CN", 32),
-                createDisabled("微信公众号", "微信公众号", "{rsshub}/wechat/ce", "RSSHUB", "社交媒体", "CN", 33),
-                createDisabled("Twitter", "Twitter", "{rsshub}/twitter/user/OpenAI", "RSSHUB", "社交媒体", "EN", 34),
-                createDisabled("Instagram", "Instagram", "{rsshub}/instagram/user/instagram", "RSSHUB", "社交媒体", "EN", 35),
-                createDisabled("Facebook", "Facebook", "{rsshub}/facebook/page/Meta", "RSSHUB", "社交媒体", "EN", 36)
+                createSource("GitHub Trending", "GitHub Trending", "GITHUB_TRENDING", "JSOUP", "开源开发者", "EN", 30),
+                createSource("Product Hunt", "Product Hunt", "https://www.producthunt.com/feed", "RSS", "开源开发者", "EN", 31),
+                createSource("HackerNoon", "HackerNoon", "https://hackernoon.com/feed", "RSS", "科技媒体", "EN", 32),
+                createSource("freeCodeCamp", "freeCodeCamp", "https://www.freecodecamp.org/news/rss/", "RSS", "开源开发者", "EN", 33),
+                // RSSHub 社交媒体源 (需部署RSSHub实例)
+                createSource("Twitter-AI", "Twitter/X", "{rsshub}/twitter/user/OpenAI", "RSSHUB", "社交媒体", "EN", 40),
+                createSource("Twitter-Google", "Twitter/X", "{rsshub}/twitter/user/Google", "RSSHUB", "社交媒体", "EN", 41),
+                createSource("Twitter-Apple", "Twitter/X", "{rsshub}/twitter/user/Apple", "RSSHUB", "社交媒体", "EN", 42),
+                createSource("Twitter-Microsoft", "Twitter/X", "{rsshub}/twitter/user/Microsoft", "RSSHUB", "社交媒体", "EN", 43),
+                createSource("YouTube-MKBHD", "YouTube", "{rsshub}/youtube/channel/UCBcRF18a7Qf58cCRy5xuWwQ", "RSSHUB", "科技媒体", "EN", 44),
+                createSource("YouTube-LinusTech", "YouTube", "{rsshub}/youtube/channel/UCXuqSBlHAE6Xw-yeJA0Tunw", "RSSHUB", "科技媒体", "EN", 45),
+                createSource("Facebook-Meta", "Facebook", "{rsshub}/facebook/page/Meta", "RSSHUB", "社交媒体", "EN", 46),
+                createSource("Instagram-NASA", "Instagram", "{rsshub}/instagram/user/nasa", "RSSHUB", "科技媒体", "EN", 47),
+                // RSSHub 国内社交源
+                createSource("小红书热门", "小红书", "{rsshub}/xiaohongshu/explore", "RSSHUB", "社交媒体", "CN", 48),
+                createSource("抖音热点", "抖音热点", "{rsshub}/douyin/hot", "RSSHUB", "社交媒体", "CN", 49),
+                createSource("央视新闻", "央视新闻", "{rsshub}/cctv/world", "RSSHUB", "官方媒体", "CN", 50),
+                createSource("微信公众号", "微信公众号", "{rsshub}/wechat/ce", "RSSHUB", "社交媒体", "CN", 51)
         );
 
         newsSourceRepository.saveAll(sources);
@@ -120,11 +138,25 @@ public class NewsSourceSeeder {
                 createSource("Google-SAS", "SAS Scandinavian", "https://news.google.com/rss/search?q=SAS+Scandinavian+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 78),
                 createSource("Google-Swiss", "Swiss Air", "https://news.google.com/rss/search?q=Swiss+International+Air+Lines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 79),
 
+                // === 航空公司社交媒体 (RSSHub) ===
+                createSource("Twitter-Emirates", "Twitter/X", "{rsshub}/twitter/user/emirates", "RSSHUB", "国际航司", "EN", 84),
+                createSource("Twitter-Qatar", "Twitter/X", "{rsshub}/twitter/user/qatarairways", "RSSHUB", "国际航司", "EN", 85),
+                createSource("Twitter-Lufthansa", "Twitter/X", "{rsshub}/twitter/user/lufthansa", "RSSHUB", "国际航司", "EN", 86),
+                createSource("Twitter-BA", "Twitter/X", "{rsshub}/twitter/user/British_Airways", "RSSHUB", "国际航司", "EN", 87),
+                createSource("Twitter-Delta", "Twitter/X", "{rsshub}/twitter/user/Delta", "RSSHUB", "国际航司", "EN", 88),
+                createSource("Twitter-United", "Twitter/X", "{rsshub}/twitter/user/United", "RSSHUB", "国际航司", "EN", 89),
+                createSource("Twitter-Singapore", "Twitter/X", "{rsshub}/twitter/user/SingaporeAir", "RSSHUB", "国际航司", "EN", 90),
+                createSource("Twitter-Cathay", "Twitter/X", "{rsshub}/twitter/user/CathayPacific", "RSSHUB", "国际航司", "EN", 91),
+                createSource("Twitter-Ryanair", "Twitter/X", "{rsshub}/twitter/user/Ryanair", "RSSHUB", "国际航司", "EN", 92),
+                createSource("Twitter-AirFrance", "Twitter/X", "{rsshub}/twitter/user/airfrance", "RSSHUB", "国际航司", "EN", 93),
+                createSource("YouTube-Emirates", "YouTube", "{rsshub}/youtube/channel/UC8C9yMnNvD1aGvRNTqEFWqA", "RSSHUB", "国际航司", "EN", 94),
+                createSource("YouTube-Lufthansa", "YouTube", "{rsshub}/youtube/channel/UC8mDk6eZ62EiMxv3Y3gE7qQ", "RSSHUB", "国际航司", "EN", 95),
+
                 // === 航空综合话题 Google News ===
-                createSource("Google-Airfare", "Airfare Deals", "https://news.google.com/rss/search?q=airline+fare+deals+promo&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 80),
-                createSource("Google-Routes", "Airline Routes", "https://news.google.com/rss/search?q=airline+new+routes+launch&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 81),
-                createSource("Google-Fuel", "Airline Fuel", "https://news.google.com/rss/search?q=airline+fuel+surcharge+adjustment&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 82),
-                createSource("Google-Aviation", "Aviation Industry", "https://news.google.com/rss/search?q=aviation+industry+news&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 83)
+                createSource("Google-Airfare", "Airfare Deals", "https://news.google.com/rss/search?q=airline+fare+deals+promo&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 96),
+                createSource("Google-Routes", "Airline Routes", "https://news.google.com/rss/search?q=airline+new+routes+launch&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 97),
+                createSource("Google-Fuel", "Airline Fuel", "https://news.google.com/rss/search?q=airline+fuel+surcharge+adjustment&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 98),
+                createSource("Google-Aviation", "Aviation Industry", "https://news.google.com/rss/search?q=aviation+industry+news&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 99)
         );
 
         newsSourceRepository.saveAll(sources);
@@ -142,7 +174,7 @@ public class NewsSourceSeeder {
                 .language(lang)
                 .enabled(true)
                 .priority(priority)
-                .fetchIntervalSeconds(1800)
+                .fetchIntervalSeconds(900)
                 .errorCount(0)
                 .consecutiveErrors(0)
                 .build();
@@ -159,7 +191,7 @@ public class NewsSourceSeeder {
                 .language(lang)
                 .enabled(false)
                 .priority(priority)
-                .fetchIntervalSeconds(1800)
+                .fetchIntervalSeconds(900)
                 .errorCount(0)
                 .consecutiveErrors(0)
                 .build();

@@ -24,6 +24,8 @@ public class NewsItemDTO {
     private String category;
     private String language;
     private String thumbnailUrl;
+    private String mediaType;
+    private String videoUrl;
     private LocalDateTime publishedAt;
     private Integer qualityScore;
     private String filterReason;
@@ -45,6 +47,8 @@ public class NewsItemDTO {
                 .category(item.getCategory())
                 .language(item.getLanguage())
                 .thumbnailUrl(item.getThumbnailUrl())
+                .mediaType(item.getMediaType())
+                .videoUrl(item.getVideoUrl())
                 .publishedAt(item.getPublishedAt())
                 .qualityScore(item.getQualityScore())
                 .filterReason(item.getFilterReason())

@@ -91,7 +91,7 @@ news:
     read-timeout: 15000
   fetch:
     thread-pool-size: 20
-    max-items-per-source: 50
+    max-items-per-source: 100
 
 springdoc:
   api-docs:

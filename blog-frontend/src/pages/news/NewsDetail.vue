@@ -5,7 +5,9 @@
       <p>加载中...</p>
     </div>
     <div v-else-if="!item" class="center">
-      <div class="empty-icon">📰</div>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1">
+        <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
+      </svg>
       <p>新闻不存在或已被删除</p>
     </div>
     <div v-else class="detail-layout">
@@ -13,7 +15,15 @@
       <article class="detail-main">
         <!-- 面包屑 -->
         <div class="breadcrumb">
-          <router-link to="/news" class="back-link">← 新闻列表</router-link>
+          <router-link to="/" class="bc-home">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            首页
+          </router-link>
+          <span class="bc-sep">/</span>
+          <router-link to="/news" class="back-link">新闻聚合</router-link>
           <span class="bc-sep">/</span>
           <span class="bc-cat" @click="$router.push({ path: '/news', query: { category: item.category } })">
             {{ item.category }}
@@ -27,6 +37,10 @@
           </span>
           <span class="meta-time">{{ fmtTimeFull(item.publishedAt) }}</span>
           <span v-if="item.language === 'EN'" class="meta-lang">英文原文</span>
+          <span v-if="item.mediaType === 'video'" class="meta-video-tag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            视频
+          </span>
         </div>
 
         <!-- 标题 -->
@@ -34,6 +48,14 @@
         <h2 v-if="item.language === 'EN' && item.translatedTitle" class="title-zh">
           {{ item.translatedTitle }}
         </h2>
+
+        <!-- 封面图/视频 -->
+        <div v-if="item.thumbnailUrl" class="cover-block">
+          <img :src="item.thumbnailUrl" :alt="item.title" class="cover-img" />
+          <a v-if="item.mediaType === 'video' && item.videoUrl" :href="item.videoUrl" target="_blank" rel="noopener" class="cover-play">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </a>
+        </div>
 
         <!-- 摘要 -->
         <div v-if="item.summary" class="summary-block">
@@ -51,9 +73,18 @@
         <!-- 操作栏 -->
         <div class="action-bar">
           <a :href="item.sourceUrl" target="_blank" rel="noopener" class="action-btn primary">
-            🔗 查看原文
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            查看原文
           </a>
-          <button @click="shareNews" class="action-btn">📋 复制链接</button>
+          <button @click="shareNews" class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+            复制链接
+          </button>
           <button @click="$router.back()" class="action-btn ghost">返回</button>
         </div>
       </article>
@@ -64,8 +95,11 @@
           <h4 class="sidebar-title">相关推荐</h4>
           <div v-for="r in related" :key="r.id" class="related-item"
             @click="$router.push('/news/' + r.id)">
-            <p class="related-title">{{ r.translatedTitle || r.title }}</p>
-            <span class="related-meta">{{ r.sourceName }} · {{ fmtTime(r.publishedAt) }}</span>
+            <div class="related-body">
+              <p class="related-title">{{ r.translatedTitle || r.title }}</p>
+              <span class="related-meta">{{ r.sourceName }} · {{ fmtTime(r.publishedAt) }}</span>
+            </div>
+            <img v-if="r.thumbnailUrl" :src="r.thumbnailUrl" class="related-thumb" :alt="r.title" loading="lazy" />
           </div>
         </div>
       </aside>
@@ -138,11 +172,10 @@ watch(() => route.params.id, () => { if (route.params.id) loadDetail() })
 </script>
 
 <style scoped>
-.detail-page { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
-.center { text-align: center; padding: 80px 0; color: #bbb; }
-.center p { margin: 8px 0 0; font-size: 15px; }
-.empty-icon { font-size: 48px; }
-.loading-spinner { width: 24px; height: 24px; border: 3px solid #e0e0e0; border-top-color: #409eff;
+.detail-page { max-width: 1100px; margin: 0 auto; padding: 20px 20px; font-family: 'Inter', 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.center { text-align: center; padding: 80px 0; color: #94A3B8; }
+.center p { margin: 12px 0 0; font-size: 15px; }
+.loading-spinner { width: 24px; height: 24px; border: 3px solid #E5E7EB; border-top-color: var(--theme-primary, #4F46E5);
   border-radius: 50%; animation: spin .6s linear infinite; margin: 0 auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -151,52 +184,64 @@ watch(() => route.params.id, () => { if (route.params.id) loadDetail() })
 
 /* Breadcrumb */
 .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 16px; }
-.back-link { color: #409eff; text-decoration: none; }
+.bc-home { display: inline-flex; align-items: center; gap: 4px; color: var(--theme-text-secondary, #64748B); text-decoration: none; transition: color .2s; }
+.bc-home:hover { color: var(--theme-primary, #4F46E5); }
+.back-link { color: var(--theme-primary, #4F46E5); text-decoration: none; }
 .back-link:hover { text-decoration: underline; }
-.bc-sep { color: #ddd; }
-.bc-cat { color: #888; cursor: pointer; }
-.bc-cat:hover { color: #409eff; }
+.bc-sep { color: #CBD5E1; }
+.bc-cat { color: var(--theme-text-secondary, #64748B); cursor: pointer; transition: color .2s; }
+.bc-cat:hover { color: var(--theme-primary, #4F46E5); }
 
 /* Meta */
-.meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .meta-src { padding: 3px 12px; color: #fff; border-radius: 12px; font-size: 12px; font-weight: 500; }
-.meta-time { font-size: 13px; color: #aaa; }
-.meta-lang { padding: 2px 8px; border-radius: 4px; background: #f0f0ff; color: #409eff; font-size: 11px; }
+.meta-time { font-size: 13px; color: #94A3B8; }
+.meta-lang { padding: 2px 8px; border-radius: 4px; background: var(--theme-primary-light, rgba(79,70,229,.1)); color: var(--theme-primary, #4F46E5); font-size: 11px; font-weight: 600; }
+.meta-video-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(239,68,68,.1); color: #EF4444; font-size: 11px; font-weight: 600; }
 
 /* Title */
-.main-title { font-size: 1.5rem; line-height: 1.6; margin: 0 0 8px; font-weight: 700; color: #1a1a1a; }
-.title-zh { font-size: 1.1rem; color: #888; font-weight: 400; margin: 0 0 16px; line-height: 1.6;
-  padding-left: 12px; border-left: 3px solid #409eff; }
+.main-title { font-size: 1.5rem; line-height: 1.6; margin: 0 0 8px; font-weight: 700; color: var(--theme-text, #0F172A); }
+.title-zh { font-size: 1.1rem; color: var(--theme-text-secondary, #64748B); font-weight: 400; margin: 0 0 16px; line-height: 1.6;
+  padding-left: 12px; border-left: 3px solid var(--theme-primary, #4F46E5); }
+
+/* Cover image/video */
+.cover-block { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 20px; background: #F1F5F9; }
+.cover-img { width: 100%; display: block; max-height: 400px; object-fit: cover; }
+.cover-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.3); transition: background .2s; }
+.cover-play:hover { background: rgba(0,0,0,.5); }
 
 /* Summary */
-.summary-block { background: #f9f9f9; border-radius: 8px; padding: 14px 18px; margin-bottom: 8px; }
-.summary-block.translated { background: #f5f5ff; border-left: 3px solid #409eff; }
-.summary-label { font-size: 11px; color: #bbb; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-.summary-text { font-size: 15px; line-height: 1.8; color: #555; margin: 0; white-space: pre-wrap; }
+.summary-block { background: var(--theme-hover, #F1F5F9); border-radius: 10px; padding: 16px 20px; margin-bottom: 8px; }
+.summary-block.translated { background: rgba(79,70,229,.05); border-left: 3px solid var(--theme-primary, #4F46E5); }
+.summary-label { font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; }
+.summary-text { font-size: 14px; line-height: 1.8; color: var(--theme-text-secondary, #64748B); margin: 0; white-space: pre-wrap; }
 
 /* Content */
-.content-block { font-size: 15px; line-height: 1.8; color: #333; margin-top: 20px; }
-.content-block :deep(img) { max-width: 100%; border-radius: 8px; margin: 12px 0; }
-.content-block :deep(a) { color: #409eff; }
+.content-block { font-size: 15px; line-height: 1.8; color: var(--theme-text, #0F172A); margin-top: 20px; }
+.content-block :deep(img) { max-width: 100%; border-radius: 10px; margin: 12px 0; }
+.content-block :deep(a) { color: var(--theme-primary, #4F46E5); }
 .content-block :deep(p) { margin: 8px 0; }
 
 /* Actions */
-.action-bar { display: flex; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; }
-.action-btn { padding: 8px 20px; border: 1px solid #e0e0e0; background: #fff; border-radius: 6px;
-  cursor: pointer; font-size: 13px; color: #666; transition: all .2s; text-decoration: none; display: inline-block; }
-.action-btn:hover { border-color: #409eff; color: #409eff; }
-.action-btn.primary { background: #409eff; color: #fff; border-color: #409eff; }
-.action-btn.primary:hover { background: #66b1ff; }
-.action-btn.ghost { background: #f5f5f5; border-color: #f5f5f5; }
+.action-bar { display: flex; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--theme-border, #E5E7EB); flex-wrap: wrap; }
+.action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border: 1px solid var(--theme-border, #E5E7EB); background: var(--theme-card, #fff);
+  border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--theme-text-secondary, #64748B); transition: all .2s; text-decoration: none; font-weight: 500; }
+.action-btn:hover { border-color: var(--theme-primary, #4F46E5); color: var(--theme-primary, #4F46E5); }
+.action-btn.primary { background: var(--theme-primary, #4F46E5); color: #fff; border-color: var(--theme-primary, #4F46E5); }
+.action-btn.primary:hover { opacity: .9; }
+.action-btn.ghost { background: var(--theme-hover, #F1F5F9); border-color: var(--theme-hover, #F1F5F9); }
 
 /* Sidebar */
-.detail-sidebar { position: sticky; top: 20px; }
-.sidebar-section { background: #fff; border: 1px solid #f0f0f0; border-radius: 10px; padding: 16px; }
-.sidebar-title { font-size: 14px; font-weight: 600; margin: 0 0 12px; color: #333; }
-.related-item { padding: 8px 0; cursor: pointer; }
-.related-item:hover .related-title { color: #409eff; }
-.related-item + .related-item { border-top: 1px solid #f5f5f5; }
-.related-title { font-size: 13px; line-height: 1.5; margin: 0; color: #333; transition: color .2s;
+.detail-sidebar { position: sticky; top: 72px; }
+.sidebar-section { background: var(--theme-card, #fff); border: 1px solid var(--theme-border, #E5E7EB); border-radius: 12px; padding: 16px; }
+.sidebar-title { font-size: 13px; font-weight: 600; margin: 0 0 12px; color: var(--theme-text, #0F172A); }
+.related-item { display: flex; gap: 10px; padding: 10px 6px; cursor: pointer; border-radius: 8px; transition: background .15s; }
+.related-item:hover { background: var(--theme-hover, #F1F5F9); }
+.related-body { flex: 1; min-width: 0; }
+.related-thumb { flex-shrink: 0; width: 56px; height: 40px; border-radius: 6px; object-fit: cover; background: #F1F5F9; }
+.related-title { font-size: 13px; line-height: 1.5; margin: 0; color: var(--theme-text, #0F172A); transition: color .2s;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.related-meta { font-size: 11px; color: #bbb; margin-top: 4px; display: block; }
+.related-item:hover .related-title { color: var(--theme-primary, #4F46E5); }
+.related-meta { font-size: 11px; color: #94A3B8; margin-top: 4px; display: block; }
 </style>

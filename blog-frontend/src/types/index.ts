@@ -319,6 +319,8 @@ export interface NewsItem {
   category: string
   language: string
   thumbnailUrl?: string
+  mediaType?: 'image' | 'video' | 'text'
+  videoUrl?: string
   publishedAt?: string
   qualityScore: number
   filterReason?: string

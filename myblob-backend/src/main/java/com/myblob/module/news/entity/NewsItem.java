@@ -58,6 +58,13 @@ public class NewsItem extends BaseEntity {
     @Column(name = "thumbnail_url", length = 1000)
     private String thumbnailUrl;
 
+    @Column(name = "media_type", length = 20)
+    @Builder.Default
+    private String mediaType = "text";
+
+    @Column(name = "video_url", length = 1000)
+    private String videoUrl;
+
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 

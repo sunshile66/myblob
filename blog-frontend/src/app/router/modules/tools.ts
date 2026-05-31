@@ -209,4 +209,10 @@ export const toolRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/tools/Base64ImageTool.vue"),
     meta: { title: "Base64 图片" },
   },
+  {
+    path: "/tools/flight-tracker",
+    name: "FlightTracker",
+    component: () => import("@/pages/flights/FlightTracker.vue"),
+    meta: { title: "航班追踪" },
+  },
 ];
