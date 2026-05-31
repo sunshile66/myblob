@@ -74,6 +74,25 @@ myblob:
     avatar-path: ./media/avatars
     post-path: ./media/posts
 
+news:
+  global:
+    enabled: true
+  proxy:
+    rsshub:
+      base-url: ${RSSHUB_BASE_URL:http://localhost:1200}
+      timeout: 30000
+      retry: 3
+    http:
+      host: ${HTTP_PROXY_HOST:}
+      port: ${HTTP_PROXY_PORT:0}
+      enabled: false
+    user-agent: MyBlob-NewsBot/1.0
+    connect-timeout: 10000
+    read-timeout: 15000
+  fetch:
+    thread-pool-size: 20
+    max-items-per-source: 50
+
 springdoc:
   api-docs:
     path: /v3/api-docs

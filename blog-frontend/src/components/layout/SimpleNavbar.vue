@@ -145,6 +145,30 @@
                     <el-icon><Star /></el-icon>
                     我的收藏
                   </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.userInfo?.role === 'ADMIN' || userStore.userInfo?.is_superuser" command="admin-news">
+                    <el-icon><Reading /></el-icon>
+                    新闻管理
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.userInfo?.role === 'ADMIN' || userStore.userInfo?.is_superuser" divided command="admin-users">
+                    <el-icon><Setting /></el-icon>
+                    用户管理
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.userInfo?.role === 'ADMIN' || userStore.userInfo?.is_superuser" command="admin-ip-blocks">
+                    <el-icon><Lock /></el-icon>
+                    IP 黑名单
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.userInfo?.role === 'ADMIN' || userStore.userInfo?.is_superuser" command="admin-request-logs">
+                    <el-icon><Monitor /></el-icon>
+                    请求日志
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="userStore.userInfo?.role === 'ADMIN' || userStore.userInfo?.is_superuser" command="admin-site-config">
+                    <el-icon><Tools /></el-icon>
+                    站点配置
+                  </el-dropdown-item>
+                  <el-dropdown-item command="api-keys">
+                    <el-icon><Key /></el-icon>
+                    API 密钥
+                  </el-dropdown-item>
                   <el-dropdown-item divided command="logout">
                     <el-icon><SwitchButton /></el-icon>
                     退出登录
@@ -165,10 +189,16 @@ import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   ArrowDown,
+  Setting,
+  Lock,
+  Monitor,
+  Tools,
+  Key,
   Bell,
   Document,
   Plus,
   Operation,
+  Reading,
   Search,
   Star,
   SwitchButton,
@@ -188,6 +218,7 @@ const toolLauncherOpen = ref(false);
 
 const navLinks = [
   { label: "首页", to: "/" },
+  { label: "新闻", to: "/news" },
   { label: "工具", to: "/tools" },
   { label: "文件", to: "/filemanager" },
   { label: "API", to: "/apigateway" },
@@ -236,6 +267,24 @@ const handleCommand = async (command: string) => {
       break;
     case "my-posts":
       router.push("/my-posts");
+      break;
+    case "admin-news":
+      router.push("/admin/news");
+      break;
+    case "admin-users":
+      router.push("/admin/users");
+      break;
+    case "admin-ip-blocks":
+      router.push("/admin/ip-blocks");
+      break;
+    case "admin-request-logs":
+      router.push("/admin/request-logs");
+      break;
+    case "admin-site-config":
+      router.push("/admin/site-config");
+      break;
+    case "api-keys":
+      router.push("/api-keys");
       break;
     case "favorites":
       router.push("/favorites");

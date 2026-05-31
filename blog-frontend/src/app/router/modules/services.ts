@@ -31,4 +31,16 @@ export const serviceRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/payments/WalletCenter.vue"),
     meta: { title: "我的钱包" },
   },
+  {
+    path: "/news",
+    name: "NewsList",
+    component: () => import("@/pages/news/NewsList.vue"),
+    meta: { title: "新闻聚合" },
+  },
+  {
+    path: "/news/:id",
+    name: "NewsDetail",
+    component: () => import("@/pages/news/NewsDetail.vue"),
+    meta: { title: "新闻详情" },
+  },
 ];

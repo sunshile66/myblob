@@ -63,7 +63,8 @@ const isLiked = ref(false);
 
 const isVideo = computed(() => props.post.post_type === "video");
 
-const formatNumber = (num: number): string => {
+const formatNumber = (num: number | undefined | null): string => {
+  if (num === undefined || num === null) return "0";
   if (num >= 10000) {
     return (num / 10000).toFixed(1) + "w";
   } else if (num >= 1000) {

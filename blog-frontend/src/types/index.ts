@@ -104,6 +104,7 @@ export interface Comment {
   is_deleted: boolean
   created_at: string
   children?: Comment[]
+  reactions?: Record<string, number>
 }
 
 export interface PostLike {
@@ -301,4 +302,64 @@ export interface SocialAccount {
   avatar?: string
   created_at: string
   updated_at: string
+}
+
+// ===== News Types =====
+
+export interface NewsItem {
+  id: number
+  title: string
+  summary?: string
+  translatedTitle?: string
+  translatedSummary?: string
+  content?: string
+  sourceUrl: string
+  sourcePlatform: string
+  sourceName: string
+  category: string
+  language: string
+  thumbnailUrl?: string
+  publishedAt?: string
+  qualityScore: number
+  filterReason?: string
+  isFiltered: boolean
+  fetchedAt?: string
+  createdAt: string
+}
+
+export interface NewsSource {
+  id: number
+  name: string
+  platformName: string
+  feedUrl: string
+  fetchMethod: string
+  category: string
+  language: string
+  enabled: boolean
+  priority: number
+  fetchIntervalSeconds: number
+  lastFetchedAt?: string
+  errorCount: number
+  consecutiveErrors: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NewsStats {
+  totalItems: number
+  activeItems: number
+  totalSources: number
+  enabledSources: number
+  globalEnabled: boolean
+  fetchRunning: boolean
+  lastFetchCount: number
+  lastFetchDurationMs: number
+  lastFetchTime: number
+}
+
+export interface FetchStatus {
+  running: boolean
+  lastCount: number
+  lastDurationMs: number
+  lastTime: number
 }
