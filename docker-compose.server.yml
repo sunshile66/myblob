@@ -1,6 +1,6 @@
 # ============================================
 # Myblob 服务器部署 Docker Compose
-# 包含: Spring Boot后端 + PostgreSQL + Redis + RSSHub
+# 包含: Spring Boot后端 + PostgreSQL + Redis
 # ============================================
 # 使用方式:
 #   1. 复制此文件到服务器: cp docker-compose.server.yml docker-compose.yml
@@ -8,12 +8,12 @@
 #   3. docker compose up -d
 #
 # 代理配置说明:
-#   - RSSHub 容器通过 PROXY_PROTOCOL/PROXY_HOST/PROXY_PORT 环境变量配置代理
-#   - 代理只配置在 RSSHub 一处，Java 后端无需代理
-#   - 海外服务器(可直接访问Google)不需要代理，删除PROXY_*变量即可
+#   - 国内服务器: 配置 HTTP_PROXY_HOST/PORT 环境变量以访问 Google News/YouTube
+#   - 海外服务器: 不需要代理，删除PROXY_*变量即可
+#   - Twitter/X: 配置 TWITTER_API_KEY (twitterapi.io)
 # ============================================
 
-version: '3.8'
+version: "3.8"
 
 services:
   # PostgreSQL 数据库
@@ -48,28 +48,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # RSSHub - RSS聚合器 (含代理配置)
-  # Google News、Twitter、YouTube等通过此服务中转
-  # 代理只在这里配置，Java后端无需关心
-  rsshub:
-    image: diygod/rsshub
-    container_name: myblob-rsshub
-    restart: unless-stopped
-    ports:
-      - "1200:1200"
-    environment:
-      NODE_ENV: production
-      CACHE_TYPE: redis
-      REDIS_URL: redis://redis:6379/1
-      CACHE_EXPIRE: 300
-      # === 代理配置 (国内服务器需要，海外服务器删除这三行) ===
-      # 如果服务器在海外可直接访问Google，删除下面三行即可
-      PROXY_PROTOCOL: http
-      PROXY_HOST: ${RSSHUB_PROXY_HOST:-}
-      PROXY_PORT: ${RSSHUB_PROXY_PORT:-}
-    depends_on:
-      - redis
-
   # Spring Boot 后端
   backend:
     image: eclipse-temurin:17-jre-alpine
@@ -89,10 +67,12 @@ services:
       # Redis (连接到容器内的Redis)
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      # RSSHub (连接到容器内的RSSHub)
-      RSSHUB_BASE_URL: http://rsshub:1200
-      # Java后端不需要代理！代理配置在RSSHub容器
-      HTTP_PROXY_ENABLED: "false"
+      # HTTP代理 (国内服务器配置，海外服务器留空)
+      HTTP_PROXY_HOST: ${HTTP_PROXY_HOST:-}
+      HTTP_PROXY_PORT: ${HTTP_PROXY_PORT:-0}
+      HTTP_PROXY_ENABLED: ${HTTP_PROXY_ENABLED:-false}
+      # Twitter/X API
+      TWITTER_API_KEY: ${TWITTER_API_KEY:-}
       # JWT
       JWT_SECRET: ${JWT_SECRET:-myblob-jwt-secret-key-change-in-production}
     command: ["java", "-jar", "/app/app.jar"]
@@ -101,8 +81,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      rsshub:
-        condition: service_started
 
   # Vue 前端 (Nginx)
   frontend:

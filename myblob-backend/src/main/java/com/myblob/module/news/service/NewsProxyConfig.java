@@ -12,6 +12,7 @@ public class NewsProxyConfig {
     private Global global = new Global();
     private Proxy proxy = new Proxy();
     private Fetch fetch = new Fetch();
+    private Twitter twitter = new Twitter();
 
     @Data
     public static class Global {
@@ -20,18 +21,10 @@ public class NewsProxyConfig {
 
     @Data
     public static class Proxy {
-        private RssHub rsshub = new RssHub();
         private Http http = new Http();
         private String userAgent = "MyBlob-NewsBot/1.0";
         private int connectTimeout = 10000;
         private int readTimeout = 15000;
-
-        @Data
-        public static class RssHub {
-            private String baseUrl = "http://localhost:1200";
-            private int timeout = 30000;
-            private int retry = 3;
-        }
 
         @Data
         public static class Http {
@@ -48,10 +41,10 @@ public class NewsProxyConfig {
         private boolean translateEnabled = false;
     }
 
-    public String resolveFeedUrl(String feedUrl) {
-        if (feedUrl != null && feedUrl.contains("{rsshub}")) {
-            return feedUrl.replace("{rsshub}", proxy.getRsshub().getBaseUrl());
-        }
-        return feedUrl;
+    @Data
+    public static class Twitter {
+        private String apiKey = "";
+        private String baseUrl = "https://api.twitterapi.io";
     }
+
 }

@@ -111,15 +111,18 @@ public class FlightTrackingService {
             int now = (int) (System.currentTimeMillis() / 1000);
 
             for (List<Object> state : states) {
-                if (state.size() < 17) continue;
+                if (state.size() < 17)
+                    continue;
 
                 String callsign = state.get(1) != null ? state.get(1).toString().trim() : "";
-                if (callsign.isEmpty()) continue;
+                if (callsign.isEmpty())
+                    continue;
 
                 // Check if this is a known airline
                 String prefix3 = callsign.length() >= 3 ? callsign.substring(0, 3) : "";
                 String airline = AIRLINE_MAP.get(prefix3);
-                if (airline == null) continue; // Skip non-airline flights
+                if (airline == null)
+                    continue; // Skip non-airline flights
 
                 String icao24 = state.get(0) != null ? state.get(0).toString() : "";
                 String country = state.get(2) != null ? state.get(2).toString() : "";
@@ -168,7 +171,8 @@ public class FlightTrackingService {
             LocalDateTime cutoff = LocalDateTime.now().minusHours(2);
             List<FlightRoute> staleFlights = flightRouteRepository.findActiveFlights(cutoff);
             for (FlightRoute f : staleFlights) {
-                if (f.getLastSeen() != null && f.getLastSeen().isBefore(cutoff) && !"CANCELLED".equals(f.getChangeType())) {
+                if (f.getLastSeen() != null && f.getLastSeen().isBefore(cutoff)
+                        && !"CANCELLED".equals(f.getChangeType())) {
                     f.setChangeType("CANCELLED");
                     f.setStatus("not-seen");
                     flightRouteRepository.save(f);
@@ -193,7 +197,11 @@ public class FlightTrackingService {
         if (elapsed < MIN_REQUEST_INTERVAL_MS && lastRequestTime > 0) {
             long waitMs = MIN_REQUEST_INTERVAL_MS - elapsed;
             log.debug("Rate limiting: waiting {}ms before OpenSky request", waitMs);
-            try { Thread.sleep(waitMs); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            try {
+                Thread.sleep(waitMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         lastRequestTime = System.currentTimeMillis();
     }
@@ -223,7 +231,8 @@ public class FlightTrackingService {
                 }
                 if (status != 200) {
                     log.warn("OpenSky HTTP error: {} (attempt {}/{})", status, attempt, MAX_RETRIES);
-                    if (attempt < MAX_RETRIES) Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    if (attempt < MAX_RETRIES)
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
                     continue;
                 }
 
@@ -237,8 +246,11 @@ public class FlightTrackingService {
             } catch (Exception e) {
                 log.warn("OpenSky fetch attempt {}/{} failed: {}", attempt, MAX_RETRIES, e.getMessage());
                 if (attempt < MAX_RETRIES) {
-                    try { Thread.sleep(RETRY_BACKOFF_MS * attempt); } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt(); return null;
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        return null;
                     }
                 }
             }

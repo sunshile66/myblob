@@ -18,19 +18,19 @@ public class NewsTranslationService {
 
     public NewsTranslationService() {
         this.restTemplate = new RestTemplate();
-        this.restTemplate.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
-            setConnectTimeout(5000);
-            setReadTimeout(5000);
-        }});
+        this.restTemplate.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {
+            {
+                setConnectTimeout(5000);
+                setReadTimeout(5000);
+            }
+        });
     }
 
     // MyMemory API - accessible from China, free, no key needed
-    private static final String MYMEMORY_API =
-            "https://api.mymemory.translated.net/get?q=%s&langpair=en|zh-CN";
+    private static final String MYMEMORY_API = "https://api.mymemory.translated.net/get?q=%s&langpair=en|zh-CN";
 
     // Google Translate fallback
-    private static final String GOOGLE_API =
-            "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=";
+    private static final String GOOGLE_API = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=";
 
     /**
      * Translate English text to Chinese.
@@ -43,7 +43,8 @@ public class NewsTranslationService {
 
         // Try MyMemory first (accessible from China)
         String result = translateMyMemory(text);
-        if (result != null) return result;
+        if (result != null)
+            return result;
 
         // Fallback to Google (may be blocked)
         return translateGoogle(text);
@@ -56,17 +57,21 @@ public class NewsTranslationService {
             String encoded = URLEncoder.encode(truncated, StandardCharsets.UTF_8);
             String url = String.format(MYMEMORY_API, encoded);
             String response = restTemplate.getForObject(url, String.class);
-            if (response == null) return null;
+            if (response == null)
+                return null;
 
             JsonNode root = objectMapper.readTree(response);
             JsonNode responseData = root.get("responseData");
-            if (responseData == null) return null;
+            if (responseData == null)
+                return null;
 
             String translated = responseData.get("translatedText").asText();
-            if (translated == null || translated.isBlank()) return null;
+            if (translated == null || translated.isBlank())
+                return null;
 
             // MyMemory sometimes returns the original text if it can't translate
-            if (translated.equalsIgnoreCase(text)) return null;
+            if (translated.equalsIgnoreCase(text))
+                return null;
 
             return translated.trim();
         } catch (Exception e) {
@@ -80,7 +85,8 @@ public class NewsTranslationService {
             String encoded = URLEncoder.encode(text, StandardCharsets.UTF_8);
             String url = GOOGLE_API + encoded;
             String response = restTemplate.getForObject(url, String.class);
-            if (response == null) return null;
+            if (response == null)
+                return null;
 
             JsonNode root = objectMapper.readTree(response);
             StringBuilder result = new StringBuilder();

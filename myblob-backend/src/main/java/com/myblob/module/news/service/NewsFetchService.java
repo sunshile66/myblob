@@ -1,13 +1,15 @@
 package com.myblob.module.news.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myblob.module.news.entity.NewsItem;
 import com.myblob.module.news.entity.NewsSource;
 import com.myblob.module.news.repository.NewsItemRepository;
 import com.myblob.module.news.repository.NewsSourceRepository;
+import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,7 @@ public class NewsFetchService {
     private final NewsProxyConfig newsProxyConfig;
     private final NewsTranslationService translationService;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String HN_TOP_STORIES = "https://hacker-news.firebaseio.com/v0/topstories.json";
     private static final String HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/%d.json";
@@ -84,9 +87,11 @@ public class NewsFetchService {
         try {
             String method = source.getFetchMethod() != null ? source.getFetchMethod().toUpperCase() : "RSS";
             List<NewsItem> items = switch (method) {
-                case "RSS", "RSSHUB" -> fetchRss(source);
+                case "RSS" -> fetchRss(source);
                 case "API" -> fetchApi(source);
                 case "JSOUP" -> fetchJsoup(source);
+                case "TWITTER" -> fetchTwitter(source);
+                case "BLUESKY" -> fetchBluesky(source);
                 default -> fetchRss(source);
             };
 
@@ -130,12 +135,13 @@ public class NewsFetchService {
 
     private List<NewsItem> fetchRss(NewsSource source) {
         List<NewsItem> items = new ArrayList<>();
-        String feedUrl = newsProxyConfig.resolveFeedUrl(source.getFeedUrl());
+        String feedUrl = source.getFeedUrl();
         boolean needsProxy = needsProxy(feedUrl, source);
         try {
             URL url = URI.create(feedUrl).toURL();
             HttpURLConnection conn = openConnection(url, needsProxy);
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            conn.setRequestProperty("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             conn.setRequestProperty("Accept", "application/rss+xml, application/xml, text/xml, */*");
             conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
             conn.setConnectTimeout(newsProxyConfig.getProxy().getConnectTimeout());
@@ -153,7 +159,8 @@ public class NewsFetchService {
                 int count = 0;
 
                 for (SyndEntry entry : feed.getEntries()) {
-                    if (count >= maxItems) break;
+                    if (count >= maxItems)
+                        break;
                     NewsItem item = mapRssEntry(entry, source);
                     if (item != null) {
                         items.add(item);
@@ -169,14 +176,10 @@ public class NewsFetchService {
 
     /**
      * Determine if a feed URL needs HTTP proxy.
-     * - RSSHub sources: no proxy needed (local instance handles it)
-     * - Direct Google News RSS: needs proxy only if configured
-     * - Other foreign RSS: needs proxy only if configured
+     * - Only use proxy if explicitly configured and enabled
      * - If no proxy configured, try direct connection (works on overseas servers)
      */
     private boolean needsProxy(String feedUrl, NewsSource source) {
-        // RSSHub sources are local, proxy handled by RSSHub itself
-        if ("RSSHUB".equalsIgnoreCase(source.getFetchMethod())) return false;
         // Only use proxy if explicitly configured and enabled
         if (newsProxyConfig.getProxy().getHttp().isEnabled()) {
             String host = newsProxyConfig.getProxy().getHttp().getHost();
@@ -202,7 +205,10 @@ public class NewsFetchService {
         return (HttpURLConnection) url.openConnection();
     }
 
-    /** Strip control characters that break XML parsing, and remove DOCTYPE declarations */
+    /**
+     * Strip control characters that break XML parsing, and remove DOCTYPE
+     * declarations
+     */
     private byte[] sanitizeXmlBytes(byte[] bytes) {
         String s = new String(bytes, StandardCharsets.UTF_8);
         // Remove DOCTYPE declaration (some parsers disallow it)
@@ -221,7 +227,8 @@ public class NewsFetchService {
     private NewsItem mapRssEntry(SyndEntry entry, NewsSource source) {
         try {
             String title = entry.getTitle() != null ? entry.getTitle().trim() : "";
-            if (title.isEmpty()) return null;
+            if (title.isEmpty())
+                return null;
 
             String summary = entry.getDescription() != null
                     ? entry.getDescription().getValue().replaceAll("<[^>]*>", "").trim()
@@ -295,7 +302,8 @@ public class NewsFetchService {
                 if (url != null && type != null && type.startsWith("image/")) {
                     return url;
                 }
-                if (url != null && (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png") || url.endsWith(".webp"))) {
+                if (url != null && (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")
+                        || url.endsWith(".webp"))) {
                     return url;
                 }
             }
@@ -309,14 +317,16 @@ public class NewsFetchService {
                     String name = el.getName();
                     if ("content".equals(name) || "thumbnail".equals(name)) {
                         String url = el.getAttributeValue("url");
-                        if (url != null && !url.isEmpty()) return url;
+                        if (url != null && !url.isEmpty())
+                            return url;
                     }
                     // Check group > content
                     if ("group".equals(name)) {
                         for (org.jdom2.Element child : el.getChildren()) {
                             if ("content".equals(child.getName()) || "thumbnail".equals(child.getName())) {
                                 String url = child.getAttributeValue("url");
-                                if (url != null && !url.isEmpty()) return url;
+                                if (url != null && !url.isEmpty())
+                                    return url;
                             }
                         }
                     }
@@ -331,7 +341,8 @@ public class NewsFetchService {
             String html = entry.getDescription().getValue();
             if (html != null) {
                 String imgUrl = extractImgFromHtml(html);
-                if (imgUrl != null) return imgUrl;
+                if (imgUrl != null)
+                    return imgUrl;
             }
         }
 
@@ -342,7 +353,8 @@ public class NewsFetchService {
                 String val = content.getValue();
                 if (val != null) {
                     String imgUrl = extractImgFromHtml(val);
-                    if (imgUrl != null) return imgUrl;
+                    if (imgUrl != null)
+                        return imgUrl;
                 }
             }
         }
@@ -352,13 +364,15 @@ public class NewsFetchService {
 
     /** Extract first img src from HTML string */
     private String extractImgFromHtml(String html) {
-        if (html == null || html.isEmpty()) return null;
+        if (html == null || html.isEmpty())
+            return null;
         try {
             Document doc = Jsoup.parse(html);
             Element img = doc.selectFirst("img[src]");
             if (img != null) {
                 String src = img.attr("src");
-                if (src != null && !src.isEmpty() && src.startsWith("http")) return src;
+                if (src != null && !src.isEmpty() && src.startsWith("http"))
+                    return src;
             }
         } catch (Exception e) {
             // Fallback to regex
@@ -370,7 +384,8 @@ public class NewsFetchService {
                     int endIdx = html.indexOf(quote, srcIdx + 5);
                     if (endIdx > srcIdx + 5) {
                         String url = html.substring(srcIdx + 5, endIdx);
-                        if (url.startsWith("http")) return url;
+                        if (url.startsWith("http"))
+                            return url;
                     }
                 }
             }
@@ -380,7 +395,8 @@ public class NewsFetchService {
 
     /** Extract YouTube video ID from URL */
     private String extractYouTubeId(String url) {
-        if (url == null) return null;
+        if (url == null)
+            return null;
         if (url.contains("youtube.com/watch")) {
             int idx = url.indexOf("v=");
             if (idx >= 0) {
@@ -410,17 +426,20 @@ public class NewsFetchService {
         List<NewsItem> items = new ArrayList<>();
         try {
             List<Integer> storyIds = restTemplate.getForObject(HN_TOP_STORIES, List.class);
-            if (storyIds == null) return items;
+            if (storyIds == null)
+                return items;
 
             int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), storyIds.size());
             for (int i = 0; i < maxItems; i++) {
                 try {
                     Map<String, Object> story = restTemplate.getForObject(
                             String.format(HN_ITEM, storyIds.get(i)), Map.class);
-                    if (story == null || "job".equals(story.get("type"))) continue;
+                    if (story == null || "job".equals(story.get("type")))
+                        continue;
 
                     String title = (String) story.getOrDefault("title", "");
-                    if (title.isEmpty()) continue;
+                    if (title.isEmpty())
+                        continue;
 
                     String url = (String) story.getOrDefault("url",
                             "https://news.ycombinator.com/item?id=" + story.get("id"));
@@ -458,7 +477,7 @@ public class NewsFetchService {
     @SuppressWarnings("unchecked")
     private List<NewsItem> fetchReddit(NewsSource source) {
         List<NewsItem> items = new ArrayList<>();
-        String[] urls = {REDDIT_PROGRAMMING, REDDIT_TECH};
+        String[] urls = { REDDIT_PROGRAMMING, REDDIT_TECH };
         for (String apiUrl : urls) {
             try {
                 // Reddit requires a descriptive User-Agent
@@ -468,20 +487,25 @@ public class NewsFetchService {
                 org.springframework.http.ResponseEntity<Map> respEntity = restTemplate.exchange(
                         apiUrl, org.springframework.http.HttpMethod.GET, entity, Map.class);
                 Map<String, Object> response = respEntity.getBody();
-                if (response == null) continue;
+                if (response == null)
+                    continue;
 
                 Map<String, Object> data = (Map<String, Object>) response.get("data");
-                if (data == null) continue;
+                if (data == null)
+                    continue;
 
                 List<Map<String, Object>> children = (List<Map<String, Object>>) data.get("children");
-                if (children == null) continue;
+                if (children == null)
+                    continue;
 
                 for (Map<String, Object> child : children) {
                     Map<String, Object> postData = (Map<String, Object>) child.get("data");
-                    if (postData == null) continue;
+                    if (postData == null)
+                        continue;
 
                     String title = (String) postData.getOrDefault("title", "");
-                    if (title.isEmpty() || (Boolean) postData.getOrDefault("stickied", false)) continue;
+                    if (title.isEmpty() || (Boolean) postData.getOrDefault("stickied", false))
+                        continue;
 
                     String selftext = (String) postData.getOrDefault("selftext", "");
                     String url = "https://www.reddit.com" + postData.getOrDefault("permalink", "");
@@ -533,7 +557,8 @@ public class NewsFetchService {
         try {
             String apiUrl = "https://weibo.com/ajax/statuses/hot_band";
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            headers.set("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             headers.set("Referer", "https://weibo.com/");
             headers.set("Accept", "application/json, text/plain, */*");
             headers.set("Accept-Language", "zh-CN,zh;q=0.9");
@@ -541,18 +566,22 @@ public class NewsFetchService {
             org.springframework.http.ResponseEntity<Map> respEntity = restTemplate.exchange(
                     apiUrl, org.springframework.http.HttpMethod.GET, entity, Map.class);
             Map<String, Object> resp = respEntity.getBody();
-            if (resp == null || resp.get("data") == null) return items;
+            if (resp == null || resp.get("data") == null)
+                return items;
             Map<String, Object> data = (Map<String, Object>) resp.get("data");
             List<Map<String, Object>> bandList = (List<Map<String, Object>>) data.get("band_list");
-            if (bandList == null) return items;
+            if (bandList == null)
+                return items;
 
             int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), bandList.size());
             for (int i = 0; i < maxItems; i++) {
                 Map<String, Object> band = bandList.get(i);
                 String word = (String) band.getOrDefault("word", "");
-                if (word.isEmpty()) continue;
+                if (word.isEmpty())
+                    continue;
                 String rawUrl = (String) band.getOrDefault("word_scheme", "");
-                if (rawUrl.isEmpty()) rawUrl = "https://s.weibo.com/weibo?q=" + word;
+                if (rawUrl.isEmpty())
+                    rawUrl = "https://s.weibo.com/weibo?q=" + word;
                 Object rawHot = band.get("raw_hot");
                 int hotVal = rawHot instanceof Number ? ((Number) rawHot).intValue() : 0;
 
@@ -582,7 +611,8 @@ public class NewsFetchService {
         try {
             // Zhihu API needs auth, fall back to page scraping
             Document doc = Jsoup.connect("https://www.zhihu.com/hot")
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .userAgent(
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                     .timeout(newsProxyConfig.getProxy().getReadTimeout())
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .header("Accept-Language", "zh-CN,zh;q=0.9")
@@ -593,13 +623,16 @@ public class NewsFetchService {
             for (int i = 0; i < maxItems; i++) {
                 Element card = cards.get(i);
                 Element titleEl = card.selectFirst(".HotList-itemTitle, h2, .HotItem-title");
-                if (titleEl == null) continue;
+                if (titleEl == null)
+                    continue;
                 String title = titleEl.text().trim();
-                if (title.isEmpty()) continue;
+                if (title.isEmpty())
+                    continue;
 
                 Element linkEl = card.selectFirst("a");
                 String link = linkEl != null ? linkEl.attr("href") : "";
-                if (!link.startsWith("http")) link = "https://www.zhihu.com" + link;
+                if (!link.startsWith("http"))
+                    link = "https://www.zhihu.com" + link;
 
                 Element excerptEl = card.selectFirst(".HotList-itemExcerpt, .HotItem-excerpt, p");
                 String summary = excerptEl != null ? excerptEl.text().trim() : "";
@@ -639,7 +672,8 @@ public class NewsFetchService {
             for (int i = 0; i < maxItems; i++) {
                 Element repo = repos.get(i);
                 Element linkEl = repo.selectFirst("h2 a");
-                if (linkEl == null) continue;
+                if (linkEl == null)
+                    continue;
 
                 String[] parts = linkEl.text().replaceAll("\\s+", " ").trim().split(" / ");
                 String repoName = parts.length > 1 ? parts[1].trim() : parts[0].trim();
@@ -672,10 +706,194 @@ public class NewsFetchService {
         return items;
     }
 
+    /**
+     * Fetch tweets via twitterapi.io API.
+     * feedUrl format: "TWITTER_API:username"
+     */
+    private List<NewsItem> fetchTwitter(NewsSource source) {
+        List<NewsItem> items = new ArrayList<>();
+        String apiKey = newsProxyConfig.getTwitter().getApiKey();
+        if (apiKey == null || apiKey.isEmpty()) {
+            log.debug("Twitter API key not configured, skipping source [{}]", source.getName());
+            return items;
+        }
+
+        String feedUrl = source.getFeedUrl();
+        String username = feedUrl.startsWith("TWITTER_API:")
+                ? feedUrl.substring("TWITTER_API:".length())
+                : feedUrl;
+
+        try {
+            String baseUrl = newsProxyConfig.getTwitter().getBaseUrl();
+            String apiUrl = baseUrl + "/twitter/user/last_tweets?username=" + username;
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("X-API-Key", apiKey);
+            headers.set("Accept", "application/json");
+            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
+
+            org.springframework.http.ResponseEntity<String> respEntity = restTemplate.exchange(
+                    apiUrl, org.springframework.http.HttpMethod.GET, entity, String.class);
+
+            if (respEntity.getBody() == null) return items;
+
+            JsonNode root = objectMapper.readTree(respEntity.getBody());
+            JsonNode tweets = root.path("tweets").isArray() ? root.path("tweets") : root.path("data");
+            if (!tweets.isArray()) {
+                log.warn("Twitter API response missing tweets array for {}", username);
+                return items;
+            }
+
+            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), tweets.size());
+            for (int i = 0; i < maxItems; i++) {
+                JsonNode tweet = tweets.get(i);
+                String text = tweet.path("text").asText("").trim();
+                if (text.isEmpty()) continue;
+
+                String tweetId = tweet.path("id").asText("");
+                String tweetUrl = "https://x.com/" + username + "/status/" + tweetId;
+
+                LocalDateTime publishedAt = null;
+                String createdAt = tweet.path("created_at").asText("");
+                if (!createdAt.isEmpty()) {
+                    try {
+                        publishedAt = ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
+                                .toLocalDateTime();
+                    } catch (Exception e) {
+                        // Try alternative format
+                        try {
+                            publishedAt = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+                        } catch (Exception e2) {
+                            publishedAt = LocalDateTime.now();
+                        }
+                    }
+                }
+
+                String thumbnailUrl = tweet.path("media").path(0).path("url").asText(null);
+                if (thumbnailUrl == null) {
+                    thumbnailUrl = tweet.path("user").path("profile_image_url").asText(null);
+                }
+
+                NewsItem item = NewsItem.builder()
+                        .title(text.length() > 140 ? text.substring(0, 137) + "..." : text)
+                        .summary(text.length() > 1000 ? text.substring(0, 997) + "..." : text)
+                        .sourceUrl(tweetUrl)
+                        .sourcePlatform("Twitter/X")
+                        .sourceName(source.getName())
+                        .category(source.getCategory())
+                        .language(source.getLanguage())
+                        .thumbnailUrl(thumbnailUrl)
+                        .mediaType("text")
+                        .publishedAt(publishedAt != null ? publishedAt : LocalDateTime.now())
+                        .fetchedAt(LocalDateTime.now())
+                        .qualityScore(55)
+                        .isFiltered(false)
+                        .build();
+                items.add(item);
+            }
+        } catch (Exception e) {
+            log.warn("Twitter fetch failed for {}: {}", username, e.getMessage());
+        }
+        return items;
+    }
+
+    /**
+     * Fetch posts from Bluesky via AT Protocol public API (free, no auth needed).
+     * feedUrl format: "BLUESKY_API:handle" (e.g., "BLUESKY_API:openai.com")
+     */
+    private List<NewsItem> fetchBluesky(NewsSource source) {
+        List<NewsItem> items = new ArrayList<>();
+        String feedUrl = source.getFeedUrl();
+        String handle = feedUrl.startsWith("BLUESKY_API:")
+                ? feedUrl.substring("BLUESKY_API:".length())
+                : feedUrl;
+
+        try {
+            // Use Bluesky public API (no auth required for public profiles)
+            String apiUrl = "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor="
+                    + handle + "&limit=30&filter=posts_no_replies";
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("Accept", "application/json");
+            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
+
+            org.springframework.http.ResponseEntity<String> respEntity = restTemplate.exchange(
+                    apiUrl, org.springframework.http.HttpMethod.GET, entity, String.class);
+
+            if (respEntity.getBody() == null) return items;
+
+            JsonNode root = objectMapper.readTree(respEntity.getBody());
+            JsonNode feed = root.path("feed");
+            if (!feed.isArray()) {
+                log.warn("Bluesky API response missing feed array for {}", handle);
+                return items;
+            }
+
+            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), feed.size());
+            for (int i = 0; i < maxItems; i++) {
+                JsonNode feedItem = feed.get(i);
+                JsonNode post = feedItem.path("post");
+                JsonNode record = post.path("record");
+
+                String text = record.path("text").asText("").trim();
+                if (text.isEmpty()) continue;
+
+                String uri = post.path("uri").asText("");
+                // Convert AT URI to web URL
+                String postUrl = uri.replace("at://", "https://bsky.app/profile/")
+                        .replace("/app.bsky.feed.post/", "/post/");
+
+                LocalDateTime publishedAt = null;
+                String createdAt = record.path("createdAt").asText("");
+                if (!createdAt.isEmpty()) {
+                    try {
+                        publishedAt = ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
+                                .toLocalDateTime();
+                    } catch (Exception e) {
+                        publishedAt = LocalDateTime.now();
+                    }
+                }
+
+                // Extract thumbnail from embed
+                String thumbnailUrl = null;
+                JsonNode embed = post.path("embed");
+                if (embed.has("images") && embed.path("images").isArray() && !embed.path("images").isEmpty()) {
+                    thumbnailUrl = embed.path("images").get(0).path("thumb").asText(null);
+                    if (thumbnailUrl == null) {
+                        thumbnailUrl = embed.path("images").get(0).path("fullsize").asText(null);
+                    }
+                } else if (embed.path("$type").asText("").contains("video")) {
+                    thumbnailUrl = embed.path("thumbnail").asText(null);
+                }
+
+                NewsItem item = NewsItem.builder()
+                        .title(text.length() > 140 ? text.substring(0, 137) + "..." : text)
+                        .summary(text.length() > 1000 ? text.substring(0, 997) + "..." : text)
+                        .sourceUrl(postUrl)
+                        .sourcePlatform("Bluesky")
+                        .sourceName(source.getName())
+                        .category(source.getCategory())
+                        .language(source.getLanguage())
+                        .thumbnailUrl(thumbnailUrl)
+                        .mediaType(thumbnailUrl != null ? "image" : "text")
+                        .publishedAt(publishedAt != null ? publishedAt : LocalDateTime.now())
+                        .fetchedAt(LocalDateTime.now())
+                        .qualityScore(55)
+                        .isFiltered(false)
+                        .build();
+                items.add(item);
+            }
+        } catch (Exception e) {
+            log.warn("Bluesky fetch failed for {}: {}", handle, e.getMessage());
+        }
+        return items;
+    }
+
     /** Translate title and summary for English-language items */
     private void translateEnglishItems(List<NewsItem> items) {
         for (NewsItem item : items) {
-            if (!"EN".equals(item.getLanguage())) continue;
+            if (!"EN".equals(item.getLanguage()))
+                continue;
             try {
                 String tTitle = translationService.translate(item.getTitle());
                 if (tTitle != null && !tTitle.equals(item.getTitle())) {

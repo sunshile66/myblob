@@ -74,6 +74,24 @@ myblob:
     avatar-path: ./media/avatars
     post-path: ./media/posts
 
+news:
+  global:
+    enabled: true
+  proxy:
+    http:
+      host: ${HTTP_PROXY_HOST:}
+      port: ${HTTP_PROXY_PORT:0}
+      enabled: ${HTTP_PROXY_ENABLED:false}
+    user-agent: MyBlob-NewsBot/1.0
+    connect-timeout: 10000
+    read-timeout: 15000
+  fetch:
+    thread-pool-size: 20
+    max-items-per-source: 100
+  twitter:
+    api-key: ${TWITTER_API_KEY:}
+    base-url: https://api.twitterapi.io
+
 springdoc:
   api-docs:
     path: /v3/api-docs

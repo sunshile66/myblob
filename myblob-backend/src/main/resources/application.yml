@@ -78,10 +78,6 @@ news:
   global:
     enabled: true
   proxy:
-    rsshub:
-      base-url: ${RSSHUB_BASE_URL:http://localhost:1200}
-      timeout: 30000
-      retry: 3
     http:
       host: ${HTTP_PROXY_HOST:}
       port: ${HTTP_PROXY_PORT:0}
@@ -92,6 +88,9 @@ news:
   fetch:
     thread-pool-size: 20
     max-items-per-source: 100
+  twitter:
+    api-key: ${TWITTER_API_KEY:}
+    base-url: https://api.twitterapi.io
 
 springdoc:
   api-docs:
