@@ -72,3 +72,6 @@ pnpm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# RSSHub local instance (cloned separately)
+rsshub-instance/

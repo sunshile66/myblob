@@ -23,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -129,9 +131,10 @@ public class NewsFetchService {
     private List<NewsItem> fetchRss(NewsSource source) {
         List<NewsItem> items = new ArrayList<>();
         String feedUrl = newsProxyConfig.resolveFeedUrl(source.getFeedUrl());
+        boolean needsProxy = needsProxy(feedUrl, source);
         try {
             URL url = URI.create(feedUrl).toURL();
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            HttpURLConnection conn = openConnection(url, needsProxy);
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             conn.setRequestProperty("Accept", "application/rss+xml, application/xml, text/xml, */*");
             conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
@@ -162,6 +165,42 @@ public class NewsFetchService {
             log.warn("RSS fetch failed for {}: {}", source.getName(), e.getMessage());
         }
         return items;
+    }
+
+    /**
+     * Determine if a feed URL needs HTTP proxy.
+     * - Google News RSS: always needs proxy (blocked in China)
+     * - RSSHub sources: no proxy needed (local instance)
+     * - Other foreign RSS: use global proxy setting
+     */
+    private boolean needsProxy(String feedUrl, NewsSource source) {
+        // RSSHub sources are local, no proxy needed
+        if ("RSSHUB".equalsIgnoreCase(source.getFetchMethod())) return false;
+        // Google News RSS needs proxy in China
+        if (feedUrl.contains("news.google.com/rss")) return true;
+        // If HTTP proxy is globally enabled, use it for all foreign sources
+        if (newsProxyConfig.getProxy().getHttp().isEnabled()) {
+            String host = newsProxyConfig.getProxy().getHttp().getHost();
+            return host != null && !host.isEmpty();
+        }
+        return false;
+    }
+
+    /**
+     * Open HttpURLConnection with optional HTTP proxy.
+     * Retries once on failure if proxy is used (fallback to direct).
+     */
+    private HttpURLConnection openConnection(URL url, boolean useProxy) throws Exception {
+        if (useProxy) {
+            String host = newsProxyConfig.getProxy().getHttp().getHost();
+            int port = newsProxyConfig.getProxy().getHttp().getPort();
+            if (host != null && !host.isEmpty() && port > 0) {
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+                log.debug("Using proxy {}:{} for {}", host, port, url);
+                return (HttpURLConnection) url.openConnection(proxy);
+            }
+        }
+        return (HttpURLConnection) url.openConnection();
     }
 
     /** Strip control characters that break XML parsing, and remove DOCTYPE declarations */

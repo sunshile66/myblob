@@ -83,9 +83,9 @@ news:
       timeout: 30000
       retry: 3
     http:
-      host: ${HTTP_PROXY_HOST:}
-      port: ${HTTP_PROXY_PORT:0}
-      enabled: false
+      host: ${HTTP_PROXY_HOST:127.0.0.1}
+      port: ${HTTP_PROXY_PORT:7890}
+      enabled: ${HTTP_PROXY_ENABLED:true}
     user-agent: MyBlob-NewsBot/1.0
     connect-timeout: 10000
     read-timeout: 15000

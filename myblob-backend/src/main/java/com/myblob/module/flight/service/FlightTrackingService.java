@@ -9,6 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URI;
+import java.net.URL;
+import java.io.InputStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -21,9 +29,16 @@ public class FlightTrackingService {
 
     private final FlightRouteRepository flightRouteRepository;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // OpenSky Network API - free, no API key required
     private static final String OPENSKY_API = "https://opensky-network.org/api/states/all";
+
+    // Rate limiting: 10 seconds minimum between requests (anonymous)
+    private static final long MIN_REQUEST_INTERVAL_MS = 10_000;
+    private static final int MAX_RETRIES = 3;
+    private static final long RETRY_BACKOFF_MS = 15_000; // 15s base backoff
+    private volatile long lastRequestTime = 0;
 
     // Known airline callsign prefixes for mapping
     private static final Map<String, String> AIRLINE_MAP = new LinkedHashMap<>();
@@ -80,9 +95,14 @@ public class FlightTrackingService {
     public int fetchAndStoreFlights() {
         try {
             log.info("Fetching flight data from OpenSky Network...");
-            Map<String, Object> response = restTemplate.getForObject(OPENSKY_API, Map.class);
+
+            // Enforce rate limiting: wait if needed
+            enforceRateLimit();
+
+            // Fetch with retry + exponential backoff
+            Map<String, Object> response = fetchWithRetry();
             if (response == null || response.get("states") == null) {
-                log.warn("OpenSky API returned no data");
+                log.warn("OpenSky API returned no data after {} retries", MAX_RETRIES);
                 return 0;
             }
 
@@ -162,6 +182,68 @@ public class FlightTrackingService {
             log.error("Flight tracking fetch failed: {}", e.getMessage());
             return 0;
         }
+    }
+
+    /**
+     * Enforce minimum interval between API requests (10s for anonymous access).
+     */
+    private void enforceRateLimit() {
+        long now = System.currentTimeMillis();
+        long elapsed = now - lastRequestTime;
+        if (elapsed < MIN_REQUEST_INTERVAL_MS && lastRequestTime > 0) {
+            long waitMs = MIN_REQUEST_INTERVAL_MS - elapsed;
+            log.debug("Rate limiting: waiting {}ms before OpenSky request", waitMs);
+            try { Thread.sleep(waitMs); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
+        lastRequestTime = System.currentTimeMillis();
+    }
+
+    /**
+     * Fetch OpenSky data with retry and exponential backoff.
+     * Uses direct HTTP connection for better control over timeouts.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> fetchWithRetry() {
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                URL url = URI.create(OPENSKY_API).toURL();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestProperty("User-Agent", "MyBlob-FlightTracker/1.0");
+                conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(15_000);
+                conn.setReadTimeout(30_000);
+
+                int status = conn.getResponseCode();
+                if (status == 429 || status == 503) {
+                    long backoff = RETRY_BACKOFF_MS * attempt;
+                    log.warn("OpenSky rate limited (HTTP {}), retrying in {}s (attempt {}/{})",
+                            status, backoff / 1000, attempt, MAX_RETRIES);
+                    Thread.sleep(backoff);
+                    continue;
+                }
+                if (status != 200) {
+                    log.warn("OpenSky HTTP error: {} (attempt {}/{})", status, attempt, MAX_RETRIES);
+                    if (attempt < MAX_RETRIES) Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    continue;
+                }
+
+                try (InputStream is = conn.getInputStream()) {
+                    return objectMapper.readValue(is, Map.class);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Flight fetch interrupted");
+                return null;
+            } catch (Exception e) {
+                log.warn("OpenSky fetch attempt {}/{} failed: {}", attempt, MAX_RETRIES, e.getMessage());
+                if (attempt < MAX_RETRIES) {
+                    try { Thread.sleep(RETRY_BACKOFF_MS * attempt); } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt(); return null;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     @Scheduled(fixedRate = 3600000, initialDelay = 60000) // Every hour, first run after 60s
