@@ -14,3 +14,6 @@ export const getNewsSources = () =>
 
 export const getNewsCategories = () =>
   request.get<string[]>('/news/categories/')
+
+export const getTrendingNews = (params?: { size?: number; category?: string }) =>
+  request.get<NewsItem[]>('/news/trending/', { params })

@@ -95,8 +95,11 @@ public class NewsFetchService {
             // Apply filtering
             List<NewsItem> filtered = newsFilterService.filterAndScore(items, source);
 
-            // Translate EN items (only if enabled)
-            if (newsProxyConfig.getFetch().isTranslateEnabled()) {
+            // Translate EN items
+            // - Always translate airline category (user requirement)
+            // - For other categories, only if global translateEnabled
+            boolean isAirlineCategory = "国际航司".equals(source.getCategory());
+            if (isAirlineCategory || newsProxyConfig.getFetch().isTranslateEnabled()) {
                 translateEnglishItems(filtered);
             }
 

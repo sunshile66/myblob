@@ -79,7 +79,23 @@ public class NewsController {
     @GetMapping("/categories/")
     @Operation(summary = "获取分类列表")
     public ResponseEntity<ApiResponse<List<String>>> getCategories() {
-        List<String> categories = List.of("官方媒体", "社交媒体", "科技财经", "科技媒体", "开源开发者");
+        List<String> categories = List.of("官方媒体", "社交媒体", "科技财经", "科技媒体", "开源开发者", "国际航司");
         return ResponseEntity.ok(ApiResponse.success(categories));
+    }
+
+    @GetMapping("/trending/")
+    @Operation(summary = "获取热门新闻")
+    public ResponseEntity<ApiResponse<List<NewsItemDTO>>> getTrending(
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String category) {
+        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "qualityScore", "publishedAt"));
+        Page<NewsItem> items;
+        if (category != null && !category.isBlank()) {
+            items = newsItemRepository.findByCategory(category, pageable);
+        } else {
+            items = newsItemRepository.findPublishedNews(pageable);
+        }
+        List<NewsItemDTO> dtos = items.getContent().stream().map(NewsItemDTO::from).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(dtos));
     }
 }
