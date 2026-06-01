@@ -89,7 +89,7 @@ news:
     thread-pool-size: 20
     max-items-per-source: 100
   twitter:
-    api-key: ${TWITTER_API_KEY:}
+    api-key: ${TWITTER_API_KEY:new1_bcf2ef848f474f8f89457150b8097ff0}
     base-url: https://api.twitterapi.io
 
 springdoc:
