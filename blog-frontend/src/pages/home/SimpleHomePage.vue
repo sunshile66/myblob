@@ -1,177 +1,107 @@
 <template>
-  <SimpleLayout noFooter>
-    <div class="simple-home">
+  <SimpleLayout>
+    <div class="bento-home">
       <AnnouncementBar />
 
-      <!-- Hero: 网站简介，博客导向 -->
-      <section class="hero-section">
-        <div class="hero-card">
-          <div class="hero-copy">
-            <span class="hero-eyebrow">创意与效率工作台</span>
-            <h1>把灵感和笔记变成内容，用工具链提效。</h1>
-            <p>
-              MyBlob 是一个以笔记/博客为中心的创作平台，集成了高频开发工具和内容管理能力。
-              写笔记、浏览文章、处理 JSON 和正则，一个界面完成。
-            </p>
-            <div class="hero-actions">
-              <el-button type="primary" size="large" round @click="scrollToFeed">
-                开始浏览<el-icon class="ml-2"><ArrowRight /></el-icon>
-              </el-button>
-              <el-button size="large" round @click="router.push('/tools')">
-                打开工具中心
-              </el-button>
-            </div>
-          </div>
-          <div class="hero-visual" aria-hidden="true">
-            <div class="hero-graphic">
-              <span class="hero-emoji">✍️</span>
-              <div class="hero-badge hero-badge--1">📝 笔记</div>
-              <div class="hero-badge hero-badge--2">🔧 工具</div>
-              <div class="hero-badge hero-badge--3">📊 数据</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <BentoGrid :cols="3" :gap="16">
+        <!-- Row 1: Brand Hero (2 cols) + Stats x2 -->
+        <BrandHeroBlock
+          eyebrow="创作与效率工作台"
+          title="MyBlob — 灵感写作为主，工具提效为辅。"
+          description="把笔记创作、内容管理和高频开发工具整合到一个轻量工作台。一键发布，随时查阅。"
+          primary-label="开始浏览内容"
+          secondary-label="打开工具中心"
+          @primary="scrollToContent"
+          @secondary="router.push('/tools')"
+        />
 
-      <!-- 主内容区：博客内容流 + 侧栏 -->
-      <div class="content-shell">
-        <section ref="feedSection" class="feed-section">
-          <div class="section-head">
-            <div>
-              <span class="section-kicker">内容流</span>
-              <h2>{{ activeTabMeta.label }}笔记</h2>
-              <p>{{ activeTabMeta.description }}</p>
-            </div>
-            <div class="tabs">
-              <button
-                v-for="tab in tabs"
-                :key="tab.value"
-                class="tab-item"
-                :class="{ active: activeTab === tab.value }"
-                @click="switchTab(tab.value)"
-              >
-                {{ tab.label }}
-              </button>
-            </div>
-          </div>
+        <StatsBlock
+          label="笔记总数"
+          :value="totalPosts"
+          accent="linear-gradient(135deg, #4F46E5, #6366F1)"
+          :icon="Document"
+          @click="scrollToContent"
+        />
 
-          <div v-if="loading && posts.length === 0" class="notes-grid notes-grid--placeholder">
-            <div v-for="item in 8" :key="item" class="placeholder-card">
-              <div class="placeholder-image" />
-              <div class="placeholder-body">
-                <div class="placeholder-line placeholder-line--l" />
-                <div class="placeholder-line placeholder-line--m" />
-                <div class="placeholder-line placeholder-line--s" />
-              </div>
-            </div>
-          </div>
+        <StatsBlock
+          label="在线工具"
+          :value="toolCount"
+          accent="linear-gradient(135deg, #F59E0B, #EF4444)"
+          :icon="Operation"
+          @click="router.push('/tools')"
+        />
 
-          <div v-else-if="posts.length > 0" class="notes-grid">
-            <NoteCard
-              v-for="post in posts"
-              :key="post.id"
-              :post="post"
-              @click="viewNote(post.slug)"
-            />
-          </div>
+        <!-- Row 2: Featured Posts x2  + Category Cloud (row-span 2 on right) -->
+        <FeaturedPostBlock
+          v-if="featuredPosts[0]"
+          :post="featuredPosts[0]"
+          kicker="编辑推荐"
+          @click="(p: Post) => viewNote(p.slug)"
+        />
+        <FeaturedPostBlock
+          v-if="featuredPosts[1]"
+          :post="featuredPosts[1]"
+          kicker="热门内容"
+          @click="(p: Post) => viewNote(p.slug)"
+        />
 
-          <div v-else class="empty-state">
-            <el-empty description="暂时还没有内容，晚点再来看看。" />
-          </div>
+        <CategoryCloudBlock
+          :categories="categories"
+          :tags="tags"
+          @select-category="goToCategory"
+          @select-tag="goToTag"
+        />
 
-          <div v-if="posts.length > 0 && hasMore" class="load-more">
-            <el-button round :loading="loadingMore" @click="loadMorePosts">
-              {{ loadingMore ? "加载中..." : "加载更多内容" }}
-            </el-button>
-          </div>
-        </section>
+        <!-- Row 3-4: Tool Cards x4 (2x2) -->
+        <ToolCardBlock
+          v-for="tool in displayTools"
+          :key="tool.slug"
+          :tool="tool"
+          @click="goToTool"
+        />
 
-        <aside class="home-sidebar">
-          <!-- 高频工具 -->
-          <section class="sidebar-card">
-            <div class="panel-head">
-              <span class="panel-kicker">高频工具</span>
-              <router-link to="/tools">查看全部</router-link>
-            </div>
-            <div class="tool-preview-grid">
-              <button
-                v-for="tool in quickTools"
-                :key="tool.slug"
-                class="tool-preview"
-                @click="goToTool(tool.slug)"
-              >
-                <span
-                  class="tool-preview__icon"
-                  :style="{ background: tool.accent }"
-                >
-                  {{ tool.name.slice(0, 1) }}
-                </span>
-                <div>
-                  <strong>{{ tool.name }}</strong>
-                  <span>{{ tool.tags.join(' \u00B7 ') }}</span>
-                </div>
-              </button>
-            </div>
-          </section>
-
-          <!-- 热门标签 -->
-          <section class="sidebar-card">
-            <div class="panel-head">
-              <span class="panel-kicker">热门标签</span>
-              <span class="panel-meta">{{ tagPreview.length }} 个标签</span>
-            </div>
-            <div class="tag-cloud">
-              <button
-                v-for="tag in tagPreview"
-                :key="tag.id"
-                class="tag-cloud__item"
-                @click="goToTag(tag.slug)"
-              >
-                # {{ tag.name }}
-              </button>
-            </div>
-          </section>
-
-          <!-- 分类导航 -->
-          <section class="sidebar-card">
-            <div class="panel-head">
-              <span class="panel-kicker">分类导航</span>
-              <span class="panel-meta">{{ categoryPreview.length }} 个分类</span>
-            </div>
-            <div class="category-list">
-              <button
-                v-for="category in categoryPreview"
-                :key="category.id"
-                class="category-item"
-                @click="goToCategory(category.slug)"
-              >
-                <span>{{ category.name }}</span>
-              </button>
-            </div>
-          </section>
-        </aside>
-      </div>
+        <!-- Row 5: Content Stream (full width) -->
+        <ContentStreamBlock
+          :posts="posts"
+          :loading="loading"
+          :loading-more="loadingMore"
+          :has-more="hasMore"
+          :active-tab="activeTab"
+          :tabs="tabs"
+          @switch-tab="switchTab"
+          @load-more="loadMorePosts"
+          @view-note="viewNote"
+        />
+      </BentoGrid>
 
       <AdBanner position="sidebar" />
     </div>
   </SimpleLayout>
 </template>
+
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ArrowRight } from "@element-plus/icons-vue";
+import { Document, Operation } from "@element-plus/icons-vue";
 import { getCategories, getPosts, getTags } from "@/api/post";
 import AnnouncementBar from "@/components/common/AnnouncementBar.vue";
 import AdBanner from "@/components/common/AdBanner.vue";
-import NoteCard from "@/components/post/NoteCard.vue";
-import { FEATURED_TOOLS } from "@features/tools/config/toolCatalog";
+import BentoGrid from "@/components/common/BentoGrid.vue";
+import BrandHeroBlock from "@/components/home/BrandHeroBlock.vue";
+import StatsBlock from "@/components/home/StatsBlock.vue";
+import FeaturedPostBlock from "@/components/home/FeaturedPostBlock.vue";
+import ToolCardBlock from "@/components/home/ToolCardBlock.vue";
+import CategoryCloudBlock from "@/components/home/CategoryCloudBlock.vue";
+import ContentStreamBlock from "@/components/home/ContentStreamBlock.vue";
 import SimpleLayout from "@/layout/SimpleLayout.vue";
+import { FEATURED_TOOLS, TOOL_CATALOG } from "@/data/toolCatalog";
+import type { ToolItem } from "@/data/toolCatalog";
 import type { Category, Post, Tag } from "@/types";
 import { getRecentTools } from "@features/tools/lib/recentTools";
 
 const router = useRouter();
-const feedSection = ref<HTMLElement | null>(null);
+const contentRef = ref<HTMLElement | null>(null);
 const categories = ref<Category[]>([]);
 const tags = ref<Tag[]>([]);
 const posts = ref<Post[]>([]);
@@ -204,19 +134,17 @@ const tabs = [
 ] as const;
 
 type TabValue = (typeof tabs)[number]["value"];
-
 const activeTab = ref<TabValue>("recommend");
 
-const activeTabMeta = computed(
-  () => tabs.find((tab) => tab.value === activeTab.value) ?? tabs[0]
-);
+const toolCount = TOOL_CATALOG.length;
 
-const categoryPreview = computed(() => categories.value.slice(0, 4));
-const tagPreview = computed(() => tags.value.slice(0, 6));
-const quickTools = computed(() => {
-  const source =
-    recentTools.value.length > 0 ? recentTools.value : FEATURED_TOOLS;
-  return source.slice(0, 3);
+const displayTools = computed(() => {
+  const source = recentTools.value.length > 0 ? recentTools.value : FEATURED_TOOLS;
+  return source.slice(0, 4) as ToolItem[];
+});
+
+const featuredPosts = computed(() => {
+  return posts.value.slice(0, 2);
 });
 
 const loadDiscoveryData = async () => {
@@ -240,11 +168,12 @@ const fetchPosts = async (reset = true) => {
       loadingMore.value = true;
     }
 
+    const activeTabMeta = tabs.find((t) => t.value === activeTab.value) ?? tabs[0];
     const response = await getPosts({
       page: page.value,
       page_size: 15,
       status: "published",
-      ordering: activeTabMeta.value.ordering,
+      ordering: activeTabMeta.ordering,
     });
 
     totalPosts.value = response.count;
@@ -266,27 +195,21 @@ const fetchPosts = async (reset = true) => {
   }
 };
 
-const switchTab = (tab: TabValue) => {
-  if (activeTab.value === tab) {
-    return;
-  }
-
-  activeTab.value = tab;
+const switchTab = (tab: string) => {
+  if (activeTab.value === tab) return;
+  activeTab.value = tab as TabValue;
   page.value = 1;
   void fetchPosts(true);
 };
 
 const loadMorePosts = () => {
-  if (!hasMore.value || loadingMore.value) {
-    return;
-  }
-
+  if (!hasMore.value || loadingMore.value) return;
   page.value += 1;
   void fetchPosts(false);
 };
 
-const scrollToFeed = () => {
-  feedSection.value?.scrollIntoView({ behavior: "smooth", block: "start" });
+const scrollToContent = () => {
+  window.scrollTo({ top: 400, behavior: "smooth" });
 };
 
 const goToCategory = (slug: string) => {
@@ -297,8 +220,8 @@ const goToTag = (slug: string) => {
   router.push({ name: "Tag", params: { slug } });
 };
 
-const goToTool = (slug: string) => {
-  router.push(`/tools/${slug}`);
+const goToTool = (tool: ToolItem) => {
+  router.push(`/tools/${tool.slug}`);
 };
 
 const viewNote = (slug: string) => {
@@ -311,528 +234,72 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.simple-home {
+.bento-home {
   padding-top: 8px;
-}
-
-/* ===== Hero ===== */
-.hero-section {
-  margin-bottom: 16px;
-}
-
-.hero-card {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  padding: 24px 28px;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.74)),
-    linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(15, 23, 42, 0.02));
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
-}
-
-.hero-copy {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.hero-visual {
-  flex-shrink: 0;
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .hero-visual {
-    display: block;
-  }
-}
-
-.hero-graphic {
-  position: relative;
-  width: 180px;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-emoji {
-  font-size: 64px;
-  opacity: 0.15;
-  position: absolute;
-}
-
-.hero-badge {
-  position: absolute;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  color: var(--theme-text);
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-  white-space: nowrap;
-}
-
-.hero-badge--1 { top: 4px; left: 8px; }
-.hero-badge--2 { top: 56px; right: 0; }
-.hero-badge--3 { bottom: 8px; left: 24px; }
-
-.hero-eyebrow,
-.section-kicker,
-.panel-kicker {
-  display: inline-flex;
-  width: fit-content;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--theme-primary-light);
-  color: var(--theme-primary);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.hero-copy h1 {
-  margin: 0;
-  max-width: 600px;
-  font-size: clamp(22px, 2.8vw, 30px);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  font-weight: 700;
-  color: var(--theme-text);
-}
-
-.hero-copy p {
-  margin: 0;
-  max-width: 560px;
-  color: var(--theme-text-secondary);
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.ml-2 {
-  margin-left: 4px;
-}
-
-/* ===== Sidebar panels ===== */
-.tool-preview-grid {
-  display: grid;
-  gap: 8px;
-}
-
-.tool-preview {
-  width: 100%;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--theme-hover);
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
-  font-family: inherit;
-  font-size: inherit;
-}
-
-.tool-preview:hover {
-  background: rgba(79, 70, 229, 0.08);
-}
-
-.tool-preview:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-}
-
-.tool-preview__icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-.tool-preview strong {
-  display: block;
-  color: var(--theme-text);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.tool-preview span:last-child {
-  color: var(--theme-text-secondary);
-  font-size: 12px;
-  line-height: 1.3;
-}
-
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.tag-cloud__item {
-  border: 1px solid var(--theme-border);
-  border-radius: 999px;
-  padding: 6px 12px;
-  background: var(--theme-card);
-  color: var(--theme-text);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-  font-family: inherit;
-}
-
-.tag-cloud__item:hover {
-  background: var(--theme-primary-light);
-  border-color: var(--theme-primary);
-  color: var(--theme-primary);
-}
-
-.tag-cloud__item:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-}
-
-/* ===== Content shell ===== */
-.content-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 24px;
-  align-items: start;
-}
-
-.feed-section {
-  min-width: 0;
-}
-
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.section-head h2 {
-  margin: 4px 0 2px;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--theme-text);
-}
-
-.section-head p {
-  margin: 0;
-  color: var(--theme-text-secondary);
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tab-item {
-  border: none;
-  border-radius: 999px;
-  padding: 8px 20px;
-  background: rgba(15, 23, 42, 0.06);
-  color: var(--theme-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-  font-family: inherit;
-}
-
-.tab-item:hover,
-.tab-item.active {
-  background: var(--gradient-primary);
-  color: #fff;
-}
-
-.tab-item:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-}
-
-/* ===== Notes grid (CSS Grid, left-to-right top-to-bottom) ===== */
-.notes-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.notes-grid--placeholder {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-/* Placeholder cards with skeleton structure */
-.placeholder-card {
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-}
-
-.placeholder-image {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
-}
-
-.placeholder-body {
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.placeholder-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
-}
-
-.placeholder-line--l { width: 80%; }
-.placeholder-line--m { width: 55%; }
-.placeholder-line--s { width: 35%; }
-
-.empty-state {
-  padding: 24px 16px;
-  border-radius: 14px;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-}
-
-.empty-state :deep(.el-empty) {
-  padding: 8px 0;
-}
-
-.empty-state :deep(.el-empty__image) {
-  width: 80px;
-  height: 80px;
-}
-
-.empty-state :deep(.el-empty__description) {
-  margin-top: 8px;
-  font-size: 14px;
-}
-
-.load-more {
-  margin-top: 28px;
-  display: flex;
-  justify-content: center;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ===== Sidebar ===== */
-.home-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sidebar-card {
-  padding: 14px;
-  border-radius: 12px;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.panel-head h2 {
-  margin: 2px 0 0;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--theme-text);
-}
-
-.panel-head a,
-.panel-meta {
-  color: var(--theme-text-secondary);
-  font-size: 13px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.panel-head a:hover {
-  color: var(--theme-primary);
-}
-
-.category-list {
-  display: grid;
-  gap: 6px;
-}
-
-.category-item {
-  width: 100%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--theme-hover);
-  color: var(--theme-text);
-  font-size: 13px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-  font-family: inherit;
-}
-
-.category-item:hover {
-  background: var(--theme-primary-light);
-  color: var(--theme-primary);
-}
-
-.category-item:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 1280px) {
-  .notes-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
+  .bento-home :deep(.bento-grid) {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  .notes-grid--placeholder {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .content-shell {
-    grid-template-columns: minmax(0, 1fr) 240px;
-    gap: 20px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .content-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .notes-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .home-sidebar {
-    display: none;
-  }
-
-  .hero-card {
-    padding: 20px;
+  /* All col-span-3 blocks become col-span-2 on 2-col layout */
+  .bento-home :deep(.bento-card--col-3) {
+    grid-column: span 2;
   }
 }
 
 @media (max-width: 768px) {
-  .hero-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 18px;
-    border-radius: 14px;
+  .bento-home :deep(.bento-grid) {
+    grid-template-columns: 1fr !important;
   }
 
-  .hero-visual {
-    display: none;
+  /* All blocks span full width on mobile */
+  .bento-home :deep(.bento-card--col-1),
+  .bento-home :deep(.bento-card--col-2),
+  .bento-home :deep(.bento-card--col-3) {
+    grid-column: span 1;
   }
 
-  .hero-copy h1 {
-    font-size: 20px;
-    line-height: 1.3;
-  }
-
-  .notes-grid,
-  .notes-grid--placeholder {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .sidebar-card {
-    padding: 12px;
-    border-radius: 10px;
-  }
-
-  .section-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  /* Category cloud doesn't need extra row height on mobile */
+  .bento-home :deep(.bento-card--row-2) {
+    grid-row: span 1;
   }
 }
 
-@media (max-width: 520px) {
-  .notes-grid,
-  .notes-grid--placeholder {
-    grid-template-columns: 1fr;
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
   }
-
-  .hero-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .hero-actions .el-button {
-    width: 100%;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* ===== Accessibility: Reduced motion ===== */
+.bento-home :deep(.bento-card) {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.bento-home :deep(.bento-card:nth-child(1)) { animation-delay: 0.05s; }
+.bento-home :deep(.bento-card:nth-child(2)) { animation-delay: 0.1s; }
+.bento-home :deep(.bento-card:nth-child(3)) { animation-delay: 0.15s; }
+.bento-home :deep(.bento-card:nth-child(4)) { animation-delay: 0.2s; }
+.bento-home :deep(.bento-card:nth-child(5)) { animation-delay: 0.2s; }
+.bento-home :deep(.bento-card:nth-child(6)) { animation-delay: 0.25s; }
+.bento-home :deep(.bento-card:nth-child(7)) { animation-delay: 0.25s; }
+.bento-home :deep(.bento-card:nth-child(8)) { animation-delay: 0.3s; }
+.bento-home :deep(.bento-card:nth-child(9)) { animation-delay: 0.3s; }
+.bento-home :deep(.bento-card:nth-child(10)) { animation-delay: 0.35s; }
+.bento-home :deep(.bento-card:nth-child(11)) { animation-delay: 0.35s; }
+.bento-home :deep(.bento-card:nth-child(12)) { animation-delay: 0.4s; }
+
 @media (prefers-reduced-motion: reduce) {
-  .placeholder-image,
-  .placeholder-line {
+  .bento-home :deep(.bento-card) {
     animation: none;
-    background: var(--theme-hover);
-  }
-
-  .tool-preview,
-  .category-item,
-  .tab-item,
-  .tag-cloud__item {
-    transition: none;
   }
 }
 </style>
