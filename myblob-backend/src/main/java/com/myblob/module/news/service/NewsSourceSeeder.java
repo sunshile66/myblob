@@ -33,7 +33,16 @@ public class NewsSourceSeeder {
         List<NewsSource> candidates = List.of(
                 createSource("中国新闻网", "中国新闻网", "https://www.chinanews.com/rss/scroll-news.xml", "RSS", "官方媒体", "CN", 6),
                 createSource("环球时报", "环球时报", "https://www.globaltimes.cn/rss/outbrain.xml", "RSS", "官方媒体", "EN", 7),
-                createSource("人民日报国际", "人民日报", "http://www.people.com.cn/rss/world.xml", "RSS", "官方媒体", "CN", 3)
+                createSource("人民日报国际", "人民日报", "http://www.people.com.cn/rss/world.xml", "RSS", "官方媒体", "CN", 3),
+                // 科技财经补充源
+                createSource("cnBeta", "cnBeta", "https://www.cnbeta.com.tw/backend.php", "RSS", "科技财经", "CN", 100),
+                createSource("极客公园", "极客公园", "https://www.geekpark.net/rss", "RSS", "科技财经", "CN", 101),
+                createSource("品玩", "品玩", "https://www.pingwest.com/feed", "RSS", "科技财经", "CN", 102),
+                createSource("量子位", "量子位", "https://www.qbitai.com/feed", "RSS", "科技财经", "CN", 103),
+                // 社交媒体补充源
+                createSource("今日头条热榜", "今日头条", "TOUTIAIO_API", "JSOUP", "社交媒体", "CN", 104),
+                createSource("百度热搜", "百度热搜", "BAIDU_API", "JSOUP", "社交媒体", "CN", 105),
+                createSource("抖音热榜", "抖音热榜", "DOUYIN_API", "JSOUP", "社交媒体", "CN", 106)
         );
         for (NewsSource candidate : candidates) {
             if (newsSourceRepository.findByName(candidate.getName()) == null) {
@@ -51,15 +60,22 @@ public class NewsSourceSeeder {
     }
     
     /**
-     * 禁用已失效的RSS源（避免浪费资源尝试获取）
+     * 禁用已失效或国内无法访问的RSS源（避免浪费资源尝试获取）
      */
     private void disableFailedSources() {
         List<String> failedSourceNames = List.of(
+                // 已失效的源
                 "新华社",       // RSS域名已弃用
                 "机器之心",     // RSS返回非标准XML
                 "果壳",        // RSS返回404
-                "知乎热榜"      // 403禁止访问
+                "知乎热榜",     // 403禁止访问
+                // 国内无法访问的海外源
+                "HackerNews",  // Firebase API国内超时
+                "GitHub Trending"  // 国内超时
         );
+        
+        // 禁用所有Google和YouTube前缀的源
+        List<String> prefixes = List.of("Google-", "YouTube-");
         int disabledCount = 0;
         for (String name : failedSourceNames) {
             NewsSource source = newsSourceRepository.findByName(name);
@@ -70,8 +86,24 @@ public class NewsSourceSeeder {
                 log.info("Disabled failed source: {}", name);
             }
         }
+        
+        // 按前缀禁用（Google-xxx, YouTube-xxx等）
+        for (NewsSource source : newsSourceRepository.findAll()) {
+            if (Boolean.TRUE.equals(source.getEnabled())) {
+                for (String prefix : prefixes) {
+                    if (source.getName().startsWith(prefix)) {
+                        source.setEnabled(false);
+                        newsSourceRepository.save(source);
+                        disabledCount++;
+                        log.info("Disabled inaccessible source: {}", source.getName());
+                        break;
+                    }
+                }
+            }
+        }
+        
         if (disabledCount > 0) {
-            log.info("Disabled {} failed news sources", disabledCount);
+            log.info("Disabled {} failed/inaccessible news sources", disabledCount);
         }
     }
 

@@ -584,6 +584,15 @@ public class NewsFetchService {
         if ("知乎热榜".equals(source.getPlatformName())) {
             return fetchZhihuHotList(source);
         }
+        if ("今日头条".equals(source.getPlatformName())) {
+            return fetchToutiaoHot(source);
+        }
+        if ("百度热搜".equals(source.getPlatformName())) {
+            return fetchBaiduHot(source);
+        }
+        if ("抖音热榜".equals(source.getPlatformName())) {
+            return fetchDouyinHot(source);
+        }
         return fetchRss(source);
     }
 
@@ -691,6 +700,178 @@ public class NewsFetchService {
             }
         } catch (Exception e) {
             log.warn("Zhihu fetch failed: {}", e.getMessage());
+        }
+        return items;
+    }
+
+    /**
+     * 今日头条热榜抓取
+     */
+    @SuppressWarnings("unchecked")
+    private List<NewsItem> fetchToutiaoHot(NewsSource source) {
+        List<NewsItem> items = new ArrayList<>();
+        try {
+            // 头条热榜 API
+            String apiUrl = "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc";
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            headers.set("Referer", "https://www.toutiao.com/");
+            headers.set("Accept", "application/json, text/plain, */*");
+            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
+            org.springframework.http.ResponseEntity<Map> respEntity = restTemplate.exchange(
+                    apiUrl, org.springframework.http.HttpMethod.GET, entity, Map.class);
+            Map<String, Object> resp = respEntity.getBody();
+            if (resp == null || !resp.containsKey("data"))
+                return items;
+            
+            List<Map<String, Object>> dataList = (List<Map<String, Object>>) resp.get("data");
+            if (dataList == null)
+                return items;
+
+            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), dataList.size());
+            for (int i = 0; i < maxItems; i++) {
+                Map<String, Object> item = dataList.get(i);
+                String title = (String) item.getOrDefault("Title", "");
+                if (title.isEmpty())
+                    continue;
+                
+                String hotValue = String.valueOf(item.getOrDefault("HotValue", 0));
+                String url = (String) item.getOrDefault("Url", "");
+                if (url.isEmpty()) {
+                    String clusterId = (String) item.getOrDefault("ClusterId", "");
+                    url = "https://www.toutiao.com/trending/" + clusterId + "/";
+                }
+
+                NewsItem newsItem = NewsItem.builder()
+                        .title(title)
+                        .summary("热度: " + hotValue)
+                        .sourceUrl(url)
+                        .sourcePlatform(source.getPlatformName())
+                        .sourceName(source.getName())
+                        .category(source.getCategory())
+                        .language("CN")
+                        .publishedAt(LocalDateTime.now())
+                        .fetchedAt(LocalDateTime.now())
+                        .qualityScore(60)
+                        .isFiltered(false)
+                        .build();
+                items.add(newsItem);
+            }
+        } catch (Exception e) {
+            log.warn("Toutiao fetch failed: {}", e.getMessage());
+        }
+        return items;
+    }
+
+    /**
+     * 百度热搜抓取
+     */
+    private List<NewsItem> fetchBaiduHot(NewsSource source) {
+        List<NewsItem> items = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect("https://top.baidu.com/board?tab=realtime")
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .timeout(newsProxyConfig.getProxy().getReadTimeout())
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .get();
+
+            // 百度热搜的热榜列表
+            Elements items_ = doc.select(".category-wrap_iQLoo .content_1YWBm");
+            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), items_.size());
+            for (int i = 0; i < maxItems; i++) {
+                Element el = items_.get(i);
+                Element titleEl = el.selectFirst(".c-single-text-ellipsis");
+                if (titleEl == null)
+                    continue;
+                String title = titleEl.text().trim();
+                if (title.isEmpty())
+                    continue;
+
+                Element linkEl = el.selectFirst("a");
+                String link = linkEl != null ? linkEl.attr("href") : "";
+                if (!link.startsWith("http"))
+                    link = "https://top.baidu.com" + link;
+
+                Element hotEl = el.selectFirst(".hot-index_1Bl1a");
+                String hot = hotEl != null ? hotEl.text().trim() : "0";
+
+                NewsItem newsItem = NewsItem.builder()
+                        .title(title)
+                        .summary("热度: " + hot)
+                        .sourceUrl(link)
+                        .sourcePlatform(source.getPlatformName())
+                        .sourceName(source.getName())
+                        .category(source.getCategory())
+                        .language("CN")
+                        .publishedAt(LocalDateTime.now())
+                        .fetchedAt(LocalDateTime.now())
+                        .qualityScore(58)
+                        .isFiltered(false)
+                        .build();
+                items.add(newsItem);
+            }
+        } catch (Exception e) {
+            log.warn("Baidu fetch failed: {}", e.getMessage());
+        }
+        return items;
+    }
+
+    /**
+     * 抖音热榜抓取
+     */
+    private List<NewsItem> fetchDouyinHot(NewsSource source) {
+        List<NewsItem> items = new ArrayList<>();
+        try {
+            // 抖音热搜 API
+            String apiUrl = "https://www.douyin.com/aweme/v1/web/hot/search/list/?device_platform=webapp&aid=6383&channel=channel_pc_web&detail_list=1";
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            headers.set("Referer", "https://www.douyin.com/");
+            headers.set("Accept", "application/json, text/plain, */*");
+            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
+            org.springframework.http.ResponseEntity<Map> respEntity = restTemplate.exchange(
+                    apiUrl, org.springframework.http.HttpMethod.GET, entity, Map.class);
+            Map<String, Object> resp = respEntity.getBody();
+            if (resp == null || !resp.containsKey("data"))
+                return items;
+            
+            Map<String, Object> data = (Map<String, Object>) resp.get("data");
+            List<Map<String, Object>> wordList = (List<Map<String, Object>>) data.getOrDefault("word_list", new ArrayList<>());
+            if (wordList == null)
+                return items;
+
+            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), wordList.size());
+            for (int i = 0; i < maxItems; i++) {
+                Map<String, Object> word = wordList.get(i);
+                String title = (String) word.getOrDefault("word", "");
+                if (title.isEmpty())
+                    continue;
+                
+                Object hotVal = word.getOrDefault("hot_value", 0);
+                String hot = String.valueOf(hotVal);
+                String wordId = (String) word.getOrDefault("word_id", "");
+                String url = "https://www.douyin.com/search/" + title;
+
+                NewsItem newsItem = NewsItem.builder()
+                        .title(title)
+                        .summary("热度: " + hot)
+                        .sourceUrl(url)
+                        .sourcePlatform(source.getPlatformName())
+                        .sourceName(source.getName())
+                        .category(source.getCategory())
+                        .language("CN")
+                        .publishedAt(LocalDateTime.now())
+                        .fetchedAt(LocalDateTime.now())
+                        .qualityScore(58)
+                        .isFiltered(false)
+                        .build();
+                items.add(newsItem);
+            }
+        } catch (Exception e) {
+            log.warn("Douyin fetch failed: {}", e.getMessage());
         }
         return items;
     }
