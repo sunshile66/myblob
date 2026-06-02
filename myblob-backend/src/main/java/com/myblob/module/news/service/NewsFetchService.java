@@ -1,6 +1,5 @@
 package com.myblob.module.news.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myblob.module.news.entity.NewsItem;
 import com.myblob.module.news.entity.NewsSource;
@@ -32,11 +31,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -48,11 +44,25 @@ public class NewsFetchService {
     private final NewsFilterService newsFilterService;
     private final NewsProxyConfig newsProxyConfig;
     private final NewsTranslationService translationService;
+    private final NewsTopicService topicService;
+    private final NewsSentimentService sentimentService;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String HN_TOP_STORIES = "https://hacker-news.firebaseio.com/v0/topstories.json";
     private static final String HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/%d.json";
+
+    /** 文章最大保留天数，超过的旧文章直接丢弃 */
+    private static final int MAX_ARTICLE_AGE_DAYS = 30;
+    
+    /** 不做日期过滤的类别（如官方媒体RSS常返回较旧内容） */
+    private static final Set<String> SKIP_AGE_FILTER_CATEGORIES = Set.of("官方媒体");
+
+    // === 翻译熔断器 ===
+    private static final int TRANSLATE_FAIL_THRESHOLD = 5;
+    private static final long TRANSLATE_COOLDOWN_MS = 30 * 60 * 1000L; // 30 min
+    private volatile int translateFailCount = 0;
+    private volatile long translateCooldownUntil = 0;
     private static final String REDDIT_PROGRAMMING = "https://www.reddit.com/r/programming/hot.json?limit=30";
     private static final String REDDIT_TECH = "https://www.reddit.com/r/technology/hot.json?limit=30";
     private static final String GITHUB_TRENDING = "https://github.com/trending";
@@ -86,12 +96,16 @@ public class NewsFetchService {
     public int fetchSource(NewsSource source) {
         try {
             String method = source.getFetchMethod() != null ? source.getFetchMethod().toUpperCase() : "RSS";
+            // TWITTER / BLUESKY 已移除（国内 GFW 无法访问）
+            if ("TWITTER".equals(method) || "BLUESKY".equals(method)) {
+                log.debug("Skipping source [{}]: method {} is no longer supported", source.getName(), method);
+                return 0;
+            }
             List<NewsItem> items = switch (method) {
                 case "RSS" -> fetchRss(source);
                 case "API" -> fetchApi(source);
                 case "JSOUP" -> fetchJsoup(source);
-                case "TWITTER" -> fetchTwitter(source);
-                case "BLUESKY" -> fetchBluesky(source);
+                // TWITTER / BLUESKY 已移除（国内无法访问）
                 default -> fetchRss(source);
             };
 
@@ -101,15 +115,37 @@ public class NewsFetchService {
                 return 0;
             }
 
+            // 过滤过期文章（官方媒体类别跳过日期过滤）
+            String category = source.getCategory();
+            boolean skipAgeFilter = SKIP_AGE_FILTER_CATEGORIES.contains(category);
+            if (!skipAgeFilter) {
+                LocalDateTime cutoff = LocalDateTime.now().minusDays(MAX_ARTICLE_AGE_DAYS);
+                int beforeStale = items.size();
+                items = items.stream()
+                        .filter(i -> i.getPublishedAt() == null || i.getPublishedAt().isAfter(cutoff))
+                        .toList();
+                if (items.size() < beforeStale) {
+                    log.debug("Source [{}]: dropped {} stale articles (>{})", source.getName(), beforeStale - items.size(), MAX_ARTICLE_AGE_DAYS + "d");
+                }
+            } else {
+                log.debug("Source [{}]: category='{}', skipping age filter", source.getName(), category);
+            }
+
             // Apply filtering
             List<NewsItem> filtered = newsFilterService.filterAndScore(items, source);
 
-            // Translate EN items
-            // - Always translate airline category (user requirement)
-            // - For other categories, only if global translateEnabled
+            // 话题提取 + 情感分析（在翻译前执行，同时分析原始中文和英文内容）
+            topicService.extractTopics(filtered);
+            sentimentService.analyzeSentiment(filtered);
+
+            // Translate EN items（带熔断保护）
             boolean isAirlineCategory = "国际航司".equals(source.getCategory());
             if (isAirlineCategory || newsProxyConfig.getFetch().isTranslateEnabled()) {
-                translateEnglishItems(filtered);
+                if (System.currentTimeMillis() < translateCooldownUntil) {
+                    log.debug("Translation skipped: cooldown active ({} failures)", translateFailCount);
+                } else {
+                    translateEnglishItems(filtered);
+                }
             }
 
             // Save new items
@@ -595,7 +631,8 @@ public class NewsFetchService {
                         .language("CN")
                         .publishedAt(LocalDateTime.now())
                         .fetchedAt(LocalDateTime.now())
-                        .qualityScore(Math.min(100, 40 + hotVal / 20000))
+                        .hotScore(hotVal)
+                        .qualityScore(Math.min(100, 30 + (int)(Math.log10(Math.max(hotVal, 1)) * 12)))
                         .isFiltered(false)
                         .build();
                 items.add(newsItem);
@@ -706,206 +743,48 @@ public class NewsFetchService {
         return items;
     }
 
-    /**
-     * Fetch tweets via twitterapi.io API.
-     * feedUrl format: "TWITTER_API:username"
-     */
-    private List<NewsItem> fetchTwitter(NewsSource source) {
-        List<NewsItem> items = new ArrayList<>();
-        String apiKey = newsProxyConfig.getTwitter().getApiKey();
-        if (apiKey == null || apiKey.isEmpty()) {
-            log.debug("Twitter API key not configured, skipping source [{}]", source.getName());
-            return items;
-        }
+    // fetchTwitter / fetchBluesky 已移除：国内GFW无法访问
 
-        String feedUrl = source.getFeedUrl();
-        String username = feedUrl.startsWith("TWITTER_API:")
-                ? feedUrl.substring("TWITTER_API:".length())
-                : feedUrl;
-
-        try {
-            String baseUrl = newsProxyConfig.getTwitter().getBaseUrl();
-            String apiUrl = baseUrl + "/twitter/user/last_tweets?username=" + username;
-
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.set("X-API-Key", apiKey);
-            headers.set("Accept", "application/json");
-            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
-
-            org.springframework.http.ResponseEntity<String> respEntity = restTemplate.exchange(
-                    apiUrl, org.springframework.http.HttpMethod.GET, entity, String.class);
-
-            if (respEntity.getBody() == null) return items;
-
-            JsonNode root = objectMapper.readTree(respEntity.getBody());
-            JsonNode tweets = root.path("tweets").isArray() ? root.path("tweets") : root.path("data");
-            if (!tweets.isArray()) {
-                log.warn("Twitter API response missing tweets array for {}", username);
-                return items;
-            }
-
-            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), tweets.size());
-            for (int i = 0; i < maxItems; i++) {
-                JsonNode tweet = tweets.get(i);
-                String text = tweet.path("text").asText("").trim();
-                if (text.isEmpty()) continue;
-
-                String tweetId = tweet.path("id").asText("");
-                String tweetUrl = "https://x.com/" + username + "/status/" + tweetId;
-
-                LocalDateTime publishedAt = null;
-                String createdAt = tweet.path("created_at").asText("");
-                if (!createdAt.isEmpty()) {
-                    try {
-                        publishedAt = ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
-                                .toLocalDateTime();
-                    } catch (Exception e) {
-                        // Try alternative format
-                        try {
-                            publishedAt = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-                        } catch (Exception e2) {
-                            publishedAt = LocalDateTime.now();
-                        }
-                    }
-                }
-
-                String thumbnailUrl = tweet.path("media").path(0).path("url").asText(null);
-                if (thumbnailUrl == null) {
-                    thumbnailUrl = tweet.path("user").path("profile_image_url").asText(null);
-                }
-
-                NewsItem item = NewsItem.builder()
-                        .title(text.length() > 140 ? text.substring(0, 137) + "..." : text)
-                        .summary(text.length() > 1000 ? text.substring(0, 997) + "..." : text)
-                        .sourceUrl(tweetUrl)
-                        .sourcePlatform("Twitter/X")
-                        .sourceName(source.getName())
-                        .category(source.getCategory())
-                        .language(source.getLanguage())
-                        .thumbnailUrl(thumbnailUrl)
-                        .mediaType("text")
-                        .publishedAt(publishedAt != null ? publishedAt : LocalDateTime.now())
-                        .fetchedAt(LocalDateTime.now())
-                        .qualityScore(55)
-                        .isFiltered(false)
-                        .build();
-                items.add(item);
-            }
-        } catch (Exception e) {
-            log.warn("Twitter fetch failed for {}: {}", username, e.getMessage());
-        }
-        return items;
-    }
-
-    /**
-     * Fetch posts from Bluesky via AT Protocol public API (free, no auth needed).
-     * feedUrl format: "BLUESKY_API:handle" (e.g., "BLUESKY_API:openai.com")
-     */
-    private List<NewsItem> fetchBluesky(NewsSource source) {
-        List<NewsItem> items = new ArrayList<>();
-        String feedUrl = source.getFeedUrl();
-        String handle = feedUrl.startsWith("BLUESKY_API:")
-                ? feedUrl.substring("BLUESKY_API:".length())
-                : feedUrl;
-
-        try {
-            // Use Bluesky public API (no auth required for public profiles)
-            String apiUrl = "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor="
-                    + handle + "&limit=30&filter=posts_no_replies";
-
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.set("Accept", "application/json");
-            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
-
-            org.springframework.http.ResponseEntity<String> respEntity = restTemplate.exchange(
-                    apiUrl, org.springframework.http.HttpMethod.GET, entity, String.class);
-
-            if (respEntity.getBody() == null) return items;
-
-            JsonNode root = objectMapper.readTree(respEntity.getBody());
-            JsonNode feed = root.path("feed");
-            if (!feed.isArray()) {
-                log.warn("Bluesky API response missing feed array for {}", handle);
-                return items;
-            }
-
-            int maxItems = Math.min(newsProxyConfig.getFetch().getMaxItemsPerSource(), feed.size());
-            for (int i = 0; i < maxItems; i++) {
-                JsonNode feedItem = feed.get(i);
-                JsonNode post = feedItem.path("post");
-                JsonNode record = post.path("record");
-
-                String text = record.path("text").asText("").trim();
-                if (text.isEmpty()) continue;
-
-                String uri = post.path("uri").asText("");
-                // Convert AT URI to web URL
-                String postUrl = uri.replace("at://", "https://bsky.app/profile/")
-                        .replace("/app.bsky.feed.post/", "/post/");
-
-                LocalDateTime publishedAt = null;
-                String createdAt = record.path("createdAt").asText("");
-                if (!createdAt.isEmpty()) {
-                    try {
-                        publishedAt = ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
-                                .toLocalDateTime();
-                    } catch (Exception e) {
-                        publishedAt = LocalDateTime.now();
-                    }
-                }
-
-                // Extract thumbnail from embed
-                String thumbnailUrl = null;
-                JsonNode embed = post.path("embed");
-                if (embed.has("images") && embed.path("images").isArray() && !embed.path("images").isEmpty()) {
-                    thumbnailUrl = embed.path("images").get(0).path("thumb").asText(null);
-                    if (thumbnailUrl == null) {
-                        thumbnailUrl = embed.path("images").get(0).path("fullsize").asText(null);
-                    }
-                } else if (embed.path("$type").asText("").contains("video")) {
-                    thumbnailUrl = embed.path("thumbnail").asText(null);
-                }
-
-                NewsItem item = NewsItem.builder()
-                        .title(text.length() > 140 ? text.substring(0, 137) + "..." : text)
-                        .summary(text.length() > 1000 ? text.substring(0, 997) + "..." : text)
-                        .sourceUrl(postUrl)
-                        .sourcePlatform("Bluesky")
-                        .sourceName(source.getName())
-                        .category(source.getCategory())
-                        .language(source.getLanguage())
-                        .thumbnailUrl(thumbnailUrl)
-                        .mediaType(thumbnailUrl != null ? "image" : "text")
-                        .publishedAt(publishedAt != null ? publishedAt : LocalDateTime.now())
-                        .fetchedAt(LocalDateTime.now())
-                        .qualityScore(55)
-                        .isFiltered(false)
-                        .build();
-                items.add(item);
-            }
-        } catch (Exception e) {
-            log.warn("Bluesky fetch failed for {}: {}", handle, e.getMessage());
-        }
-        return items;
-    }
-
-    /** Translate title and summary for English-language items */
+    /** Translate title and summary for English-language items (with circuit breaker) */
     private void translateEnglishItems(List<NewsItem> items) {
         for (NewsItem item : items) {
             if (!"EN".equals(item.getLanguage()))
                 continue;
+            // 全局熔断器已触发则立即跳过
+            if (translateFailCount >= TRANSLATE_FAIL_THRESHOLD || System.currentTimeMillis() < translateCooldownUntil) {
+                return;
+            }
             try {
                 String tTitle = translationService.translate(item.getTitle());
-                if (tTitle != null && !tTitle.equals(item.getTitle())) {
+                if (tTitle == null) {
+                    onTranslateFail();
+                    continue;
+                }
+                if (!tTitle.equals(item.getTitle())) {
                     item.setTranslatedTitle(tTitle);
                 }
                 String tSummary = translationService.translate(item.getSummary());
-                if (tSummary != null && !tSummary.equals(item.getSummary())) {
+                if (tSummary == null) {
+                    onTranslateFail();
+                    continue;
+                }
+                if (!tSummary.equals(item.getSummary())) {
                     item.setTranslatedSummary(tSummary);
                 }
+                // 翻译成功，重置失败计数
+                translateFailCount = 0;
             } catch (Exception e) {
-                log.debug("Translate failed for [{}]: {}", item.getTitle(), e.getMessage());
+                onTranslateFail();
+                log.debug("Translate exception for [{}]: {}", item.getTitle(), e.getMessage());
             }
+        }
+    }
+
+    private void onTranslateFail() {
+        translateFailCount++;
+        if (translateFailCount >= TRANSLATE_FAIL_THRESHOLD) {
+            translateCooldownUntil = System.currentTimeMillis() + TRANSLATE_COOLDOWN_MS;
+            log.warn("Translation circuit breaker OPEN ({} fails), cooldown 30min", translateFailCount);
         }
     }
 
