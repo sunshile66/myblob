@@ -19,29 +19,25 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
 
     boolean existsBySourceUrl(String sourceUrl);
 
-    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false ORDER BY n.qualityScore DESC, n.publishedAt DESC")
+    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false")
     Page<NewsItem> findPublishedNews(Pageable pageable);
 
-    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.category = :category " +
-           "ORDER BY n.qualityScore DESC, n.publishedAt DESC")
+    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.category = :category")
     Page<NewsItem> findByCategory(@Param("category") String category, Pageable pageable);
 
-    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.sourcePlatform = :source " +
-           "ORDER BY n.qualityScore DESC, n.publishedAt DESC")
+    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.sourcePlatform = :source")
     Page<NewsItem> findBySourcePlatform(@Param("source") String source, Pageable pageable);
 
-    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.language = :language " +
-           "ORDER BY n.qualityScore DESC, n.publishedAt DESC")
+    @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.language = :language")
     Page<NewsItem> findByLanguage(@Param("language") String language, Pageable pageable);
 
     @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND " +
            "(LOWER(n.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(n.summary) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY n.qualityScore DESC, n.publishedAt DESC")
+           "LOWER(n.summary) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<NewsItem> searchNews(@Param("search") String search, Pageable pageable);
 
     @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false AND n.category = :category " +
-           "AND n.language = :language ORDER BY n.qualityScore DESC, n.publishedAt DESC")
+           "AND n.language = :language")
     Page<NewsItem> findByCategoryAndLanguage(@Param("category") String category,
                                               @Param("language") String language, Pageable pageable);
 

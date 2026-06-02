@@ -7,6 +7,8 @@ import com.myblob.module.news.dto.NewsSourceDTO;
 import com.myblob.module.news.entity.NewsItem;
 import com.myblob.module.news.repository.NewsItemRepository;
 import com.myblob.module.news.repository.NewsSourceRepository;
+import com.myblob.module.news.service.NewsTopicService;
+import com.myblob.module.news.service.NewsSentimentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +31,8 @@ public class NewsController {
 
     private final NewsItemRepository newsItemRepository;
     private final NewsSourceRepository newsSourceRepository;
+    private final NewsTopicService newsTopicService;
+    private final NewsSentimentService newsSentimentService;
 
     @GetMapping("/")
     @Operation(summary = "获取新闻列表")
@@ -39,7 +44,10 @@ public class NewsController {
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int minScore) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "qualityScore", "publishedAt"));
+        // 默认按时间倒序（最新优先），让多源内容都有展示机会
+        // 不再按 qualityScore 排序，避免官方媒体霸榜
+        Sort sort = Sort.by(Sort.Direction.DESC, "publishedAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<NewsItem> items;
 
         if (search != null && !search.isBlank()) {
@@ -97,5 +105,18 @@ public class NewsController {
         }
         List<NewsItemDTO> dtos = items.getContent().stream().map(NewsItemDTO::from).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(dtos));
+    }
+
+    @GetMapping("/topics/")
+    @Operation(summary = "获取热门话题")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTopics(
+            @RequestParam(defaultValue = "15") int limit) {
+        return ResponseEntity.ok(ApiResponse.success(newsTopicService.getTrendingTopics(limit)));
+    }
+
+    @GetMapping("/sentiment/")
+    @Operation(summary = "获取舆情概览")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSentiment() {
+        return ResponseEntity.ok(ApiResponse.success(newsSentimentService.getSentimentSummary()));
     }
 }

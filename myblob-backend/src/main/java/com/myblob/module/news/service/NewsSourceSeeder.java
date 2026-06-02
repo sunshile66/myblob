@@ -35,9 +35,9 @@ public class NewsSourceSeeder {
                 createSource("环球时报", "环球时报", "https://www.globaltimes.cn/rss/outbrain.xml", "RSS", "官方媒体", "EN", 7),
                 createSource("人民日报国际", "人民日报", "http://www.people.com.cn/rss/world.xml", "RSS", "官方媒体", "CN", 3),
                 // 科技财经补充源
-                createSource("cnBeta", "cnBeta", "https://www.cnbeta.com.tw/backend.php", "RSS", "科技财经", "CN", 100),
-                createSource("极客公园", "极客公园", "https://www.geekpark.net/rss", "RSS", "科技财经", "CN", 101),
-                createSource("品玩", "品玩", "https://www.pingwest.com/feed", "RSS", "科技财经", "CN", 102),
+                createDisabled("cnBeta", "cnBeta", "https://www.cnbeta.com.tw/backend.php", "RSS", "科技财经", "CN", 100), // XML解析失败
+                createDisabled("极客公园", "极客公园", "https://www.geekpark.net/rss", "RSS", "科技财经", "CN", 101), // 连接超时
+                createDisabled("品玩", "品玩", "https://www.pingwest.com/feed", "RSS", "科技财经", "CN", 102), // 405错误
                 createSource("量子位", "量子位", "https://www.qbitai.com/feed", "RSS", "科技财经", "CN", 103),
                 // 社交媒体补充源
                 createSource("今日头条热榜", "今日头条", "TOUTIAIO_API", "JSOUP", "社交媒体", "CN", 104),
@@ -69,6 +69,9 @@ public class NewsSourceSeeder {
                 "机器之心",     // RSS返回非标准XML
                 "果壳",        // RSS返回404
                 "知乎热榜",     // 403禁止访问
+                "cnBeta",      // XML解析失败
+                "品玩",        // 405错误
+                "极客公园",     // 连接超时
                 // 国内无法访问的海外源
                 "HackerNews",  // Firebase API国内超时
                 "GitHub Trending"  // 国内超时
