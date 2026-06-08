@@ -2,10 +2,13 @@ package com.myblob.module.knowledge.controller;
 
 import com.myblob.common.ApiResponse;
 import com.myblob.common.PageResponse;
+import com.myblob.module.accounts.entity.User;
 import com.myblob.module.knowledge.entity.KnowledgeItem;
+import com.myblob.module.knowledge.entity.LearningProgress;
 import com.myblob.module.knowledge.entity.VocabularyItem;
 import com.myblob.module.knowledge.repository.KnowledgeItemRepository;
 import com.myblob.module.knowledge.repository.VocabularyItemRepository;
+import com.myblob.module.knowledge.service.SpacedRepetitionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +31,7 @@ public class KnowledgeController {
 
     private final VocabularyItemRepository vocabularyItemRepository;
     private final KnowledgeItemRepository knowledgeItemRepository;
+    private final SpacedRepetitionService spacedRepetitionService;
 
     // ==================== 词汇接口 ====================
 
@@ -94,7 +99,12 @@ public class KnowledgeController {
         Page<KnowledgeItem> items;
 
         if (search != null && !search.isBlank()) {
-            items = knowledgeItemRepository.search(search, pageable);
+            // 优先使用全文搜索
+            items = knowledgeItemRepository.fullTextSearch(search.trim(), pageable);
+            if (items.isEmpty()) {
+                // 回退到模糊搜索
+                items = knowledgeItemRepository.search(search, pageable);
+            }
         } else if (category != null && !category.isBlank()) {
             items = knowledgeItemRepository.findByCategory(category, pageable);
         } else {
@@ -135,5 +145,44 @@ public class KnowledgeController {
                 Map.of("key", "system-design", "name", "系统架构", "icon", "SetUp")
         );
         return ResponseEntity.ok(ApiResponse.success(categories));
+    }
+
+    // ==================== 间隔重复复习接口 ====================
+
+    @GetMapping("/review/due")
+    @Operation(summary = "获取待复习卡片")
+    public ResponseEntity<ApiResponse<List<LearningProgress>>> getDueReviews(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "10") int limit) {
+        List<LearningProgress> reviews = spacedRepetitionService.getDueReviews(user, Math.min(limit, 50));
+        return ResponseEntity.ok(ApiResponse.success(reviews));
+    }
+
+    @PostMapping("/review/{id}/grade")
+    @Operation(summary = "提交复习评分")
+    public ResponseEntity<ApiResponse<LearningProgress>> gradeReview(
+            @PathVariable Long id,
+            @RequestParam int quality,
+            @AuthenticationPrincipal User user) {
+        LearningProgress progress = spacedRepetitionService.getOrCreateProgress(user, "knowledge", id);
+        LearningProgress updated = spacedRepetitionService.calculateNextReview(progress, quality);
+        return ResponseEntity.ok(ApiResponse.success(updated));
+    }
+
+    @GetMapping("/review/stats")
+    @Operation(summary = "获取学习统计")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getReviewStats(
+            @AuthenticationPrincipal User user) {
+        SpacedRepetitionService.LearningStats stats = spacedRepetitionService.getStats(user);
+        List<Object[]> heatmap = spacedRepetitionService.getHeatmapData(user);
+        List<Object[]> categoryMastery = spacedRepetitionService.getCategoryMastery(user);
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "totalLearned", stats.totalLearned(),
+                "mastered", stats.mastered(),
+                "dueToday", stats.dueToday(),
+                "heatmap", heatmap,
+                "categoryMastery", categoryMastery
+        )));
     }
 }

@@ -27,4 +27,22 @@ public interface KnowledgeItemRepository extends JpaRepository<KnowledgeItem, Lo
     @Modifying
     @Query("UPDATE KnowledgeItem k SET k.viewCount = k.viewCount + 1 WHERE k.id = :id")
     void incrementViewCount(@Param("id") Long id);
+
+    /** 全文搜索 - 使用 PostgreSQL tsvector */
+    @Query(value = """
+        SELECT k.*, ts_rank(k.search_vector, query) AS rank
+        FROM knowledge_item k, plainto_tsquery('simple', :query) AS query
+        WHERE k.search_vector @@ query
+        ORDER BY rank DESC
+        """,
+            countQuery = """
+        SELECT COUNT(*)
+        FROM knowledge_item k, plainto_tsquery('simple', :query) AS query
+        WHERE k.search_vector @@ query
+        """,
+            nativeQuery = true)
+    Page<KnowledgeItem> fullTextSearch(@Param("query") String query, Pageable pageable);
+
+    /** 热门条目查询 */
+    Page<KnowledgeItem> findByCategoryOrderByViewCountDesc(String category, Pageable pageable);
 }

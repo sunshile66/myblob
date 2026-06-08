@@ -50,4 +50,9 @@ public class KnowledgeItem extends BaseEntity {
     /** 摘要，用于列表展示 */
     @Column(length = 500)
     private String summary;
+
+    /** 全文搜索向量，由数据库触发器自动维护 */
+    @Column(columnDefinition = "tsvector", insertable = false, updatable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String searchVector;
 }

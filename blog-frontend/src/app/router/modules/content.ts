@@ -73,4 +73,47 @@ export const contentRoutes: RouteRecordRaw[] = [
     component: () => import("@/pages/interaction/BoardPage.vue"),
     meta: { title: "留言板" },
   },
+  // 知识百科
+  {
+    path: "/knowledge",
+    name: "KnowledgeHub",
+    component: () => import("@/pages/knowledge/KnowledgeHub.vue"),
+    meta: { title: "知识百科" },
+  },
+  {
+    path: "/knowledge/vocabulary",
+    name: "VocabularyList",
+    component: () => import("@/pages/knowledge/VocabularyList.vue"),
+    meta: { title: "英语词汇" },
+  },
+  {
+    path: "/knowledge/vocabulary/quiz",
+    name: "VocabularyQuiz",
+    component: () => import("@/pages/knowledge/VocabularyQuiz.vue"),
+    meta: { title: "词汇测验" },
+  },
+  {
+    path: "/knowledge/vocabulary/:id",
+    name: "VocabularyDetail",
+    component: () => import("@/pages/knowledge/VocabularyDetail.vue"),
+    meta: { title: "单词详情" },
+  },
+  {
+    path: "/knowledge/articles",
+    name: "EnglishArticles",
+    component: () => import("@/pages/knowledge/EnglishArticles.vue"),
+    meta: { title: "英语外刊" },
+  },
+  {
+    path: "/knowledge/progress",
+    name: "LearningProgress",
+    component: () => import("@/pages/knowledge/LearningProgress.vue"),
+    meta: { title: "学习进度", requiresAuth: true },
+  },
+  {
+    path: "/knowledge/:category",
+    name: "KnowledgeCards",
+    component: () => import("@/pages/knowledge/KnowledgeCards.vue"),
+    meta: { title: "知识卡片" },
+  },
 ];

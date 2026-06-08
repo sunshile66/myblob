@@ -48,6 +48,7 @@ const navItems: NavItem[] = [
   { label: '英语词汇', to: '/knowledge/vocabulary', icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>', matchPrefix: '/knowledge/vocabulary' },
   { label: '词汇测验', to: '/knowledge/vocabulary/quiz', icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>' },
   { label: '英语外刊', to: '/knowledge/articles', icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"/><path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z"/></svg>' },
+  { label: '学习进度', to: '/knowledge/progress', icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>' },
 ]
 
 // 分类名称映射
@@ -105,6 +106,14 @@ const crumbs = computed<Crumb[]>(() => {
     return [
       { label: '知识百科', to: '/knowledge' },
       { label: '英语外刊' },
+    ]
+  }
+
+  // /knowledge/progress
+  if (name === 'LearningProgress') {
+    return [
+      { label: '知识百科', to: '/knowledge' },
+      { label: '学习进度' },
     ]
   }
 

@@ -75,3 +75,35 @@ export const getKnowledgeDetail = (id: number) =>
 
 export const getKnowledgeCategories = () =>
   request.get<KnowledgeCategory[]>('/knowledge/items/categories')
+
+// ==================== 间隔重复复习 ====================
+
+export interface LearningProgress {
+  id: number
+  itemType: string
+  itemId: number
+  repetitions: number
+  easeFactor: number
+  interval: number
+  lapses: number
+  nextReview: string | null
+  lastReview: string | null
+  status: number
+}
+
+export interface LearningStats {
+  totalLearned: number
+  mastered: number
+  dueToday: number
+  heatmap: [string, number][]
+  categoryMastery: [string, number][]
+}
+
+export const getDueReviews = (limit = 10) =>
+  request.get<LearningProgress[]>(`/knowledge/review/due?limit=${limit}`)
+
+export const gradeReview = (id: number, quality: number) =>
+  request.post<LearningProgress>(`/knowledge/review/${id}/grade?quality=${quality}`)
+
+export const getReviewStats = () =>
+  request.get<LearningStats>('/knowledge/review/stats')
