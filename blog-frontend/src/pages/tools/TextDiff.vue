@@ -224,14 +224,23 @@ const buildLcsTable = (left: string[], right: string[]) => {
   return table;
 };
 
+const MAX_LINES = 5000; // 最大行数限制，防止UI冻结
+
 const compare = () => {
   if (!leftText.value && !rightText.value) {
-    ElMessage.warning("请先输入文本");
+    diffRows.value = [];
     return;
   }
 
   const left = leftLines.value;
   const right = rightLines.value;
+
+  // 检查行数限制
+  if (left.length > MAX_LINES || right.length > MAX_LINES) {
+    ElMessage.warning(`文本行数超过限制(${MAX_LINES}行)，请减少文本量`);
+    return;
+  }
+
   const table = buildLcsTable(left, right);
   const rows: DiffRow[] = [];
   let leftIndex = 0;
@@ -299,7 +308,15 @@ const copyUnified = async () => {
   ElMessage.success("差异内容已复制");
 };
 
-watch([leftText, rightText, ignoreWhitespace, ignoreCase], compare, { immediate: true });
+// 防抖比较，避免频繁触发
+let compareTimer: ReturnType<typeof setTimeout> | null = null;
+
+const debouncedCompare = () => {
+  if (compareTimer) clearTimeout(compareTimer);
+  compareTimer = setTimeout(compare, 300);
+};
+
+watch([leftText, rightText, ignoreWhitespace, ignoreCase], debouncedCompare, { immediate: true });
 </script>
 
 <style scoped>

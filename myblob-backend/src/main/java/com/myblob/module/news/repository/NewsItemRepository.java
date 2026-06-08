@@ -19,6 +19,12 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
 
     boolean existsBySourceUrl(String sourceUrl);
 
+    /**
+     * 批量查询已存在的 sourceUrl，用于去重保存
+     */
+    @Query("SELECT n.sourceUrl FROM NewsItem n WHERE n.sourceUrl IN :urls")
+    List<String> findExistingSourceUrls(@Param("urls") List<String> urls);
+
     @Query("SELECT n FROM NewsItem n WHERE n.isFiltered = false")
     Page<NewsItem> findPublishedNews(Pageable pageable);
 

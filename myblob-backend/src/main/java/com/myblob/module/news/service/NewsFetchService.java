@@ -971,13 +971,24 @@ public class NewsFetchService {
 
     @Transactional
     private int saveNewItems(List<NewsItem> items, NewsSource source) {
-        int saved = 0;
-        for (NewsItem item : items) {
-            if (!newsItemRepository.existsBySourceUrl(item.getSourceUrl())) {
-                newsItemRepository.save(item);
-                saved++;
-            }
+        if (items.isEmpty()) {
+            return 0;
         }
-        return saved;
+        
+        // 批量查询已存在的 URL
+        List<String> urls = items.stream().map(NewsItem::getSourceUrl).toList();
+        Set<String> existingUrls = new HashSet<>(newsItemRepository.findExistingSourceUrls(urls));
+        
+        // 过滤出新条目
+        List<NewsItem> newItems = items.stream()
+                .filter(item -> !existingUrls.contains(item.getSourceUrl()))
+                .toList();
+        
+        // 批量保存（利用 Hibernate batch_size=25 配置）
+        if (!newItems.isEmpty()) {
+            newsItemRepository.saveAll(newItems);
+        }
+        
+        return newItems.size();
     }
 }

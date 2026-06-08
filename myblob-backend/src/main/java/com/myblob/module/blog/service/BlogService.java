@@ -267,7 +267,9 @@ public class BlogService {
         if (!post.getAuthor().getId().equals(userId)) {
             throw BusinessException.forbidden("无权删除此文章");
         }
-        postRepository.delete(post);
+        // 使用软删除，与 BaseEntity.deleted 字段保持一致
+        post.setDeleted(true);
+        postRepository.save(post);
     }
 
     @Transactional(readOnly = true)

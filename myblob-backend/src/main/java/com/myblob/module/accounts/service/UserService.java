@@ -233,14 +233,15 @@ public class UserService {
     }
 
     public UserDTO toDTO(User user, Long currentUserId) {
+        List<Long> userIds = List.of(user.getId());
         Set<Long> followingIds = Set.of();
         if (currentUserId != null && !currentUserId.equals(user.getId())) {
-            followingIds = followRepository.existsByFollowerIdAndFollowingId(currentUserId, user.getId())
-                    ? Set.of(user.getId())
-                    : Set.of();
+            followingIds = new HashSet<>(followRepository.findFollowingIds(currentUserId, userIds));
         }
-        Map<Long, Long> followerCounts = Map.of(user.getId(), followRepository.countByFollowingId(user.getId()));
-        Map<Long, Long> followingCounts = Map.of(user.getId(), followRepository.countByFollowerId(user.getId()));
+        Map<Long, Long> followerCounts = followRepository.countFollowersGrouped(userIds).stream()
+                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+        Map<Long, Long> followingCounts = followRepository.countFollowingGrouped(userIds).stream()
+                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
         return UserDTOAssembler.toFullDTO(user, currentUserId, followingIds, followerCounts, followingCounts);
     }
 }

@@ -33,8 +33,38 @@ public class CommentService {
 
     @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByPost(Long postId) {
-        List<Comment> rootComments = commentRepository.findRootCommentsByPostId(postId);
-        return rootComments.stream().map(this::toDTOWithChildren).toList();
+        // 一次性加载该文章的所有评论（含用户信息），避免递归 N+1
+        List<Comment> allComments = commentRepository.findAllByPostIdWithUser(postId);
+        
+        // 按 parentId 分组，构建子评论映射
+        Map<Long, List<Comment>> childrenMap = allComments.stream()
+                .filter(c -> c.getParent() != null)
+                .collect(Collectors.groupingBy(c -> c.getParent().getId()));
+        
+        // 获取根评论（无父评论）
+        List<Comment> rootComments = allComments.stream()
+                .filter(c -> c.getParent() == null)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .toList();
+        
+        // 构建树结构
+        return rootComments.stream()
+                .map(root -> buildTree(root, childrenMap))
+                .toList();
+    }
+    
+    /**
+     * 递归构建评论树
+     */
+    private CommentDTO buildTree(Comment comment, Map<Long, List<Comment>> childrenMap) {
+        CommentDTO dto = toDTO(comment);
+        List<Comment> children = childrenMap.getOrDefault(comment.getId(), List.of());
+        if (!children.isEmpty()) {
+            dto.setChildren(children.stream()
+                    .map(child -> buildTree(child, childrenMap))
+                    .toList());
+        }
+        return dto;
     }
 
     @Transactional
@@ -226,15 +256,6 @@ public class CommentService {
                 .isDeleted(comment.getDeleted())
                 .createdAt(comment.getCreatedAt())
                 .build();
-    }
-
-    private CommentDTO toDTOWithChildren(Comment comment) {
-        CommentDTO dto = toDTO(comment);
-        List<Comment> children = commentRepository.findChildrenByParentId(comment.getId());
-        if (children != null && !children.isEmpty()) {
-            dto.setChildren(children.stream().map(this::toDTOWithChildren).toList());
-        }
-        return dto;
     }
 
     private UserDTO toUserDTO(User user) {

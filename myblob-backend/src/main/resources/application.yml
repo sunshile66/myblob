@@ -1,5 +1,5 @@
 server:
-  port: 8000
+  port: ${SERVER_PORT:8000}
   servlet:
     context-path: /
 
@@ -7,9 +7,9 @@ spring:
   application:
     name: myblob
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/blog
-    username: postgres
-    password: 123456
+    url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:blog}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -19,7 +19,7 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:update}
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     show-sql: false
@@ -33,9 +33,9 @@ spring:
     open-in-view: false
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
-      database: 1
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:1}
       timeout: 3000
   servlet:
     multipart:
@@ -48,10 +48,10 @@ spring:
     serialization:
       write-dates-as-timestamps: false
   mail:
-    host: smtp.qq.com
-    port: 465
-    username: 2754006802@qq.com
-    password: kdoyyocklgysddba
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -61,18 +61,19 @@ spring:
     default-encoding: UTF-8
 
 myblob:
-  base-url: http://localhost:8000
+  base-url: ${BASE_URL:http://localhost:8000}
+  frontend-url: ${FRONTEND_URL:http://localhost:3001}
   email:
-    mock-mode: true # 关闭mock模式(mock-mode=false)并确保spring.mail配置正确以启用真实邮件发送
+    mock-mode: ${MAIL_MOCK_MODE:true}
   jwt:
-    secret: myblob-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
-    expiration: 604800000
+    secret: ${JWT_SECRET:myblob-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256}
+    expiration: ${JWT_EXPIRATION:604800000}
   cors:
-    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002,http://127.0.0.1:3003
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://127.0.0.1:3001}
   upload:
-    path: ./media
-    avatar-path: ./media/avatars
-    post-path: ./media/posts
+    path: ${UPLOAD_PATH:./media}
+    avatar-path: ${AVATAR_PATH:./media/avatars}
+    post-path: ${POST_PATH:./media/posts}
 
 news:
   global:
@@ -89,7 +90,7 @@ news:
     thread-pool-size: 20
     max-items-per-source: 100
   twitter:
-    api-key: ${TWITTER_API_KEY:new1_bcf2ef848f474f8f89457150b8097ff0}
+    api-key: ${TWITTER_API_KEY:}
     base-url: https://api.twitterapi.io
 
 springdoc:

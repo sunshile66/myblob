@@ -3,11 +3,13 @@ package com.myblob.common;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,15 +17,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * 基于内存的请求频率限制拦截器。
  * 按 IP + 接口路径进行限流，适用于单机部署场景。
  */
+@Slf4j
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private volatile long lastCleanup = System.currentTimeMillis();
+    private static final long CLEANUP_INTERVAL = 300_000L; // 5 分钟
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
+        // 定期清理过期的 bucket
+        cleanupExpiredBucketsIfNeeded();
+        
         if (!(handler instanceof HandlerMethod handlerMethod)) {
             return true;
         }
@@ -49,6 +57,34 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    /**
+     * 定期清理过期的 TokenBucket
+     */
+    private void cleanupExpiredBucketsIfNeeded() {
+        long now = System.currentTimeMillis();
+        if (now - lastCleanup > CLEANUP_INTERVAL) {
+            synchronized (this) {
+                if (now - lastCleanup > CLEANUP_INTERVAL) {
+                    lastCleanup = now;
+                    int beforeSize = buckets.size();
+                    Iterator<Map.Entry<String, TokenBucket>> it = buckets.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Map.Entry<String, TokenBucket> entry = it.next();
+                        TokenBucket bucket = entry.getValue();
+                        // 清理超过两个窗口周期未使用的 bucket
+                        if (now - bucket.lastRefill > bucket.windowMillis * 2) {
+                            it.remove();
+                        }
+                    }
+                    int afterSize = buckets.size();
+                    if (beforeSize > afterSize) {
+                        log.debug("Cleaned {} expired rate limit buckets", beforeSize - afterSize);
+                    }
+                }
+            }
+        }
     }
 
     /**

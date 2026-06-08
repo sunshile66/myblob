@@ -22,5 +22,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
            "WHERE c.parent.id = :parentId AND c.deleted = false ORDER BY c.createdAt ASC")
     List<Comment> findChildrenByParentId(@Param("parentId") Long parentId);
 
+    /**
+     * 一次性加载该文章的所有评论（含用户信息），避免递归 N+1
+     */
+    @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.user LEFT JOIN FETCH c.replyTo " +
+           "WHERE c.post.id = :postId AND c.deleted = false ORDER BY c.createdAt ASC")
+    List<Comment> findAllByPostIdWithUser(@Param("postId") Long postId);
+
     long countByPostIdAndDeletedFalseAndApprovedTrue(Long postId);
 }
