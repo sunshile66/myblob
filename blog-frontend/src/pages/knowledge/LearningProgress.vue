@@ -322,7 +322,7 @@ onMounted(() => {
   gap: 16px;
   padding: 20px;
   background: var(--el-bg-color);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--el-border-color-lighter);
 }
 
@@ -332,7 +332,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
@@ -482,7 +482,7 @@ onMounted(() => {
   align-items: center;
   padding: 12px 16px;
   background: var(--el-fill-color-lighter);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .review-info {
@@ -506,6 +506,14 @@ onMounted(() => {
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

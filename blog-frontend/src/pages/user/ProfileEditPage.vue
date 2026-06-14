@@ -203,7 +203,7 @@ onMounted(() => {
 }
 
 .edit-card {
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   border: none;
 }
 
@@ -224,7 +224,7 @@ onMounted(() => {
 
 .avatar-uploader .avatar-preview {
   border: 4px solid #f0f0f0;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
 }
 
 .avatar-uploader .avatar-overlay {
@@ -241,7 +241,7 @@ onMounted(() => {
   justify-content: center;
   color: white;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .avatar-uploader .avatar-wrapper:hover .avatar-overlay {
@@ -285,5 +285,13 @@ onMounted(() => {
 :deep(.el-form-item__label) {
   font-weight: 500;
   color: #333;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

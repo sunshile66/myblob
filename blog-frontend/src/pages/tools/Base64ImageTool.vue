@@ -236,7 +236,7 @@ watch(decodedDataUrl, (value) => {
 .panel {
   padding: 16px;
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -250,7 +250,7 @@ watch(decodedDataUrl, (value) => {
 
 .info-panel article {
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
 }
 
@@ -298,7 +298,7 @@ p {
   min-height: 130px;
   margin-bottom: 12px;
   border: 1px dashed var(--theme-primary);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-primary-light);
   color: var(--theme-primary);
   cursor: pointer;
@@ -330,7 +330,7 @@ p {
   min-height: 220px;
   margin-bottom: 12px;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background:
     linear-gradient(45deg, var(--theme-border) 25%, transparent 25%),
     linear-gradient(-45deg, var(--theme-border) 25%, transparent 25%),
@@ -362,7 +362,7 @@ p {
   margin: 0;
   padding: 14px;
   overflow: auto;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-text);
   color: var(--theme-background);
   font-size: 12px;
@@ -385,6 +385,14 @@ p {
   .output-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

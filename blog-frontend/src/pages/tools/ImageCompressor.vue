@@ -283,8 +283,8 @@ onUnmounted(() => {
 /* Upload */
 .upload-zone {
   border: 2px dashed var(--theme-border);
-  border-radius: 16px; padding: 60px 20px; text-align: center;
-  cursor: pointer; transition: all .25s;
+  border-radius: var(--radius-xl); padding: 60px 20px; text-align: center;
+  cursor: pointer; transition: all var(--transition-fast);
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
 }
@@ -310,7 +310,7 @@ onUnmounted(() => {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
-  border-radius: 14px; overflow: hidden;
+  border-radius: var(--radius-lg); overflow: hidden;
   box-shadow: var(--glass-shadow);
 }
 .preview-label {
@@ -353,7 +353,7 @@ onUnmounted(() => {
 
 /* Result bar */
 .result-bar {
-  padding: 14px 18px; border-radius: 12px; margin-bottom: 20px;
+  padding: 14px 18px; border-radius: var(--radius-lg); margin-bottom: 20px;
   background: var(--theme-hover); border: 1px solid var(--color-warning);
 }
 .result-bar.good { background: #f0fdf4; border-color: #86efac; }
@@ -371,7 +371,7 @@ onUnmounted(() => {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
-  border-radius: 14px; padding: 24px;
+  border-radius: var(--radius-lg); padding: 24px;
   box-shadow: var(--glass-shadow);
 }
 .control-row { display: flex; gap: 24px; margin-bottom: 20px; }
@@ -386,9 +386,9 @@ onUnmounted(() => {
   display: flex; gap: 6px; margin-top: 8px;
 }
 .quality-marks button {
-  font-size: 12px; padding: 4px 12px; border-radius: 16px; cursor: pointer;
+  font-size: 12px; padding: 4px 12px; border-radius: var(--radius-xl); cursor: pointer;
   border: 1px solid var(--theme-border); background: var(--theme-card);
-  color: var(--theme-text-secondary); transition: all .2s;
+  color: var(--theme-text-secondary); transition: all var(--transition-fast);
 }
 .quality-marks button:hover { border-color: var(--theme-primary); color: var(--theme-primary); }
 .quality-marks button.active {
@@ -403,5 +403,13 @@ onUnmounted(() => {
   .control-row { flex-direction: column; gap: 16px; }
   .controls-card { padding: 16px; }
   .action-row { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

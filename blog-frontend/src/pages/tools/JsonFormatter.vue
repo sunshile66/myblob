@@ -753,7 +753,7 @@ resetExpanded();
   display: grid;
   min-height: 0;
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -841,7 +841,7 @@ resetExpanded();
   align-items: center;
   gap: 5px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 7px 9px;
   background: transparent;
   color: var(--theme-text);
@@ -890,7 +890,7 @@ resetExpanded();
   gap: 8px;
   margin: 10px 12px 0;
   padding: 9px 11px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: rgba(239, 68, 68, 0.1);
   color: #b91c1c;
   font-size: 13px;
@@ -908,7 +908,7 @@ resetExpanded();
   margin: 0;
   overflow: auto;
   padding: 8px 8px 8px 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   color: var(--theme-text-secondary);
   font-family: "JetBrains Mono", "Consolas", monospace;
@@ -934,7 +934,7 @@ resetExpanded();
   z-index: 3000;
   inset: 16px;
   border: 1px solid var(--theme-border-strong);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
 }
@@ -1016,7 +1016,7 @@ resetExpanded();
 
 .json-key[contenteditable="true"],
 .json-value[contenteditable="true"] {
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   padding: 0 2px;
   outline: none;
 }
@@ -1085,7 +1085,7 @@ resetExpanded();
   width: calc(100% - 24px);
   margin: 12px;
   border: 1px dashed rgba(15, 118, 110, 0.35);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 10px;
   background: #f0fdfa;
   color: var(--theme-primary);
@@ -1123,7 +1123,7 @@ resetExpanded();
   margin: 0;
   overflow: auto;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
   color: var(--theme-text);
   font-size: 13px;
@@ -1142,7 +1142,7 @@ resetExpanded();
   gap: 12px;
   padding: 10px 14px;
   border: 1px solid var(--theme-border-strong);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: 0 16px 42px rgba(15, 23, 42, 0.18);
   color: var(--theme-text-secondary);
@@ -1159,6 +1159,14 @@ resetExpanded();
 .path-dock strong {
   color: var(--theme-text);
   font-family: "JetBrains Mono", "Consolas", monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (max-width: 980px) {

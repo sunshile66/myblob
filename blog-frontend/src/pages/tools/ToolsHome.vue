@@ -210,7 +210,7 @@ const startWithFirstMatch = () => {
 .quick-row,
 .tool-card {
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: none;
 }
@@ -224,7 +224,7 @@ const startWithFirstMatch = () => {
   height: fit-content;
   padding: 12px;
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: none;
   transform: translateZ(0);
@@ -241,7 +241,7 @@ const startWithFirstMatch = () => {
 
 .desk-brand {
   padding: 14px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--gradient-primary);
   color: #fff;
 }
@@ -264,7 +264,7 @@ const startWithFirstMatch = () => {
   width: 100%;
   padding: 10px 14px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: var(--theme-text-secondary);
   cursor: pointer;
@@ -279,7 +279,7 @@ const startWithFirstMatch = () => {
   font-size: 11px;
   font-weight: 500;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--theme-hover);
 }
 
@@ -289,7 +289,11 @@ const startWithFirstMatch = () => {
   background: var(--theme-primary-light);
   color: var(--theme-primary);
 }
-.nav-item.active strong { background: var(--theme-primary-light); color: var(--theme-primary); }
+
+.nav-item.active strong {
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
+}
 
 .desk-main {
   display: flex;
@@ -317,6 +321,8 @@ const startWithFirstMatch = () => {
   color: var(--theme-text);
   font-size: 28px;
   line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.018em;
 }
 
 .desk-toolbar p {
@@ -340,7 +346,7 @@ const startWithFirstMatch = () => {
 .desk-stats article {
   padding: 14px 16px;
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: none;
 }
@@ -383,13 +389,19 @@ const startWithFirstMatch = () => {
 .quick-row button {
   flex: 0 0 auto;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 7px 12px;
   background: var(--theme-hover);
   color: var(--theme-text);
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;
+  transition: background var(--transition-fast);
+}
+
+.quick-row button:hover {
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
 }
 
 .tool-grid {
@@ -406,7 +418,7 @@ const startWithFirstMatch = () => {
 .tool-grid.is-empty {
   display: block;
   padding: 40px 0;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
 }
 
@@ -420,14 +432,15 @@ const startWithFirstMatch = () => {
   align-items: flex-start;
   gap: 14px;
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: none;
 }
+
 .tool-card:hover {
   transform: translateY(-3px);
   border-color: var(--theme-primary);
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
+  box-shadow: var(--shadow-md);
 }
 
 .tool-icon {
@@ -437,7 +450,7 @@ const startWithFirstMatch = () => {
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   color: #fff;
   font-size: 22px;
 }
@@ -456,18 +469,17 @@ const startWithFirstMatch = () => {
   color: var(--theme-text);
   font-size: 15px;
   line-height: 1.25;
+  font-weight: 600;
 }
 
 .tool-copy em {
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 2px 6px;
   background: var(--theme-primary-light);
   color: var(--theme-primary);
   font-size: 10px;
   font-style: normal;
   font-weight: 600;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .tool-copy small {
@@ -547,6 +559,17 @@ const startWithFirstMatch = () => {
 
   .tool-card {
     min-height: 82px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-card,
+  .nav-item,
+  .quick-row button {
+    transition: none;
+  }
+  .tool-card:hover {
+    transform: none;
   }
 }
 </style>

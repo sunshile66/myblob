@@ -358,13 +358,7 @@ watch(currentTheme, (newTheme) => {
   border-radius: var(--radius-md);
   border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  background: var(--theme-background);
-
-  &:hover {
-    border-color: var(--theme-primary-light);
-    transform: translateX(4px);
-  }
+  transition: all var(--transition-fast);
 
   &.active {
     border-color: var(--theme-primary);
@@ -378,12 +372,12 @@ watch(currentTheme, (newTheme) => {
 
   .color-bar {
     height: 8px;
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--radius-xs) var(--radius-xs) 0 0;
   }
 
   .mini-preview {
     background: var(--theme-background);
-    border-radius: 0 0 4px 4px;
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
     padding: 8px;
 
     .preview-nav {
@@ -391,17 +385,17 @@ watch(currentTheme, (newTheme) => {
       gap: 4px;
       margin-bottom: 8px;
       padding: 4px;
-      border-radius: 4px;
+      border-radius: var(--radius-xs);
 
       .nav-item {
         width: 20px;
         height: 20px;
-        border-radius: 4px;
+        border-radius: var(--radius-xs);
       }
     }
 
     .preview-body {
-      border-radius: 4px;
+      border-radius: var(--radius-xs);
       padding: 6px;
 
       .body-text {
@@ -542,7 +536,7 @@ watch(currentTheme, (newTheme) => {
     .logo-icon {
       width: 32px;
       height: 32px;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       background: rgba(255, 255, 255, 0.2);
       display: flex;
       align-items: center;
@@ -566,8 +560,8 @@ watch(currentTheme, (newTheme) => {
       font-size: 13px;
       color: rgba(255, 255, 255, 0.8);
       padding: 6px 12px;
-      border-radius: 20px;
-      transition: all 0.2s;
+      border-radius: var(--radius-full);
+      transition: all var(--transition-fast);
 
       &.active {
         background: rgba(255, 255, 255, 0.2);
@@ -596,7 +590,7 @@ watch(currentTheme, (newTheme) => {
 
     .card-badge {
       padding: 4px 10px;
-      border-radius: 4px;
+      border-radius: var(--radius-xs);
       font-size: 12px;
       font-weight: 500;
     }
@@ -673,7 +667,7 @@ watch(currentTheme, (newTheme) => {
     .small-card-icon {
       width: 40px;
       height: 40px;
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -696,6 +690,14 @@ watch(currentTheme, (newTheme) => {
 
   .preview-panel {
     order: -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

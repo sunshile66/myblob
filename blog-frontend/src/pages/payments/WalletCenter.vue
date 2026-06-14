@@ -186,7 +186,7 @@ onMounted(() => {
 
 .wallet-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 32px;
   margin-bottom: 24px;
   color: white;
@@ -232,7 +232,7 @@ onMounted(() => {
 
 .stat-item {
   background: var(--theme-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 20px;
   text-align: center;
 }
@@ -276,7 +276,7 @@ onMounted(() => {
 
 .transactions-list {
   background: var(--theme-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -295,7 +295,7 @@ onMounted(() => {
 .transaction-icon {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,5 +355,13 @@ onMounted(() => {
 
 .transaction-amount.expense {
   color: #f56c6c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

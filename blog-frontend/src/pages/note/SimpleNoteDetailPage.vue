@@ -399,7 +399,7 @@ onMounted(() => {
   font-size: 14px;
   cursor: pointer;
   margin-bottom: 24px;
-  transition: color 0.2s ease;
+  transition: color var(--transition-fast);
 }
 
 .back-button:hover {
@@ -411,14 +411,14 @@ onMounted(() => {
 
 .loading-wrapper {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 24px;
 }
 
 .note-image-section {
   position: relative;
   width: 100%;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--theme-hover);
   margin-bottom: 24px;
@@ -449,7 +449,7 @@ onMounted(() => {
 
 .note-info-section {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 24px;
   margin-bottom: 20px;
 }
@@ -528,7 +528,7 @@ onMounted(() => {
   color: var(--theme-text-secondary);
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .action-item:hover {
@@ -541,7 +541,7 @@ onMounted(() => {
 
 .comments-section {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 24px;
 }
 
@@ -625,6 +625,14 @@ onMounted(() => {
 
   .note-content {
     font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

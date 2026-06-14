@@ -114,7 +114,7 @@ const clearEditor = () => {
 .editor-section,
 .preview-section {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 24px;
 }
 
@@ -197,6 +197,14 @@ const clearEditor = () => {
 @media (max-width: 1024px) {
   .editor-content {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

@@ -78,7 +78,7 @@ const goBack = () => {
   gap: 14px;
   padding: 10px 12px;
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: none;
   transform: translateZ(0);
@@ -97,6 +97,7 @@ const goBack = () => {
   padding: 0;
   color: var(--theme-text-secondary);
   font-weight: 700;
+  transition: color var(--transition-fast);
 }
 
 .tool-shell__back:hover {
@@ -106,14 +107,12 @@ const goBack = () => {
 .tool-shell__title > span {
   flex: 0 0 auto;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--theme-primary-light);
   color: var(--theme-primary);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .tool-shell__title h1 {
@@ -122,6 +121,7 @@ const goBack = () => {
   color: var(--theme-text);
   font-size: 18px;
   line-height: 1.25;
+  font-weight: 600;
 }
 
 .tool-shell__title p {
@@ -142,7 +142,7 @@ const goBack = () => {
 .tool-shell__meta-card {
   min-width: 78px;
   padding: 6px 9px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-background);
   border: 1px solid var(--theme-border);
 }
@@ -206,6 +206,12 @@ const goBack = () => {
   .tool-shell__meta-card {
     min-width: 54px;
     padding: 5px 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-shell__back {
+    transition: none;
   }
 }
 </style>

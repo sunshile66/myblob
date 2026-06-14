@@ -42,9 +42,17 @@ const tabs = [
 .tb-back { display: flex; align-items: center; gap: 4px; color: var(--theme-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; }
 .tb-back:hover { color: var(--theme-primary); }
 .tb-tabs { display: flex; gap: 4px; }
-.tb-tab { padding: 6px 16px; border: none; border-radius: 8px; background: transparent; color: var(--theme-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+.tb-tab { padding: 6px 16px; border: none; border-radius: var(--radius-md); background: transparent; color: var(--theme-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); }
 .tb-tab:hover { color: var(--theme-text); background: var(--theme-hover); }
 .tb-tab.active { color: var(--theme-primary); background: var(--theme-primary-light); font-weight: 600; }
 .tb-meta { margin-left: auto; font-size: 11px; color: var(--theme-text-tertiary); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
 .tb-body { flex: 1; min-height: 0; overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>

@@ -126,13 +126,47 @@ onMounted(load)
 </script>
 
 <style scoped>
-.src-mgr { max-width: 1200px; margin: 0 auto; padding: 24px; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-.page-header h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
-.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.summary-bar { margin-bottom: 12px; font-size: 13px; color: #999; display: flex; align-items: center; gap: 8px; }
-.sep { color: #ddd; }
+.src-mgr {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--theme-text);
+  letter-spacing: -0.018em;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.summary-bar {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--theme-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sep { color: var(--theme-border); }
 .enabled-count { color: #67c23a; font-weight: 500; }
 .err { color: #f56c6c; font-weight: 700; }
+
 :deep(.disabled-row) { opacity: .6; }
 </style>

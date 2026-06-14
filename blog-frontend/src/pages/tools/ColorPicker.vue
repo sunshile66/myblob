@@ -693,6 +693,14 @@ watch(selectedColor, () => {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 992px) {
   .color-sections {
     grid-template-columns: 1fr;

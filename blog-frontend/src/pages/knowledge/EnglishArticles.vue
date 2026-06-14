@@ -82,9 +82,9 @@ onMounted(async () => {
 .article-card {
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   padding: 24px 28px;
-  transition: box-shadow 0.2s;
+  transition: box-shadow var(--transition-fast);
 }
 
 .article-card:hover {
@@ -129,7 +129,7 @@ onMounted(async () => {
 
 .article-date {
   font-size: 13px;
-  color: var(--theme-text-secondary, #999);
+  color: var(--theme-text-secondary);
 }
 
 .article-link {
@@ -158,5 +158,13 @@ onMounted(async () => {
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

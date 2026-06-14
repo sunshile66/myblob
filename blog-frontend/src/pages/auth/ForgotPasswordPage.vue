@@ -396,4 +396,14 @@ const handleSubmit = async () => {
     padding: 32px 28px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-button,
+  .brand-link {
+    transition: none;
+  }
+  .auth-button:hover {
+    transform: none;
+  }
+}
 </style>

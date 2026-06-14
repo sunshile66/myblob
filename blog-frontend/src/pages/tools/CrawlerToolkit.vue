@@ -607,7 +607,7 @@ watch(() => route.meta.crawlerMode, setDefaults, { immediate: true });
 .tool-switcher,
 .panel {
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -625,7 +625,7 @@ watch(() => route.meta.crawlerMode, setDefaults, { immediate: true });
   gap: 4px;
   padding: 10px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: transparent;
   text-align: left;
   cursor: pointer;
@@ -704,7 +704,7 @@ p {
   min-height: 430px;
   margin: 0;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-text);
 }
 
@@ -779,7 +779,7 @@ p {
 
 .insight-card {
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
   border: 1px solid var(--theme-border);
 }
@@ -824,6 +824,14 @@ p {
 
   .panel-head {
     flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

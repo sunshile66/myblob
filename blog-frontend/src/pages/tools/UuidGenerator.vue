@@ -185,7 +185,7 @@ onMounted(() => generateUuids())
 
 .content {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 32px;
 }
 
@@ -221,7 +221,7 @@ onMounted(() => generateUuids())
   align-items: center;
   justify-content: space-between;
   background: var(--theme-background);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 12px 16px;
   font-family: 'Fira Code', monospace;
   font-size: 14px;
@@ -230,5 +230,13 @@ onMounted(() => generateUuids())
 .uuid-text {
   color: var(--theme-text);
   word-break: break-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

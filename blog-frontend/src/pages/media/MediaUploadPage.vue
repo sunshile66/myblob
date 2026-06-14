@@ -174,7 +174,7 @@ const copyUrl = async (url: string) => {
 
 .upload-item {
   background: var(--theme-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -226,10 +226,18 @@ const copyUrl = async (url: string) => {
   color: var(--theme-primary);
   background: var(--theme-background);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

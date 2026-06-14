@@ -303,7 +303,7 @@ const mockPhotos = [
   gap: 40px;
   padding: 40px;
   background: white;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
 }
@@ -367,7 +367,7 @@ const mockPhotos = [
   gap: 40px;
   padding: 30px 40px;
   background: white;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
 }
@@ -395,7 +395,7 @@ const mockPhotos = [
 
 .profile-nav {
   background: white;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
   padding: 20px;
 }
@@ -420,10 +420,10 @@ const mockPhotos = [
 
 .photo-item {
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
 }
 
 .photo-item:hover {
@@ -484,6 +484,14 @@ const mockPhotos = [
 
   .photo-wall {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

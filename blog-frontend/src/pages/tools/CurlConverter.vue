@@ -611,7 +611,7 @@ watch(
 .panel {
   min-width: 0;
   border: 1px solid var(--theme-border);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -698,7 +698,7 @@ p {
 .example-card,
 .target-item {
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
   text-align: left;
   cursor: pointer;
@@ -761,7 +761,7 @@ p {
 
 .warning-box {
   border: 1px solid rgba(245, 158, 11, 0.28);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 10px 12px;
   background: var(--theme-hover);
   color: #92400e;
@@ -786,7 +786,7 @@ p {
   min-height: 0;
   margin: 12px 16px 16px;
   overflow: auto;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 16px;
   background: var(--theme-text);
   color: #dbeafe;
@@ -806,7 +806,7 @@ p {
 .summary-item {
   min-width: 0;
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 12px;
   background: linear-gradient(135deg, var(--theme-card), var(--theme-background));
 }
@@ -823,7 +823,7 @@ p {
   margin-top: 18px;
   padding: 18px 22px 22px;
   border: 1px solid var(--theme-border);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -895,6 +895,14 @@ p {
 
   .browser-steps {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

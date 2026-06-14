@@ -223,7 +223,7 @@ const shuffleArray = <T>(arr: T[]): T[] => {
 .quiz-start, .quiz-result { display: flex; justify-content: center; }
 .start-card, .result-card {
   background: var(--theme-card);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 48px;
   text-align: center;
   border: 1px solid var(--theme-border);
@@ -240,7 +240,7 @@ const shuffleArray = <T>(arr: T[]): T[] => {
 
 .quiz-card {
   background: var(--theme-card);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 36px;
   border: 1px solid var(--theme-border);
 }
@@ -260,22 +260,22 @@ const shuffleArray = <T>(arr: T[]): T[] => {
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: 2px solid var(--theme-border);
   background: var(--theme-card);
   color: var(--theme-text);
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
   text-align: left;
 }
 
 .option-btn:hover:not(:disabled) {
   border-color: var(--theme-primary);
-  background: rgba(var(--theme-primary-rgb, 64, 158, 255), 0.05);
+  background: rgba(var(--theme-primary-rgb), 0.05);
 }
 
-.option-btn.selected { border-color: var(--theme-primary); background: rgba(var(--theme-primary-rgb, 64, 158, 255), 0.1); }
+.option-btn.selected { border-color: var(--theme-primary); background: rgba(var(--theme-primary-rgb), 0.1); }
 .option-btn.correct { border-color: #67c23a; background: rgba(103, 194, 58, 0.1); color: #67c23a; }
 .option-btn.wrong { border-color: #f56c6c; background: rgba(245, 108, 108, 0.1); color: #f56c6c; }
 
@@ -305,5 +305,13 @@ const shuffleArray = <T>(arr: T[]): T[] => {
 @media (max-width: 768px) {
   .options-grid { grid-template-columns: 1fr; }
   .start-card, .result-card { padding: 32px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

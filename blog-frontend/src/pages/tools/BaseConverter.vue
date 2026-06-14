@@ -137,12 +137,20 @@ const copyOne = async (val: string) => {
 
 .result-row { display: grid; grid-template-columns: 180px 1fr 40px; align-items: center; gap: 12px; padding: 12px 16px; margin-bottom: 8px; background: var(--theme-background); border-radius: var(--radius-md); border: 1px solid var(--theme-border); }
 .result-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--theme-text); }
-.result-base { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--theme-primary-light); color: var(--theme-primary); font-family: var(--font-mono); }
+.result-base { font-size: 10px; padding: 2px 6px; border-radius: var(--radius-xs); background: var(--theme-primary-light); color: var(--theme-primary); font-family: var(--font-mono); }
 .result-value { font-family: var(--font-mono); font-size: 15px; color: var(--theme-text); word-break: break-all; letter-spacing: 0.04em; }
 
 @media (max-width: 768px) {
   .workspace { grid-template-columns: 1fr; }
   .input-row { grid-template-columns: 1fr; }
   .result-row { grid-template-columns: 120px 1fr 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

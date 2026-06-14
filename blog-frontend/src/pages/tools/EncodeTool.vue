@@ -272,6 +272,14 @@ const getCurrentResult = () => {
 
 :deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 960px) {
   .tool-content { grid-template-columns: 1fr; }
   .tool-tabs { padding: 16px; }

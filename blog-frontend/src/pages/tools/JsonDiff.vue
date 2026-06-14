@@ -274,7 +274,7 @@ const copyReport = async () => {
 .panel {
   padding: 16px;
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -319,7 +319,7 @@ p {
 
 .summary-grid article {
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
 }
 
@@ -341,7 +341,7 @@ p {
 .diff-table {
   overflow: auto;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .table-row {
@@ -402,4 +402,12 @@ code {
   }
 }
 :deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>

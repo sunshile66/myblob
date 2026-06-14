@@ -68,7 +68,7 @@ onMounted(() => {
 
 .policy-content {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 40px;
 }
 
@@ -102,5 +102,13 @@ onMounted(() => {
 
 .markdown-body :deep(li) {
   margin-bottom: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

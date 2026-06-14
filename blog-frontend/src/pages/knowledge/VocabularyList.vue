@@ -197,7 +197,7 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -211,7 +211,7 @@ onMounted(async () => {
   background: var(--theme-card);
   z-index: 2;
   box-shadow: 0 1px 3px rgba(0,0,0,.05);
-  transition: box-shadow 0.2s;
+  transition: box-shadow var(--transition-fast);
 }
 .flip-card:hover .flip-card-front {
   box-shadow: 0 4px 16px rgba(0,0,0,.08);
@@ -248,7 +248,7 @@ onMounted(async () => {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   margin-bottom: 8px;
 }
 
@@ -258,13 +258,13 @@ onMounted(async () => {
 }
 
 .card-difficulty { margin-bottom: 4px; }
-.star { color: var(--theme-border, #ddd); font-size: 13px; }
+.star { color: var(--theme-border); font-size: 13px; }
 .star.active { color: #f0ad4e; }
 
 .card-category-tag {
   font-size: 11px;
   padding: 2px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
   color: var(--theme-text-secondary);
 }
@@ -296,7 +296,7 @@ onMounted(async () => {
 .card-detail-btn {
   margin-top: auto;
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
   font-size: 12px;
@@ -304,7 +304,7 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  transition: background 0.2s;
+  transition: background var(--transition-fast);
 }
 
 .card-detail-btn:hover {
@@ -322,5 +322,13 @@ onMounted(async () => {
   .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
   .flip-card { height: 220px; }
   .card-word { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

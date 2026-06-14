@@ -143,7 +143,7 @@ onMounted(() => {
   margin-bottom: 32px;
   padding: 16px;
   background: #f9fafc;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .form-actions {
@@ -208,5 +208,13 @@ onMounted(() => {
   margin-top: 24px;
   display: flex;
   justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

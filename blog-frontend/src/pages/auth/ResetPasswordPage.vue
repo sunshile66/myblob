@@ -311,15 +311,15 @@ onMounted(() => {
 .panel-header h1 {
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
   margin: 0 0 6px;
-  letter-spacing: 0.2px;
+  letter-spacing: -0.018em;
 }
 
 .panel-header p {
   margin: 0 0 22px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .alert-box {
@@ -333,7 +333,7 @@ onMounted(() => {
 .auth-form :deep(.el-form-item__label) {
   font-size: 13px;
   font-weight: 500;
-  color: #334155;
+  color: var(--theme-text);
   padding-bottom: 6px;
   line-height: 1.4;
 }
@@ -366,7 +366,7 @@ onMounted(() => {
 
 .auth-button:hover {
   background: color-mix(in srgb, var(--theme-primary) 85%, black);
-  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--theme-primary) 25%, transparent);
   transform: translateY(-1px);
 }
 
@@ -386,13 +386,13 @@ onMounted(() => {
 .success-title {
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
   margin: 0 0 10px;
 }
 
 .success-desc {
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   line-height: 1.6;
   margin: 0 0 24px;
 }
@@ -419,6 +419,16 @@ onMounted(() => {
   }
   .auth-panel {
     padding: 32px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-button,
+  .brand-link {
+    transition: none;
+  }
+  .auth-button:hover {
+    transform: none;
   }
 }
 </style>

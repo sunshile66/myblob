@@ -602,7 +602,7 @@ onUnmounted(() => {
 .topbar-left { display: flex; align-items: center; gap: 14px; }
 .topbar-left h1 { font-size: 16px; font-weight: 700; margin: 0; color: #f8fafc; }
 .file-name {
-  font-size: 12px; padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; padding: 3px 10px; border-radius: var(--radius-lg);
   background: #334155; color: #94a3b8;
 }
 .topbar-actions { display: flex; gap: 8px; }
@@ -617,10 +617,10 @@ onUnmounted(() => {
   padding: 10px 0; gap: 4px; overflow-y: auto; flex-shrink: 0;
 }
 .sidebar-btn {
-  width: 58px; padding: 8px 4px; border: none; border-radius: 10px;
+  width: 58px; padding: 8px 4px; border: none; border-radius: var(--radius-md);
   background: transparent; color: #94a3b8; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  transition: all .15s; font-size: 11px;
+  transition: all var(--transition-fast); font-size: 11px;
 }
 .sidebar-btn:hover { background: #334155; color: #e2e8f0; }
 .sidebar-btn.active { background: #3b82f6; color: #fff; }
@@ -644,11 +644,11 @@ onUnmounted(() => {
   background:
     radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
 }
-.canvas-wrap canvas { box-shadow: 0 8px 32px rgba(0,0,0,.4); border-radius: 4px; }
+.canvas-wrap canvas { box-shadow: 0 8px 32px rgba(0,0,0,.4); border-radius: var(--radius-xs); }
 
 .empty-canvas {
   text-align: center; cursor: pointer; padding: 60px 40px;
-  border: 2px dashed #334155; border-radius: 16px; transition: all .25s;
+  border: 2px dashed #334155; border-radius: var(--radius-xl); transition: all var(--transition-fast);
 }
 .empty-canvas:hover { border-color: #3b82f6; background: rgba(59,130,246,.05); }
 .empty-icon { width: 72px; height: 72px; margin: 0 auto 16px; color: #475569; }
@@ -662,9 +662,9 @@ onUnmounted(() => {
 }
 .zoom-controls { margin-left: auto; display: flex; gap: 2px; }
 .zoom-controls button {
-  width: 28px; height: 28px; border: 1px solid #334155; border-radius: 6px;
+  width: 28px; height: 28px; border: 1px solid #334155; border-radius: var(--radius-sm);
   background: #1e293b; color: #94a3b8; cursor: pointer; font-size: 15px;
-  display: grid; place-items: center; transition: all .15s;
+  display: grid; place-items: center; transition: all var(--transition-fast);
 }
 .zoom-controls button:hover { background: #334155; color: #fff; }
 
@@ -687,9 +687,9 @@ onUnmounted(() => {
   display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
 }
 .preset-grid button {
-  padding: 7px 4px; border: 1px solid #334155; border-radius: 8px;
+  padding: 7px 4px; border: 1px solid #334155; border-radius: var(--radius-md);
   background: #0f172a; color: #94a3b8; font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all .15s;
+  cursor: pointer; transition: all var(--transition-fast);
 }
 .preset-grid button:hover { border-color: #3b82f6; color: #e2e8f0; background: #1e293b; }
 
@@ -699,5 +699,13 @@ onUnmounted(() => {
   .tool-sidebar { width: 56px; }
   .sidebar-btn { width: 46px; padding: 6px 2px; }
   .sidebar-btn small { font-size: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

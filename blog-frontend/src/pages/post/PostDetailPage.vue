@@ -333,7 +333,7 @@ onMounted(() => {
 .actions-card,
 .comments-card {
   margin-bottom: 24px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
 }
 
 .post-header {
@@ -369,7 +369,7 @@ onMounted(() => {
   max-height: 450px;
   overflow: hidden;
   margin-bottom: 32px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .post-content {
@@ -382,7 +382,7 @@ onMounted(() => {
 .post-content :deep(img) {
   max-width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   margin: 20px 0;
 }
 
@@ -402,7 +402,7 @@ onMounted(() => {
 .post-content :deep(code) {
   background: #f1f5f9;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-family: 'Fira Code', 'Consolas', monospace;
   font-size: 0.9em;
   color: #e11d48;
@@ -411,7 +411,7 @@ onMounted(() => {
 .post-content :deep(pre) {
   background: #0f172a;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow-x: auto;
   margin: 20px 0;
 }
@@ -462,7 +462,7 @@ onMounted(() => {
 
 .revisions-card {
   margin-bottom: 24px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
 }
 
 .revisions-header {
@@ -487,6 +487,14 @@ onMounted(() => {
   line-height: 1.6;
   padding: 8px;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

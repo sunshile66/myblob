@@ -101,7 +101,7 @@ const viewPhoto = (photo: Photo) => {
 
 .wall-header {
   margin-bottom: 24px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
 }
 
 .header-content {
@@ -129,12 +129,12 @@ const viewPhoto = (photo: Photo) => {
 
 .photo-item {
   position: relative;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 4/3;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
 }
 
 .photo-item:hover {
@@ -166,7 +166,7 @@ const viewPhoto = (photo: Photo) => {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
   padding: 40px 20px 20px;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .photo-item:hover .photo-overlay {
@@ -194,5 +194,13 @@ const viewPhoto = (photo: Photo) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

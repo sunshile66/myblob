@@ -166,7 +166,7 @@ onMounted(async () => {
   padding: 36px 24px 32px;
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
 }
 
 .word-title {
@@ -196,7 +196,7 @@ onMounted(async () => {
   font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   color: #fff;
 }
 
@@ -218,7 +218,7 @@ onMounted(async () => {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: #fff;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .speaker-btn:hover {
@@ -240,7 +240,7 @@ onMounted(async () => {
 }
 
 .star {
-  color: var(--theme-border, #ddd);
+  color: var(--theme-border);
   font-size: 15px;
 }
 
@@ -278,7 +278,7 @@ onMounted(async () => {
 .meaning-item {
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 20px 22px;
 }
 
@@ -341,7 +341,7 @@ onMounted(async () => {
   padding: 13px 18px;
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .phrase-text {
@@ -352,7 +352,7 @@ onMounted(async () => {
 }
 
 .phrase-dash {
-  color: var(--theme-border, #ccc);
+  color: var(--theme-border);
   flex-shrink: 0;
 }
 
@@ -366,7 +366,7 @@ onMounted(async () => {
 .legacy-example {
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 20px 22px;
 }
 
@@ -379,5 +379,13 @@ onMounted(async () => {
   .word-title { font-size: 32px; }
   .word-header { padding: 28px 16px 24px; }
   .word-phonetics { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

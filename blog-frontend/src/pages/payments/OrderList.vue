@@ -192,7 +192,7 @@ onMounted(() => {
 
 .order-card {
   background: var(--theme-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 20px;
 }
 
@@ -262,5 +262,13 @@ onMounted(() => {
   gap: 12px;
   padding-top: 16px;
   border-top: 1px solid var(--theme-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

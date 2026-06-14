@@ -280,7 +280,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKeydown) });
 .panel {
   padding: 18px;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -349,7 +349,7 @@ p {
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
   cursor: pointer;
   text-align: left;
@@ -410,6 +410,14 @@ p {
 
   .check-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

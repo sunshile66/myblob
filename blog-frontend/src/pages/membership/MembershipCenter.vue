@@ -209,7 +209,7 @@ onMounted(() => {
 
 .membership-status-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 32px;
   margin-bottom: 48px;
   color: white;
@@ -236,7 +236,7 @@ onMounted(() => {
 .lifetime-badge {
   background: rgba(255, 255, 255, 0.2);
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   font-size: 14px;
 }
 
@@ -290,11 +290,11 @@ onMounted(() => {
 
 .plan-card {
   background: var(--theme-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 32px 24px;
   position: relative;
   border: 2px solid transparent;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
 }
 
 .plan-card:hover {
@@ -314,7 +314,7 @@ onMounted(() => {
   background: var(--theme-primary);
   color: white;
   padding: 4px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   font-size: 12px;
   font-weight: 600;
 }
@@ -380,3 +380,11 @@ onMounted(() => {
   width: 100%;
 }
 </style>
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

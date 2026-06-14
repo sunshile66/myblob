@@ -189,7 +189,7 @@ onMounted(() => {
 .path-code {
   padding: 2px 6px;
   background: var(--theme-background);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-size: 13px;
   color: var(--theme-primary);
 }
@@ -199,7 +199,7 @@ onMounted(() => {
 }
 
 .data-table {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -207,5 +207,13 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   margin-top: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

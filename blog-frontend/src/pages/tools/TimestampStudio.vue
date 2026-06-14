@@ -248,7 +248,7 @@ const copy = async (value: string) => {
 <style scoped>
 .tabs {
   padding: 20px;
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
   box-shadow: var(--shadow-sm);
@@ -256,7 +256,7 @@ const copy = async (value: string) => {
 
 .panel {
   padding: 18px;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   background: var(--theme-background);
 }
 
@@ -312,6 +312,14 @@ const copy = async (value: string) => {
 
   .tabs {
     padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

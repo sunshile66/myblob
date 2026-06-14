@@ -146,7 +146,7 @@ const loadFile = async (file: UploadFile) => {
 .panel {
   padding: 16px;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-card);
   box-shadow: var(--shadow-xs);
 }
@@ -206,7 +206,7 @@ p {
   width: 100%;
   padding: 11px 12px;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--theme-hover);
   cursor: pointer;
   text-align: left;
@@ -242,4 +242,12 @@ p {
   }
 }
 :deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>

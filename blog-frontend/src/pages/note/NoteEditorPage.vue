@@ -510,7 +510,7 @@ onMounted(() => {
   gap: 8px;
   background: #f5f5f5;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .mode-tab {
@@ -518,12 +518,12 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 20px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   color: #666;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .mode-tab:hover {
@@ -555,7 +555,7 @@ onMounted(() => {
 
 .panel {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -578,9 +578,9 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .template-item:hover {
@@ -612,9 +612,9 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .tool-item:hover {
@@ -637,7 +637,7 @@ onMounted(() => {
   color: #999;
   background: #f5f5f5;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .setting-item {
@@ -659,7 +659,7 @@ onMounted(() => {
 .main-editor {
   flex: 1;
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 24px;
 }
 
@@ -686,7 +686,7 @@ onMounted(() => {
   width: 100%;
   max-width: 400px;
   aspect-ratio: 16/9;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
@@ -697,11 +697,11 @@ onMounted(() => {
 
 .upload-placeholder {
   border: 2px dashed #ddd;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 60px 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--transition-fast);
 }
 
 .upload-placeholder:hover {
@@ -725,7 +725,7 @@ onMounted(() => {
 .image-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -746,7 +746,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-fast);
 }
 
 .image-item:hover .image-overlay {
@@ -755,7 +755,7 @@ onMounted(() => {
 
 .add-more-btn {
   border: 2px dashed #ddd;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -764,7 +764,7 @@ onMounted(() => {
   cursor: pointer;
   color: #999;
   font-size: 13px;
-  transition: all 0.3s;
+  transition: all var(--transition-fast);
 }
 
 .add-more-btn:hover {
@@ -858,5 +858,13 @@ onMounted(() => {
 
 .tag-input-inline {
   width: 120px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

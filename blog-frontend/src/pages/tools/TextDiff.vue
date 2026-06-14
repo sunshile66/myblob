@@ -334,7 +334,7 @@ watch([leftText, rightText, ignoreWhitespace, ignoreCase], debouncedCompare, { i
 .panel {
   padding: 16px;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--shadow-xs);
 }
@@ -381,7 +381,7 @@ p {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -437,7 +437,7 @@ p {
   max-height: 560px;
   overflow: auto;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .stats-grid {
@@ -448,7 +448,7 @@ p {
 
 .stats-grid article {
   padding: 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: #f8fafc;
   border: 1px solid var(--theme-border);
 }
@@ -477,4 +477,12 @@ p {
   }
 }
 :deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>

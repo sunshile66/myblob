@@ -239,7 +239,7 @@ onMounted(() => {
 .key-display code {
   padding: 2px 8px;
   background: var(--theme-background);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-size: 13px;
   max-width: 240px;
   overflow: hidden;
@@ -252,7 +252,15 @@ onMounted(() => {
 }
 
 .data-table {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>
