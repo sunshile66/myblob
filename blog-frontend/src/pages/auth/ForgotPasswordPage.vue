@@ -150,7 +150,7 @@ const handleSubmit = async () => {
   grid-template-columns: 1.05fr 1fr;
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
   overflow: hidden;
 }
@@ -196,7 +196,7 @@ const handleSubmit = async () => {
 .brand-mark {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
@@ -293,7 +293,7 @@ const handleSubmit = async () => {
 }
 
 .auth-form :deep(.el-input__wrapper) {
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   box-shadow: 0 0 0 1px var(--theme-border) inset;
   transition: box-shadow 0.18s ease;
 }
@@ -313,7 +313,7 @@ const handleSubmit = async () => {
   font-weight: 600;
   background: var(--theme-primary);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   margin-top: 4px;
   transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
 }

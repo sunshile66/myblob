@@ -185,7 +185,7 @@ const isActive = (nav: NavItem) => {
   margin-bottom: 24px;
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow-x: auto;
 }
 

@@ -513,7 +513,7 @@ const handleRegister = async () => {
   grid-template-columns: 1.05fr 1fr;
   background: var(--theme-card);
   border: 1px solid var(--theme-border);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
@@ -560,7 +560,7 @@ const handleRegister = async () => {
 .brand-mark {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
@@ -715,7 +715,7 @@ const handleRegister = async () => {
 }
 
 .auth-form :deep(.el-input__wrapper) {
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   box-shadow: 0 0 0 1px var(--theme-border) inset;
   transition: box-shadow 0.18s ease;
 }
@@ -741,7 +741,7 @@ const handleRegister = async () => {
 
 .code-btn {
   min-width: 116px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 500;
   border: 1px solid var(--theme-border);
   background: var(--theme-card);
@@ -766,7 +766,7 @@ const handleRegister = async () => {
   font-weight: 600;
   background: var(--theme-primary);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   margin-top: 4px;
   transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
