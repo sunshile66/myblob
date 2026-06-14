@@ -323,6 +323,9 @@ export interface NewsItem {
   videoUrl?: string
   publishedAt?: string
   qualityScore: number
+  hotScore?: number
+  sentiment?: 'positive' | 'negative' | 'neutral'
+  topics?: string
   filterReason?: string
   isFiltered: boolean
   fetchedAt?: string

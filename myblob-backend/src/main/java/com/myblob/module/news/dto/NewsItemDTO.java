@@ -28,6 +28,9 @@ public class NewsItemDTO {
     private String videoUrl;
     private LocalDateTime publishedAt;
     private Integer qualityScore;
+    private Integer hotScore;
+    private String sentiment;
+    private String topics;
     private String filterReason;
     private Boolean isFiltered;
     private LocalDateTime fetchedAt;
@@ -51,6 +54,9 @@ public class NewsItemDTO {
                 .videoUrl(item.getVideoUrl())
                 .publishedAt(item.getPublishedAt())
                 .qualityScore(item.getQualityScore())
+                .hotScore(item.getHotScore())
+                .sentiment(item.getSentiment())
+                .topics(item.getTopics())
                 .filterReason(item.getFilterReason())
                 .isFiltered(item.getIsFiltered())
                 .fetchedAt(item.getFetchedAt())

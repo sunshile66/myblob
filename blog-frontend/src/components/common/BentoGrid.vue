@@ -24,6 +24,13 @@ const gridStyle = computed(() => ({
 <style scoped>
 .bento-grid {
   display: grid;
-  grid-auto-rows: minmax(80px, auto);
+  grid-auto-rows: minmax(84px, auto);
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .bento-grid {
+    grid-auto-rows: minmax(72px, auto);
+  }
 }
 </style>

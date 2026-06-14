@@ -10,7 +10,7 @@
         <div class="section-head">
           <div>
             <h2>生成结果</h2>
-            <p>优先使用浏览器加密随机数，生成后可直接复制或批量导出。</p>
+            <p>优先使用浏览器加密随机数（Ctrl+G 快捷生成）</p>
           </div>
           <el-button type="primary" :icon="Refresh" @click="generatePasswords">重新生成</el-button>
         </div>
@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch, onMounted, onUnmounted } from "vue";
 import { Delete, DocumentCopy, Refresh } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
@@ -262,7 +262,12 @@ watch(mode, (value) => {
   generatePasswords();
 });
 
-generatePasswords();
+// Keyboard shortcut: Ctrl+G to regenerate
+const onKeydown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'g') { e.preventDefault(); generatePasswords(); }
+};
+onMounted(() => { generatePasswords(); document.addEventListener('keydown', onKeydown) });
+onUnmounted(() => { document.removeEventListener('keydown', onKeydown) });
 </script>
 
 <style scoped>
@@ -274,10 +279,10 @@ generatePasswords();
 
 .panel {
   padding: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .section-head,
@@ -292,7 +297,7 @@ generatePasswords();
 h2,
 h3 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   letter-spacing: 0;
 }
 
@@ -306,7 +311,7 @@ h3 {
 
 p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -322,7 +327,7 @@ p {
   grid-template-columns: 72px minmax(0, 1fr) 120px;
   align-items: center;
   gap: 10px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
@@ -343,27 +348,27 @@ p {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--theme-hover);
   cursor: pointer;
   text-align: left;
 }
 
 .password-row:hover {
-  border-color: #14b8a6;
-  background: rgba(20, 184, 166, 0.08);
+  border-color: var(--theme-primary);
+  background: var(--theme-primary-light);
 }
 
 .password-row code {
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 13px;
   word-break: break-all;
 }
 
 .password-row span {
   flex-shrink: 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
 }
 
@@ -374,7 +379,7 @@ p {
 }
 
 .setting-group label {
-  color: #334155;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   font-weight: 700;
 }

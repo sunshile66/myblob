@@ -31,6 +31,22 @@
           @click="router.push('/tools')"
         />
 
+        <StatsBlock
+          label="新闻聚合"
+          :value="newsCount"
+          accent="linear-gradient(135deg, #06B6D4, #0EA5E9)"
+          :icon="ChatLineSquare"
+          @click="router.push('/news')"
+        />
+
+        <StatsBlock
+          label="知识百科"
+          :value="knowledgeCats"
+          accent="linear-gradient(135deg, #8B5CF6, #EC4899)"
+          :icon="Reading"
+          @click="router.push('/knowledge')"
+        />
+
         <!-- Row 2: Featured Posts x2  + Category Cloud (row-span 2 on right) -->
         <FeaturedPostBlock
           v-if="featuredPosts[0]"
@@ -83,8 +99,9 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { Document, Operation } from "@element-plus/icons-vue";
+import { Document, Operation, Reading, ChatLineSquare } from "@element-plus/icons-vue";
 import { getCategories, getPosts, getTags } from "@/api/post";
+import { getNewsList } from "@/api/news";
 import AnnouncementBar from "@/components/common/AnnouncementBar.vue";
 import AdBanner from "@/components/common/AdBanner.vue";
 import BentoGrid from "@/components/common/BentoGrid.vue";
@@ -110,7 +127,10 @@ const loadingMore = ref(false);
 const hasMore = ref(false);
 const totalPosts = ref(0);
 const page = ref(1);
+const newsCount = ref(0)
+const knowledgeCats = ref(11)
 const recentTools = ref(getRecentTools());
+
 
 const tabs = [
   {
@@ -170,14 +190,14 @@ const fetchPosts = async (reset = true) => {
 
     const activeTabMeta = tabs.find((t) => t.value === activeTab.value) ?? tabs[0];
     const response = await getPosts({
-      page: page.value,
+      page: page.value - 1,
       page_size: 15,
       status: "published",
       ordering: activeTabMeta.ordering,
     });
 
     totalPosts.value = response.count;
-    hasMore.value = Boolean(response.next);
+    hasMore.value = response.results?.length >= 15;
 
     if (reset) {
       posts.value = response.results ?? [];
@@ -228,14 +248,17 @@ const viewNote = (slug: string) => {
   router.push(`/note/${slug}`);
 };
 
-onMounted(() => {
-  void Promise.all([loadDiscoveryData(), fetchPosts(true)]);
+onMounted(async () => {
+  void Promise.all([loadDiscoveryData(), fetchPosts(true)])
+  // 异步加载新闻数和知识分类数（不阻塞首页）
+  getNewsList({ page: 0, size: 1 }).then((r: any) => { newsCount.value = r?.count || 0 }).catch(() => {})
+  import('@/api/knowledge').then(m => m.getKnowledgeCategories().then(cats => { if (Array.isArray(cats)) knowledgeCats.value = cats.length }).catch(() => {}))
 });
 </script>
 
 <style scoped>
 .bento-home {
-  padding-top: 8px;
+  padding-top: 12px;
 }
 
 /* ===== Responsive ===== */
@@ -253,6 +276,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .bento-home :deep(.bento-grid) {
     grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
   /* All blocks span full width on mobile */
@@ -272,7 +296,7 @@ onMounted(() => {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -281,21 +305,21 @@ onMounted(() => {
 }
 
 .bento-home :deep(.bento-card) {
-  animation: fadeInUp 0.4s ease-out both;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-.bento-home :deep(.bento-card:nth-child(1)) { animation-delay: 0.05s; }
-.bento-home :deep(.bento-card:nth-child(2)) { animation-delay: 0.1s; }
-.bento-home :deep(.bento-card:nth-child(3)) { animation-delay: 0.15s; }
-.bento-home :deep(.bento-card:nth-child(4)) { animation-delay: 0.2s; }
-.bento-home :deep(.bento-card:nth-child(5)) { animation-delay: 0.2s; }
-.bento-home :deep(.bento-card:nth-child(6)) { animation-delay: 0.25s; }
-.bento-home :deep(.bento-card:nth-child(7)) { animation-delay: 0.25s; }
-.bento-home :deep(.bento-card:nth-child(8)) { animation-delay: 0.3s; }
-.bento-home :deep(.bento-card:nth-child(9)) { animation-delay: 0.3s; }
-.bento-home :deep(.bento-card:nth-child(10)) { animation-delay: 0.35s; }
-.bento-home :deep(.bento-card:nth-child(11)) { animation-delay: 0.35s; }
-.bento-home :deep(.bento-card:nth-child(12)) { animation-delay: 0.4s; }
+.bento-home :deep(.bento-card:nth-child(1)) { animation-delay: 0.06s; }
+.bento-home :deep(.bento-card:nth-child(2)) { animation-delay: 0.12s; }
+.bento-home :deep(.bento-card:nth-child(3)) { animation-delay: 0.18s; }
+.bento-home :deep(.bento-card:nth-child(4)) { animation-delay: 0.24s; }
+.bento-home :deep(.bento-card:nth-child(5)) { animation-delay: 0.24s; }
+.bento-home :deep(.bento-card:nth-child(6)) { animation-delay: 0.3s; }
+.bento-home :deep(.bento-card:nth-child(7)) { animation-delay: 0.3s; }
+.bento-home :deep(.bento-card:nth-child(8)) { animation-delay: 0.36s; }
+.bento-home :deep(.bento-card:nth-child(9)) { animation-delay: 0.36s; }
+.bento-home :deep(.bento-card:nth-child(10)) { animation-delay: 0.42s; }
+.bento-home :deep(.bento-card:nth-child(11)) { animation-delay: 0.42s; }
+.bento-home :deep(.bento-card:nth-child(12)) { animation-delay: 0.48s; }
 
 @media (prefers-reduced-motion: reduce) {
   .bento-home :deep(.bento-card) {

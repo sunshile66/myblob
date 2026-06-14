@@ -67,7 +67,7 @@
 
           <div v-else class="success-state">
             <div class="success-icon">
-              <el-icon :size="48" color="#4f46e5"><Promotion /></el-icon>
+              <el-icon :size="48" style="color: var(--theme-primary)"><Promotion /></el-icon>
             </div>
             <h2 class="success-title">邮件已发送</h2>
             <p class="success-desc">
@@ -137,9 +137,9 @@ const handleSubmit = async () => {
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(1200px 600px at -10% -20%, rgba(99, 102, 241, 0.18), transparent 60%),
-    radial-gradient(900px 500px at 110% 110%, rgba(79, 70, 229, 0.16), transparent 60%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    radial-gradient(1200px 600px at -10% -20%, color-mix(in srgb, var(--theme-secondary) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, color-mix(in srgb, var(--theme-primary) 16%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--theme-background) 0%, color-mix(in srgb, var(--theme-primary) 6%, var(--theme-background)) 100%);
 }
 
 .auth-shell {
@@ -148,8 +148,8 @@ const handleSubmit = async () => {
   min-height: 500px;
   display: grid;
   grid-template-columns: 1.05fr 1fr;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
   border-radius: 20px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
   overflow: hidden;
@@ -162,7 +162,7 @@ const handleSubmit = async () => {
   background:
     radial-gradient(600px 300px at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
     radial-gradient(500px 260px at 0% 100%, rgba(255, 255, 255, 0.12), transparent 60%),
-    linear-gradient(160deg, #4338ca 0%, #4f46e5 45%, #6366f1 100%);
+    linear-gradient(160deg, color-mix(in srgb, var(--theme-primary) 85%, black) 0%, var(--theme-primary) 45%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary)) 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -269,7 +269,7 @@ const handleSubmit = async () => {
 .panel-header h1 {
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
   margin: 0 0 6px;
   letter-spacing: 0.2px;
 }
@@ -277,7 +277,7 @@ const handleSubmit = async () => {
 .panel-header p {
   margin: 0 0 22px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .auth-form :deep(.el-form-item) {
@@ -287,23 +287,23 @@ const handleSubmit = async () => {
 .auth-form :deep(.el-form-item__label) {
   font-size: 13px;
   font-weight: 500;
-  color: #334155;
+  color: var(--theme-text);
   padding-bottom: 6px;
   line-height: 1.4;
 }
 
 .auth-form :deep(.el-input__wrapper) {
   border-radius: 8px;
-  box-shadow: 0 0 0 1px #e5e7eb inset;
+  box-shadow: 0 0 0 1px var(--theme-border) inset;
   transition: box-shadow 0.18s ease;
 }
 
 .auth-form :deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px #c7d2fe inset;
+  box-shadow: 0 0 0 1px var(--theme-border-strong) inset;
 }
 
 .auth-form :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #4f46e5 inset, 0 0 0 4px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 1px var(--theme-primary) inset, 0 0 0 4px var(--theme-primary-light);
 }
 
 .auth-button {
@@ -311,7 +311,7 @@ const handleSubmit = async () => {
   height: 44px;
   font-size: 15px;
   font-weight: 600;
-  background: #4f46e5;
+  background: var(--theme-primary);
   border: none;
   border-radius: 10px;
   margin-top: 4px;
@@ -319,8 +319,8 @@ const handleSubmit = async () => {
 }
 
 .auth-button:hover {
-  background: #4338ca;
-  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+  background: color-mix(in srgb, var(--theme-primary) 85%, black);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--theme-primary) 25%, transparent);
   transform: translateY(-1px);
 }
 
@@ -332,11 +332,11 @@ const handleSubmit = async () => {
   margin: 18px 0 0;
   text-align: center;
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .auth-link {
-  color: #4f46e5;
+  color: var(--theme-primary);
   cursor: pointer;
   font-weight: 500;
   text-decoration: none;
@@ -344,7 +344,7 @@ const handleSubmit = async () => {
 }
 
 .auth-link:hover {
-  color: #4338ca;
+  color: color-mix(in srgb, var(--theme-primary) 80%, black);
   text-decoration: underline;
 }
 
@@ -361,13 +361,13 @@ const handleSubmit = async () => {
 .success-title {
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
   margin: 0 0 10px;
 }
 
 .success-desc {
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   line-height: 1.6;
   margin: 0 0 24px;
 }

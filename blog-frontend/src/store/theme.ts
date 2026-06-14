@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref, computed, watch } from 'vue'
 
 export type ThemeType = 'light' | 'dark' | 'system' | 'pink' | 'blue' | 'purple' | 'cyan' | 'orange'
@@ -26,13 +26,8 @@ export interface ThemeConfig {
   colors: ThemeColors
 }
 
-export const useThemeStore = defineStore('theme', () => {
-  const currentTheme = ref<ThemeType>('system')
-  const effectiveTheme = ref<ThemeType>('light')
-  const brightness = ref(100)
-  const contrast = ref(100)
-
-  const themeConfigs: Record<ThemeType, ThemeConfig> = {
+// 静态主题配置（模块级常量，避免响应式开销）
+const themeConfigs: Record<ThemeType, ThemeConfig> = {
     light: {
       name: '浅色主题',
       description: '极简现代蓝，明亮清爽',
@@ -193,7 +188,13 @@ export const useThemeStore = defineStore('theme', () => {
         gradientPrimary: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
       },
     },
-  }
+}
+
+export const useThemeStore = defineStore('theme', () => {
+  const currentTheme = ref<ThemeType>('system')
+  const effectiveTheme = ref<ThemeType>('light')
+  const brightness = ref(100)
+  const contrast = ref(100)
 
   const currentThemeConfig = computed(() => {
     return themeConfigs[effectiveTheme.value]
@@ -314,7 +315,6 @@ export const useThemeStore = defineStore('theme', () => {
     effectiveTheme,
     brightness,
     contrast,
-    themeConfigs,
     currentThemeConfig,
     availableThemes,
     isDark,
@@ -326,3 +326,8 @@ export const useThemeStore = defineStore('theme', () => {
     resolveEffectiveTheme,
   }
 })
+
+// HMR 支持
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useThemeStore, import.meta.hot))
+}

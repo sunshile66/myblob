@@ -413,10 +413,10 @@ watch(
 <style scoped>
 .tool-tabs {
   padding: 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.06);
+  border-radius: var(--radius-xl);
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .tool-content {
@@ -427,13 +427,13 @@ watch(
 
 .panel {
   padding: 18px;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.03);
+  border-radius: var(--radius-lg);
+  background: var(--theme-background);
 }
 
 .panel h2 {
   margin: 0 0 14px;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 20px;
 }
 
@@ -459,13 +459,10 @@ watch(
   justify-content: flex-end;
 }
 
-@media (max-width: 960px) {
-  .tool-content {
-    grid-template-columns: 1fr;
-  }
+:deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
 
-  .tool-tabs {
-    padding: 16px;
-  }
+@media (max-width: 960px) {
+  .tool-content { grid-template-columns: 1fr; }
+  .tool-tabs { padding: 16px; }
 }
 </style>

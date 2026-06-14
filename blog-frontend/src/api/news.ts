@@ -18,6 +18,27 @@ export const getNewsCategories = () =>
 export const getTrendingNews = (params?: { size?: number; category?: string }) =>
   request.get<NewsItem[]>('/news/trending/', { params })
 
+export interface TrendingTopic {
+  topic: string
+  count: number
+  sentiment: string
+}
+
+export interface SentimentSummary {
+  overall: string
+  total: number
+  positive: number
+  negative: number
+  neutral: number
+  categories: { name: string; positive: number; negative: number; neutral: number }[]
+}
+
+export const getTrendingTopics = (params?: { limit?: number }) =>
+  request.get<TrendingTopic[]>('/news/topics/', { params })
+
+export const getSentimentSummary = () =>
+  request.get<SentimentSummary>('/news/sentiment/')
+
 // ===== Flight Tracking API =====
 export interface FlightRoute {
   id: number

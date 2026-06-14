@@ -254,8 +254,16 @@ const runJsMode = (value: string) => {
     .replace(/\b(function|if|for|while|switch)\s*\(/g, "$1 (");
 };
 
+// 防抖源：大文本延迟处理避免卡顿
+const debouncedSource = ref(source.value);
+let formatTimer: ReturnType<typeof setTimeout> | null = null;
+watch(source, (val) => {
+  if (formatTimer) clearTimeout(formatTimer);
+  formatTimer = setTimeout(() => { debouncedSource.value = val; }, val.length > 5000 ? 400 : val.length > 1000 ? 200 : 0);
+});
+
 const output = computed(() => {
-  const value = source.value.trim();
+  const value = debouncedSource.value.trim();
   if (!value) return "";
   if (minify.value) return minifyCode(value);
   if (language.value === "html") return formatHtml(value);
@@ -307,10 +315,10 @@ watch(
 
 .panel {
   padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .panel-head {
@@ -322,13 +330,13 @@ watch(
 
 h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 18px;
 }
 
 p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
@@ -351,7 +359,7 @@ p {
   padding: 14px;
   overflow: auto;
   border-radius: 8px;
-  background: #111827;
+  background: var(--theme-text);
   color: #e5e7eb;
   font-size: 13px;
   line-height: 1.65;
@@ -371,4 +379,5 @@ p {
     justify-content: flex-start;
   }
 }
+:deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
 </style>

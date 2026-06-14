@@ -1,42 +1,58 @@
 <template>
   <KnowledgeLayout>
   <div class="knowledge-hub">
-    <div class="hub-header">
+    <!-- 顶部搜索区 -->
+    <div class="hub-hero">
       <h1>知识百科</h1>
-      <p>探索知识海洋，从英语学习到编程、数学、历史、科学</p>
+      <p>探索知识海洋，从英语学习到编程、数学、AI、安全——内置 PostgreSQL 全文搜索</p>
+      <div class="hero-search">
+        <el-input v-model="globalSearch" size="large" placeholder="搜索编程 / 数学 / AI / 安全 / 英语词汇..."
+          clearable @keyup.enter="doSearch" @clear="globalSearch = ''">
+          <template #prefix><el-icon><Search /></el-icon></template>
+          <template #append><el-button @click="doSearch" :loading="searching">搜索</el-button></template>
+        </el-input>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="hub-stats">
+      <article v-for="s in stats" :key="s.label" class="stat-card" :style="{ borderLeftColor: s.color }">
+        <strong :style="{ color: s.color }">{{ s.value }}</strong>
+        <span>{{ s.label }}</span>
+      </article>
     </div>
 
     <!-- 英语学习区块 -->
     <section class="section">
-      <h2 class="section-title">
-        <el-icon><Reading /></el-icon> 英语学习
-      </h2>
+      <h2 class="section-title"><el-icon><Reading /></el-icon> 英语学习</h2>
       <div class="card-grid">
         <router-link to="/knowledge/vocabulary" class="hub-card card-vocab">
-          <div class="card-icon">
-            <el-icon :size="32"><Notebook /></el-icon>
-          </div>
+          <div class="card-icon"><el-icon :size="32"><Notebook /></el-icon></div>
           <div class="card-body">
             <h3>英语词汇</h3>
-            <p>带音标和发音的词汇学习卡片，覆盖CET4/6、雅思、托福、GRE</p>
+            <p>带音标和发音的词汇学习卡片，覆盖CET4/6、雅思、托福、GRE — 45,000+ 词汇</p>
+            <span class="card-badge">{{ vocabCount }} 词</span>
           </div>
         </router-link>
         <router-link to="/knowledge/vocabulary/quiz" class="hub-card card-quiz">
-          <div class="card-icon">
-            <el-icon :size="32"><EditPen /></el-icon>
-          </div>
+          <div class="card-icon"><el-icon :size="32"><EditPen /></el-icon></div>
           <div class="card-body">
             <h3>词汇测验</h3>
-            <p>随机出题，选择题模式，检验单词掌握程度</p>
+            <p>随机出题，选择题模式，检验单词掌握程度，支持间隔重复复习</p>
           </div>
         </router-link>
         <router-link to="/knowledge/articles" class="hub-card card-articles">
-          <div class="card-icon">
-            <el-icon :size="32"><Document /></el-icon>
-          </div>
+          <div class="card-icon"><el-icon :size="32"><Document /></el-icon></div>
           <div class="card-body">
             <h3>英语外刊</h3>
-            <p>BBC、VOA等外刊文章，提升英语阅读能力</p>
+            <p>BBC、VOA 等外刊文章，提升英语阅读能力，积累地道表达</p>
+          </div>
+        </router-link>
+        <router-link to="/knowledge/progress" class="hub-card card-progress">
+          <div class="card-icon"><el-icon :size="32"><DataLine /></el-icon></div>
+          <div class="card-body">
+            <h3>学习进度</h3>
+            <p>查看学习统计、复习计划、掌握程度热力图</p>
           </div>
         </router-link>
       </div>
@@ -44,39 +60,78 @@
 
     <!-- 知识分类区块 -->
     <section class="section">
-      <h2 class="section-title">
-        <el-icon><Collection /></el-icon> 知识分类
-      </h2>
+      <h2 class="section-title"><el-icon><Collection /></el-icon> 知识分类</h2>
       <div class="card-grid" v-loading="categoriesLoading">
-        <router-link
-          v-for="cat in categories"
-          :key="cat.key"
-          :to="`/knowledge/${cat.key}`"
-          class="hub-card"
-          :class="`card-${cat.key}`"
-        >
-          <div class="card-icon">
-            <el-icon :size="32"><component :is="cat.icon" /></el-icon>
-          </div>
+        <router-link v-for="cat in categories" :key="cat.key" :to="`/knowledge/${cat.key}`"
+          class="hub-card cat-card" :class="`card-${cat.key}`">
+          <div class="card-icon"><el-icon :size="32"><component :is="cat.icon" /></el-icon></div>
           <div class="card-body">
             <h3>{{ cat.name }}</h3>
             <p>{{ catDesc(cat.key) }}</p>
+            <span class="card-badge">{{ catCounts[cat.key] || 0 }} 篇</span>
           </div>
         </router-link>
       </div>
     </section>
+
+    <!-- 搜索结果 -->
+    <section v-if="searchResults.length" class="section">
+      <h2 class="section-title">搜索结果（{{ searchTotal }}）</h2>
+      <div class="cards-list">
+        <div v-for="item in searchResults" :key="item.id" class="knowledge-card" @click="openDetail(item)">
+          <h3 v-html="highlight(item.title)"></h3>
+          <p class="card-summary" v-html="highlight(item.summary || item.content?.slice(0,200))"></p>
+          <div class="card-meta">
+            <el-tag size="small">{{ item.category }}</el-tag>
+            <span>{{ item.viewCount }} 浏览</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <el-dialog v-model="detailVisible" :title="detailItem?.title" width="800px" destroy-on-close>
+      <div class="detail-content" v-if="detailItem">
+        <div class="detail-meta">
+          <el-tag size="small">{{ detailItem.category }}</el-tag>
+          <span v-if="detailItem.source">来源：{{ detailItem.source }}</span>
+          <span>难度：{{ '★'.repeat(detailItem.difficulty) }}</span>
+          <span>{{ detailItem.viewCount }} 浏览</span>
+        </div>
+        <div class="markdown-body" v-html="renderMarkdown(detailItem.content)" />
+      </div>
+    </el-dialog>
   </div>
   </KnowledgeLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Reading, Notebook, EditPen, Document, Collection, Cpu, Lock, DataLine, SetUp } from '@element-plus/icons-vue'
-import { getKnowledgeCategories, type KnowledgeCategory } from '@/api/knowledge'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Reading, Notebook, EditPen, Document, Collection, Search, DataLine } from '@element-plus/icons-vue'
+import { getKnowledgeCategories, getKnowledgeItems, getKnowledgeDetail, type KnowledgeCategory, type KnowledgeItem } from '@/api/knowledge'
 import KnowledgeLayout from './components/KnowledgeLayout.vue'
+import MarkdownIt from 'markdown-it'
 
+const md = new MarkdownIt({ html: false, linkify: true })
+const router = useRouter()
 const categories = ref<KnowledgeCategory[]>([])
 const categoriesLoading = ref(false)
+const catCounts = reactive<Record<string, number>>({})
+const vocabCount = ref(45019)
+const globalSearch = ref('')
+const searching = ref(false)
+const searchResults = ref<KnowledgeItem[]>([])
+const searchTotal = ref(0)
+const detailVisible = ref(false)
+const detailItem = ref<KnowledgeItem | null>(null)
+
+const stats = [
+  { label: '知识分类', value: '11', color: '#4F46E5' },
+  { label: '英语词汇', value: '45,019', color: '#10B981' },
+  { label: '知识条目', value: '108+', color: '#F59E0B' },
+  { label: '全文搜索', value: 'PG tsvector', color: '#8B5CF6' },
+]
 
 const catDesc = (key: string) => {
   const map: Record<string, string> = {
@@ -95,136 +150,90 @@ const catDesc = (key: string) => {
   return map[key] || '探索更多知识'
 }
 
+const doSearch = async () => {
+  if (!globalSearch.value.trim()) return
+  searching.value = true
+  try {
+    const params: any = { search: globalSearch.value.trim(), page: 0, size: 20 }
+    const res = await getKnowledgeItems(params)
+    searchResults.value = (res as any).content || (res as any).results || []
+    searchTotal.value = (res as any).totalElements || searchResults.value.length
+  } catch { ElMessage.error('搜索失败') }
+  finally { searching.value = false }
+}
+
+const highlight = (text: string) => {
+  if (!globalSearch.value || !text) return text || ''
+  const words = globalSearch.value.trim().split(/\s+/).filter(Boolean)
+  let result = text
+  words.forEach(w => {
+    const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    result = result.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>')
+  })
+  return result
+}
+
+const renderMarkdown = (content: string) => md.render(content || '')
+
+const openDetail = async (item: KnowledgeItem) => {
+  detailItem.value = item
+  detailVisible.value = true
+  try { const res = await getKnowledgeDetail(item.id); if ((res as any).content) detailItem.value = res as any } catch {}
+}
+
 onMounted(async () => {
   categoriesLoading.value = true
   try {
-    const res = await getKnowledgeCategories()
-    categories.value = (res as any).data || res
-  } finally {
-    categoriesLoading.value = false
-  }
+    const cats = await getKnowledgeCategories()
+    categories.value = cats || []
+    for (const c of cats || []) {
+      try {
+        const res = await getKnowledgeItems({ category: c.key, page: 0, size: 1 })
+        catCounts[c.key] = (res as any).totalElements || 0
+      } catch { catCounts[c.key] = 0 }
+    }
+  } finally { categoriesLoading.value = false }
 })
 </script>
 
 <style scoped>
-.knowledge-hub {
-  padding: 0;
-}
+.knowledge-hub { max-width: 1100px; margin: 0 auto; padding: 0 20px 48px; }
+.hub-hero { text-align: center; padding: 48px 0 36px; }
+.hub-hero h1 { font-size: 2rem; font-weight: 800; color: var(--theme-text); margin: 0 0 8px; }
+.hub-hero p { font-size: 15px; color: var(--theme-text-secondary); margin: 0 0 24px; }
+.hero-search { max-width: 560px; margin: 0 auto; }
 
-.hub-header {
-  text-align: center;
-  margin-bottom: 48px;
-}
+.hub-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 36px; }
+.stat-card { padding: 18px; border-radius: 12px; background: var(--theme-card); border: 1px solid var(--theme-border); border-left: 3px solid; }
+.stat-card strong { font-size: 26px; display: block; }
+.stat-card span { font-size: 12px; color: var(--theme-text-secondary); margin-top: 4px; display: block; }
 
-.hub-header h1 {
-  font-size: 36px;
-  font-weight: 700;
-  color: var(--theme-text);
-  margin: 0 0 12px;
-}
+.section { margin-bottom: 36px; }
+.section-title { font-size: 1.2rem; font-weight: 700; color: var(--theme-text); margin: 0 0 18px; display: flex; align-items: center; gap: 8px; }
+.card-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.hub-card { padding: 22px; border-radius: 14px; background: var(--theme-card); border: 1px solid var(--theme-border); text-decoration: none; color: var(--theme-text); transition: all .2s; display: flex; gap: 14px; align-items: flex-start; }
+.hub-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,70,229,.1); border-color: var(--theme-primary); }
+.card-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.card-vocab .card-icon { background: rgba(79,70,229,.1); color: #4F46E5; }
+.card-quiz .card-icon { background: rgba(16,185,129,.1); color: #10B981; }
+.card-articles .card-icon { background: rgba(245,158,11,.1); color: #F59E0B; }
+.card-progress .card-icon { background: rgba(139,92,246,.1); color: #8B5CF6; }
+.cat-card .card-icon { background: var(--theme-hover); color: var(--theme-primary); }
+.card-body { flex: 1; min-width: 0; }
+.card-body h3 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+.card-body p { font-size: 13px; color: var(--theme-text-secondary); line-height: 1.6; margin: 0; }
+.card-badge { display: inline-block; margin-top: 8px; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--theme-primary-light); color: var(--theme-primary); font-weight: 600; }
 
-.hub-header p {
-  font-size: 16px;
-  color: var(--theme-text-secondary);
-}
+/* Search results */
+.cards-list { display: flex; flex-direction: column; gap: 10px; }
+.knowledge-card { padding: 18px 20px; background: var(--theme-card); border: 1px solid var(--theme-border); border-radius: 12px; cursor: pointer; transition: all .2s; }
+.knowledge-card:hover { border-color: var(--theme-primary); box-shadow: var(--shadow-sm); }
+.knowledge-card h3 { margin: 0 0 8px; font-size: 16px; }
+.knowledge-card p { font-size: 13px; color: var(--theme-text-secondary); line-height: 1.6; margin: 0; }
+.card-meta { display: flex; gap: 10px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--theme-text-secondary); }
 
-.section {
-  margin-bottom: 48px;
-}
+:deep(mark) { background: #FEF08A; color: #000; padding: 1px 3px; border-radius: 2px; }
 
-.section-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--theme-text);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 24px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--theme-border);
-  position: relative;
-}
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 60px;
-  height: 2px;
-  background: var(--gradient-primary);
-  border-radius: 1px;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.hub-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 28px;
-  border-radius: 16px;
-  text-decoration: none;
-  transition: transform 0.2s, box-shadow 0.2s;
-  background: var(--theme-card);
-  border: 1px solid var(--theme-border);
-  cursor: pointer;
-}
-
-.hub-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  border-color: var(--theme-primary);
-}
-
-.card-icon {
-  flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  color: #fff;
-}
-
-.card-vocab .card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-.card-quiz .card-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
-.card-articles .card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-
-.card-programming .card-icon { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
-.card-math .card-icon { background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #333; }
-.card-history .card-icon { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
-.card-science .card-icon { background: linear-gradient(135deg, #fddb92, #d1fdff); color: #333; }
-.card-literature .card-icon { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
-.card-philosophy .card-icon { background: linear-gradient(135deg, #d4fc79, #96e6a1); color: #333; }
-.card-business .card-icon { background: linear-gradient(135deg, #fccb90, #d57eeb); }
-.card-ai .card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-.card-cybersecurity .card-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
-.card-algorithms .card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.card-system-design .card-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #333; }
-
-.card-body h3 {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--theme-text);
-  margin: 0 0 6px;
-}
-
-.card-body p {
-  font-size: 14px;
-  color: var(--theme-text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-@media (max-width: 768px) {
-  .card-grid {
-    grid-template-columns: 1fr;
-  }
-  .hub-header h1 { font-size: 28px; }
-}
+@media (max-width: 900px) { .card-grid, .hub-stats { grid-template-columns: repeat(2,1fr); } .hub-card { flex-direction: column; } }
+@media (max-width: 520px) { .card-grid, .hub-stats { grid-template-columns: 1fr; } }
 </style>

@@ -209,10 +209,10 @@ const startWithFirstMatch = () => {
 .desk-stats article,
 .quick-row,
 .tool-card {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: none;
 }
 
 .desk-sidebar {
@@ -220,14 +220,19 @@ const startWithFirstMatch = () => {
   top: 88px;
   display: grid;
   align-content: start;
-  gap: 8px;
+  gap: 6px;
   height: fit-content;
-  padding: 10px;
+  padding: 12px;
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background: var(--theme-card);
+  box-shadow: none;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .desk-brand,
-.nav-item,
-.tool-card {
+.nav-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -235,50 +240,56 @@ const startWithFirstMatch = () => {
 }
 
 .desk-brand {
-  padding: 12px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #0f172a, #155e75);
-  color: white;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--gradient-primary);
+  color: #fff;
 }
 
-.desk-brand span,
-.toolbar-kicker {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+.desk-brand span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  opacity: 0.85;
 }
 
 .desk-brand strong {
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
+  font-weight: 700;
 }
 
 .nav-item {
   width: 100%;
-  padding: 11px 12px;
+  padding: 10px 14px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
-  color: #334155;
+  color: var(--theme-text-secondary);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   text-align: left;
   transition: all var(--transition-fast);
 }
 
 .nav-item strong {
-  color: #94a3b8;
-  font-size: 12px;
+  color: var(--theme-text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--theme-hover);
 }
 
 .nav-item:hover,
 .nav-item.active {
-  border-color: rgba(20, 184, 166, 0.26);
-  background: rgba(20, 184, 166, 0.09);
-  color: #0f766e;
+  border-color: var(--theme-primary);
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
 }
+.nav-item.active strong { background: var(--theme-primary-light); color: var(--theme-primary); }
 
 .desk-main {
   display: flex;
@@ -298,19 +309,19 @@ const startWithFirstMatch = () => {
 .toolbar-kicker {
   display: inline-flex;
   margin-bottom: 8px;
-  color: #0f766e;
+  color: var(--theme-primary);
 }
 
 .desk-toolbar h1 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 28px;
   line-height: 1.2;
 }
 
 .desk-toolbar p {
   margin: 8px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 14px;
 }
 
@@ -327,7 +338,11 @@ const startWithFirstMatch = () => {
 }
 
 .desk-stats article {
-  padding: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background: var(--theme-card);
+  box-shadow: none;
 }
 
 .desk-stats strong,
@@ -336,15 +351,17 @@ const startWithFirstMatch = () => {
 }
 
 .desk-stats strong {
-  color: #0f172a;
-  font-size: 21px;
+  color: var(--theme-primary);
+  font-size: 24px;
   line-height: 1.2;
+  font-weight: 700;
 }
 
 .desk-stats span {
-  margin-top: 3px;
-  color: #64748b;
+  margin-top: 4px;
+  color: var(--theme-text-secondary);
   font-size: 12px;
+  font-weight: 500;
 }
 
 .quick-row {
@@ -358,9 +375,9 @@ const startWithFirstMatch = () => {
 
 .quick-row span {
   flex: 0 0 auto;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .quick-row button {
@@ -368,8 +385,8 @@ const startWithFirstMatch = () => {
   border: 0;
   border-radius: 999px;
   padding: 7px 12px;
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--theme-hover);
+  color: var(--theme-text);
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;
@@ -390,21 +407,27 @@ const startWithFirstMatch = () => {
   display: block;
   padding: 40px 0;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--theme-card);
 }
 
 .tool-card {
-  min-height: 92px;
-  padding: 12px;
+  min-height: 96px;
+  padding: 16px;
   text-align: left;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background: var(--theme-card);
+  box-shadow: none;
 }
-
 .tool-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(20, 184, 166, 0.34);
-  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
+  transform: translateY(-3px);
+  border-color: var(--theme-primary);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
 }
 
 .tool-icon {
@@ -412,11 +435,11 @@ const startWithFirstMatch = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  color: white;
-  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 22px;
 }
 
 .tool-copy {
@@ -430,7 +453,7 @@ const startWithFirstMatch = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 15px;
   line-height: 1.25;
 }
@@ -438,17 +461,19 @@ const startWithFirstMatch = () => {
 .tool-copy em {
   border-radius: 999px;
   padding: 2px 6px;
-  background: rgba(15, 118, 110, 0.12);
-  color: #0f766e;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
   font-size: 10px;
   font-style: normal;
-  font-weight: 900;
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .tool-copy small {
   display: -webkit-box;
   overflow: hidden;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
   line-height: 1.45;
   -webkit-box-orient: vertical;
@@ -457,7 +482,7 @@ const startWithFirstMatch = () => {
 
 .tag-line {
   overflow: hidden;
-  color: #94a3b8;
+  color: var(--theme-text-tertiary);
   font-size: 12px;
   font-weight: 700;
   text-overflow: ellipsis;

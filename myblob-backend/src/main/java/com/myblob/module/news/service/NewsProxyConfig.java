@@ -23,8 +23,8 @@ public class NewsProxyConfig {
     public static class Proxy {
         private Http http = new Http();
         private String userAgent = "MyBlob-NewsBot/1.0";
-        private int connectTimeout = 10000;
-        private int readTimeout = 15000;
+        private int connectTimeout = 25000;
+        private int readTimeout = 45000;
 
         @Data
         public static class Http {

@@ -23,6 +23,14 @@ public class PageResponse<T> {
     @JsonProperty("total_pages")
     private int totalPages;
 
+    /** Alias for 'results' — Spring Data Page compatibility */
+    @JsonProperty("content")
+    public List<T> getContent() { return results; }
+
+    /** Alias for 'count' — Spring Data Page compatibility */
+    @JsonProperty("totalElements")
+    public long getTotalElements() { return count; }
+
     public static <T> PageResponse<T> of(Page<T> page) {
         return PageResponse.<T>builder()
                 .results(page.getContent())

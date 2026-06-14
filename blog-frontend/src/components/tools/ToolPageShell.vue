@@ -77,10 +77,12 @@ const goBack = () => {
   justify-content: space-between;
   gap: 14px;
   padding: 10px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: none;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .tool-shell__title {
@@ -93,28 +95,31 @@ const goBack = () => {
 .tool-shell__back {
   flex: 0 0 auto;
   padding: 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-weight: 700;
 }
 
 .tool-shell__back:hover {
-  color: #0f766e;
+  color: var(--theme-primary);
 }
 
 .tool-shell__title > span {
   flex: 0 0 auto;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(20, 184, 166, 0.12);
-  color: #0f766e;
-  font-size: 12px;
-  font-weight: 800;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .tool-shell__title h1 {
   flex: 0 0 auto;
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 18px;
   line-height: 1.25;
 }
@@ -122,7 +127,7 @@ const goBack = () => {
 .tool-shell__title p {
   overflow: hidden;
   margin: 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -138,8 +143,8 @@ const goBack = () => {
   min-width: 78px;
   padding: 6px 9px;
   border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.07);
+  background: var(--theme-background);
+  border: 1px solid var(--theme-border);
 }
 
 .tool-shell__meta-card span,
@@ -149,13 +154,13 @@ const goBack = () => {
 }
 
 .tool-shell__meta-card span {
-  color: #94a3b8;
+  color: var(--theme-text-tertiary);
   font-size: 11px;
 }
 
 .tool-shell__meta-card strong {
   margin-top: 3px;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 13px;
 }
 

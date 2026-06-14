@@ -35,7 +35,7 @@ public class NewsController {
     private final NewsSentimentService newsSentimentService;
 
     @GetMapping("/")
-    @Operation(summary = "获取新闻列表")
+    @Operation(summary = "获取新闻列表（按时间倒序，支持分类/来源/语言/搜索筛选）")
     public ResponseEntity<ApiResponse<PageResponse<NewsItemDTO>>> getNews(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -44,8 +44,6 @@ public class NewsController {
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int minScore) {
-        // 默认按时间倒序（最新优先），让多源内容都有展示机会
-        // 不再按 qualityScore 排序，避免官方媒体霸榜
         Sort sort = Sort.by(Sort.Direction.DESC, "publishedAt");
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<NewsItem> items;

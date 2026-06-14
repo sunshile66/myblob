@@ -107,23 +107,38 @@ public class FlightTrackingService {
             }
 
             List<List<Object>> states = (List<List<Object>>) response.get("states");
-            int saved = 0;
             int now = (int) (System.currentTimeMillis() / 1000);
 
+            // 第一步：收集所有有效的 callsign
+            List<String> validCallsigns = new ArrayList<>();
+            Map<String, List<Object>> stateMap = new LinkedHashMap<>();
             for (List<Object> state : states) {
-                if (state.size() < 17)
-                    continue;
-
+                if (state.size() < 17) continue;
                 String callsign = state.get(1) != null ? state.get(1).toString().trim() : "";
-                if (callsign.isEmpty())
-                    continue;
+                if (callsign.isEmpty()) continue;
+                String prefix3 = callsign.length() >= 3 ? callsign.substring(0, 3) : "";
+                if (!AIRLINE_MAP.containsKey(prefix3)) continue;
+                validCallsigns.add(callsign);
+                stateMap.put(callsign, state);
+            }
 
-                // Check if this is a known airline
+            if (validCallsigns.isEmpty()) {
+                log.info("No valid airline flights found");
+                return 0;
+            }
+
+            // 第二步：批量查询已存在的航班
+            Map<String, FlightRoute> existingFlights = flightRouteRepository.findByCallsignIn(validCallsigns)
+                    .stream().collect(java.util.stream.Collectors.toMap(FlightRoute::getCallsign, f -> f));
+
+            // 第三步：构建需要保存的航班列表
+            List<FlightRoute> flightsToSave = new ArrayList<>();
+            for (Map.Entry<String, List<Object>> entry : stateMap.entrySet()) {
+                String callsign = entry.getKey();
+                List<Object> state = entry.getValue();
+
                 String prefix3 = callsign.length() >= 3 ? callsign.substring(0, 3) : "";
                 String airline = AIRLINE_MAP.get(prefix3);
-                if (airline == null)
-                    continue; // Skip non-airline flights
-
                 String icao24 = state.get(0) != null ? state.get(0).toString() : "";
                 String country = state.get(2) != null ? state.get(2).toString() : "";
                 Double longitude = state.get(5) instanceof Number ? ((Number) state.get(5)).doubleValue() : null;
@@ -133,13 +148,10 @@ public class FlightTrackingService {
                 Object lastContactObj = state.get(4);
                 int lastContact = lastContactObj instanceof Number ? ((Number) lastContactObj).intValue() : now;
 
-                // Save or update flight
-                Optional<FlightRoute> existing = flightRouteRepository.findByCallsign(callsign);
-                FlightRoute flight;
+                FlightRoute flight = existingFlights.get(callsign);
                 String changeType;
 
-                if (existing.isPresent()) {
-                    flight = existing.get();
+                if (flight != null) {
                     changeType = "NORMAL";
                 } else {
                     flight = FlightRoute.builder()
@@ -163,24 +175,21 @@ public class FlightTrackingService {
                         Instant.ofEpochSecond(lastContact), ZoneId.systemDefault()));
                 flight.setChangeType(changeType);
 
-                flightRouteRepository.save(flight);
-                saved++;
+                flightsToSave.add(flight);
             }
 
-            // Mark flights not seen in 2 hours as potentially cancelled
+            // 第四步：批量保存
+            if (!flightsToSave.isEmpty()) {
+                flightRouteRepository.saveAll(flightsToSave);
+            }
+
+            // 第五步：批量更新过期航班（使用批量 UPDATE 语句）
             LocalDateTime cutoff = LocalDateTime.now().minusHours(2);
-            List<FlightRoute> staleFlights = flightRouteRepository.findActiveFlights(cutoff);
-            for (FlightRoute f : staleFlights) {
-                if (f.getLastSeen() != null && f.getLastSeen().isBefore(cutoff)
-                        && !"CANCELLED".equals(f.getChangeType())) {
-                    f.setChangeType("CANCELLED");
-                    f.setStatus("not-seen");
-                    flightRouteRepository.save(f);
-                }
-            }
+            int cancelledCount = flightRouteRepository.markStaleFlightsAsCancelled(cutoff);
 
-            log.info("Flight tracking: saved/updated {} flights from {} total states", saved, states.size());
-            return saved;
+            log.info("Flight tracking: saved/updated {} flights, marked {} as cancelled", 
+                    flightsToSave.size(), cancelledCount);
+            return flightsToSave.size();
 
         } catch (Exception e) {
             log.error("Flight tracking fetch failed: {}", e.getMessage());

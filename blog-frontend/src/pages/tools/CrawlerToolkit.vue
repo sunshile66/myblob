@@ -606,10 +606,10 @@ watch(() => route.meta.crawlerMode, setDefaults, { immediate: true });
 
 .tool-switcher,
 .panel {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .tool-switcher {
@@ -633,17 +633,17 @@ watch(() => route.meta.crawlerMode, setDefaults, { immediate: true });
 
 .switch-item:hover,
 .switch-item.active {
-  border-color: rgba(20, 184, 166, 0.28);
-  background: rgba(20, 184, 166, 0.08);
+  border-color: color-mix(in srgb, var(--theme-primary) 28%, transparent);
+  background: var(--theme-primary-light);
 }
 
 .switch-item strong {
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 13px;
 }
 
 .switch-item span {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
 }
 
@@ -667,13 +667,13 @@ watch(() => route.meta.crawlerMode, setDefaults, { immediate: true });
 
 h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 18px;
 }
 
 p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -703,9 +703,9 @@ p {
   width: 100%;
   min-height: 430px;
   margin: 0;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: #111827;
+  background: var(--theme-text);
 }
 
 .result-block {
@@ -719,14 +719,14 @@ p {
 }
 
 .html-preview {
-  background: white;
+  background: var(--theme-card);
 }
 
 .share-preview {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
-  background: #0f172a;
+  background: var(--theme-text);
   color: #e5e7eb;
 }
 
@@ -747,13 +747,13 @@ p {
 
 .share-preview__header span,
 .share-preview__header small {
-  color: #94a3b8;
+  color: var(--theme-text-tertiary);
   font-size: 12px;
 }
 
 .share-preview__header strong {
   margin-top: 3px;
-  color: #f8fafc;
+  color: var(--theme-background);
   font-size: 16px;
 }
 
@@ -780,8 +780,8 @@ p {
 .insight-card {
   padding: 12px;
   border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--theme-hover);
+  border: 1px solid var(--theme-border);
 }
 
 .insight-card span,
@@ -790,13 +790,13 @@ p {
 }
 
 .insight-card span {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
 }
 
 .insight-card strong {
   margin-top: 4px;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 15px;
   line-height: 1.5;
 }

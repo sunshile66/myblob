@@ -1,79 +1,155 @@
 <template>
-  <SimpleLayout>
-    <div class="uuid-generator">
-      <div class="container">
-        <div class="page-header">
-          <el-button type="primary" link @click="router.back()" class="back-btn">
-            <el-icon><ArrowLeft /></el-icon>
-            返回
+  <ToolPageShell
+    title="UUID 生成器"
+    description="在线生成 UUID v1/v4/NIL，支持批量生成和多种格式导出。"
+    eyebrow="开发调试"
+    :meta="meta"
+  >
+    <div class="uuid-workspace">
+      <section class="panel settings-panel">
+        <h2>生成选项</h2>
+        <div class="settings-row">
+          <div class="setting-group">
+            <label>UUID 版本</label>
+            <el-select v-model="version" @change="generateUuids">
+              <el-option label="v4 (随机)" value="v4" />
+              <el-option label="v1 (时间戳)" value="v1" />
+              <el-option label="NIL (全零)" value="nil" />
+            </el-select>
+          </div>
+          <div class="setting-group">
+            <label>批量数量</label>
+            <el-input-number v-model="count" :min="1" :max="50" @change="generateUuids" />
+          </div>
+          <div class="setting-group">
+            <label>输出格式</label>
+            <el-select v-model="format" @change="generateUuids">
+              <el-option label="标准 (带连字符)" value="standard" />
+              <el-option label="紧凑 (无连字符)" value="compact" />
+              <el-option label="大写" value="upper" />
+              <el-option label="大写紧凑" value="upperCompact" />
+            </el-select>
+          </div>
+          <el-button type="primary" @click="generateUuids" class="generate-btn">
+            重新生成
           </el-button>
-          <h1>🎫 UUID生成器</h1>
         </div>
+      </section>
 
-        <div class="content">
-          <div class="options">
-            <el-input-number v-model="count" :min="1" :max="20" label="数量" />
-            <el-button type="primary" @click="generateUuids">生成</el-button>
+      <section class="panel result-panel">
+        <div class="result-head">
+          <div>
+            <h2>生成结果</h2>
+            <p>共 {{ uuids.length }} 个 UUID</p>
           </div>
-
-          <div class="result">
-            <div class="result-header">
-              <h3>结果</h3>
-              <el-button @click="copyAll">复制全部</el-button>
-            </div>
-            <div class="uuid-list">
-              <div v-for="(uuid, index) in uuids" :key="index" class="uuid-item">
-                <span class="uuid-text">{{ uuid }}</span>
-                <el-button size="small" @click="copyOne(uuid)">
-                  <el-icon><DocumentCopy /></el-icon>
-                </el-button>
-              </div>
-            </div>
+          <div class="result-actions">
+            <el-button @click="copyAll" :disabled="uuids.length === 0">复制全部</el-button>
+            <el-button @click="generateUuids">刷新</el-button>
           </div>
         </div>
-      </div>
+        <div v-if="uuids.length" class="uuid-list">
+          <div v-for="(uuid, index) in uuids" :key="index" class="uuid-item">
+            <span class="uuid-index">{{ index + 1 }}</span>
+            <code class="uuid-text">{{ uuid }}</code>
+            <el-button size="small" text @click="copyOne(uuid)">
+              <el-icon><DocumentCopy /></el-icon>
+            </el-button>
+          </div>
+        </div>
+        <el-empty v-else description="点击生成按钮" :image-size="48" />
+      </section>
+
+      <section v-if="history.length" class="panel history-panel">
+        <div class="result-head">
+          <h2>历史记录</h2>
+          <el-button text @click="history = []">清空</el-button>
+        </div>
+        <div class="uuid-list history-list">
+          <div v-for="(item, index) in history" :key="index" class="uuid-item">
+            <code class="uuid-text">{{ item }}</code>
+            <el-button size="small" text @click="copyOne(item)">
+              <el-icon><DocumentCopy /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </section>
     </div>
-  </SimpleLayout>
+  </ToolPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, DocumentCopy } from '@element-plus/icons-vue'
-import SimpleLayout from '@/layout/SimpleLayout.vue'
+import { DocumentCopy } from '@element-plus/icons-vue'
+import ToolPageShell from "@/components/tools/ToolPageShell.vue"
 
-const router = useRouter()
+type UuidVersion = 'v4' | 'v1' | 'nil'
+type UuidFormat = 'standard' | 'compact' | 'upper' | 'upperCompact'
+
 const count = ref(5)
+const version = ref<UuidVersion>('v4')
+const format = ref<UuidFormat>('standard')
 const uuids = ref<string[]>([])
+const history = ref<string[]>([])
 
-const generateUuid = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
+const meta = computed(() => [
+  { label: '版本', value: version.value.toUpperCase() },
+  { label: '格式', value: format.value === 'standard' ? '标准' : format.value === 'compact' ? '紧凑' : format.value === 'upper' ? '大写' : '大写紧凑' },
+  { label: '数量', value: `${uuids.value.length}` },
+])
+
+const generateV4 = (): string => {
+  const hex = () => Math.floor(Math.random() * 16).toString(16)
+  return `${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}-${hex()}${hex()}${hex()}${hex()}-4${hex()}${hex()}${hex()}-${[8, 9, 'a', 'b'][Math.floor(Math.random() * 4)]}${hex()}${hex()}${hex()}-${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}`
+}
+
+const generateV1 = (): string => {
+  const now = Date.now()
+  const t = Math.floor(now / 1000) * 10000000 + 122192928000000000
+  const hex = (n: number, len: number) => n.toString(16).padStart(len, '0')
+  return `${hex(t, 8)}-${hex(t >> 32, 4)}-1${hex(Math.floor(Math.random() * 4096), 3)}-${hex(8 + Math.floor(Math.random() * 4), 1)}${hex(Math.floor(Math.random() * 4096), 3)}-${hex(Math.floor(Math.random() * 0x100000000000), 12)}`
+}
+
+const generateNil = (): string => '00000000-0000-0000-0000-000000000000'
+
+const generateRawUuid = (): string => {
+  switch (version.value) {
+    case 'v1': return generateV1()
+    case 'nil': return generateNil()
+    default: return generateV4()
+  }
+}
+
+const formatUuid = (uuid: string): string => {
+  switch (format.value) {
+    case 'compact': return uuid.replace(/-/g, '')
+    case 'upper': return uuid.toUpperCase()
+    case 'upperCompact': return uuid.replace(/-/g, '').toUpperCase()
+    default: return uuid
+  }
 }
 
 const generateUuids = () => {
-  uuids.value = []
+  const rawList: string[] = []
   for (let i = 0; i < count.value; i++) {
-    uuids.value.push(generateUuid())
+    rawList.push(generateRawUuid())
   }
-  ElMessage.success(`生成了 ${count.value} 个UUID`)
+  uuids.value = rawList.map(formatUuid)
+  history.value = [...rawList.map(formatUuid), ...history.value].slice(0, 20)
+  ElMessage.success(`生成了 ${count.value} 个 UUID`)
 }
 
-const copyOne = (uuid: string) => {
-  navigator.clipboard.writeText(uuid)
+const copyOne = async (uuid: string) => {
+  await navigator.clipboard.writeText(uuid)
   ElMessage.success('已复制')
 }
 
-const copyAll = () => {
-  navigator.clipboard.writeText(uuids.value.join('\n'))
+const copyAll = async () => {
+  await navigator.clipboard.writeText(uuids.value.join('\n'))
   ElMessage.success('已全部复制')
 }
 
-generateUuids()
+onMounted(() => generateUuids())
 </script>
 
 <style scoped>

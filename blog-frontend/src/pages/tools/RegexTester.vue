@@ -7,7 +7,12 @@
   >
     <div class="workspace">
       <section class="panel">
-        <h2>表达式与选项</h2>
+        <div class="expression-header">
+          <h2>表达式与选项</h2>
+          <div class="preset-row">
+            <el-button v-for="p in presets" :key="p.name" size="small" @click="applyPreset(p)">{{ p.name }}</el-button>
+          </div>
+        </div>
         <el-input v-model="pattern" placeholder="例如 ^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$" />
 
         <div class="flags">
@@ -85,6 +90,20 @@ import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 const pattern = ref("");
 const testText = ref("");
 const replacement = ref("");
+
+const presets = [
+  { name: "邮箱", pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" },
+  { name: "URL", pattern: "https?://[^\\s/$.?#].[^\\s]*" },
+  { name: "手机号", pattern: "^1[3-9]\\d{9}$" },
+  { name: "身份证", pattern: "^\\d{17}[\\dXx]$" },
+  { name: "IPv4", pattern: "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$" },
+  { name: "日期", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+  { name: "十六进制", pattern: "^#?[0-9a-fA-F]{6}$" },
+];
+
+const applyPreset = (preset: typeof presets[0]) => {
+  pattern.value = preset.pattern;
+};
 const flags = ref({
   global: true,
   ignoreCase: false,
@@ -174,16 +193,19 @@ const copy = async (value: string) => {
 
 .panel {
   padding: 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.06);
+  border-radius: var(--radius-xl);
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
+  box-shadow: var(--shadow-sm);
 }
 
+.expression-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.preset-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.preset-row .el-button { font-size: 11px; padding: 3px 10px; height: auto; }
 .panel h2,
 .replace-box__head h3 {
-  margin: 0 0 14px;
-  color: #0f172a;
+  margin: 0;
+  color: var(--theme-text);
   font-size: 20px;
 }
 
@@ -208,21 +230,21 @@ const copy = async (value: string) => {
 .summary-card,
 .match-card {
   padding: 16px;
-  border-radius: 18px;
-  background: rgba(15, 23, 42, 0.04);
+  border-radius: var(--radius-lg);
+  background: var(--theme-hover);
 }
 
 .summary-card span,
 .match-card span {
   display: block;
   margin-bottom: 8px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
 .summary-card strong,
 .match-card strong {
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 16px;
   line-height: 1.6;
   word-break: break-word;
@@ -230,7 +252,7 @@ const copy = async (value: string) => {
 
 .match-card p {
   margin: 8px 0 0;
-  color: #475569;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
@@ -243,8 +265,8 @@ const copy = async (value: string) => {
 .replace-box {
   margin-top: 14px;
   padding: 18px;
-  border-radius: 20px;
-  background: #0f172a;
+  border-radius: var(--radius-lg);
+  background: var(--theme-text);
 }
 
 .replace-box__head {
@@ -254,9 +276,13 @@ const copy = async (value: string) => {
   gap: 12px;
 }
 
+.replace-box__head h3 {
+  color: var(--theme-background);
+}
+
 .replace-box pre {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--theme-border);
   font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;

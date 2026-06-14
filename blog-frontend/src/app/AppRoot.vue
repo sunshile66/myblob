@@ -1,6 +1,10 @@
 <template>
   <div class="app-container">
-    <router-view />
+    <router-view v-slot="{ Component, route }">
+      <keep-alive :max="8" :exclude="heavyComponents">
+        <component :is="Component" :key="route.path" />
+      </keep-alive>
+    </router-view>
   </div>
 </template>
 
@@ -16,6 +20,9 @@ onMounted(() => {
   themeStore.initTheme();
   userStore.initUser();
 });
+
+// 排除内存占用大的组件，避免浏览器崩溃
+const heavyComponents = ['ImageEditorPro', 'CrawlerToolkit', 'CurlConverter', 'ColorPicker', 'ImageCompressor']
 </script>
 
 <style>
@@ -134,7 +141,6 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  filter: brightness(var(--brightness)) contrast(var(--contrast));
 }
 
 body {
@@ -183,12 +189,13 @@ code, pre {
 .app-container,
 #app {
   min-height: 100vh;
+  filter: brightness(var(--brightness)) contrast(var(--contrast));
 }
 
 /* 滚动条 — 细而内敛 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -196,6 +203,7 @@ code, pre {
 ::-webkit-scrollbar-thumb {
   background: var(--theme-border-strong);
   border-radius: var(--radius-full);
+  transition: background 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--theme-text-tertiary);
@@ -205,6 +213,13 @@ code, pre {
 ::selection {
   background: var(--theme-primary-light);
   color: var(--theme-primary);
+}
+
+/* 聚焦样式 — 清晰可见 */
+:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* ========== Element Plus 组件细节优化 ========== */
@@ -218,13 +233,14 @@ code, pre {
   background: var(--theme-card) !important;
   border: 1px solid var(--theme-border) !important;
   border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-xs) !important;
-  transition: box-shadow var(--transition-normal), transform var(--transition-normal) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal) !important;
 }
 
 .el-card.is-hover-shadow:hover,
 .el-card.hover-lift:hover {
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04) !important;
+  border-color: var(--theme-border-strong) !important;
 }
 
 /* 按钮 — 清晰层级 */
@@ -232,24 +248,25 @@ code, pre {
   border-radius: var(--radius-md) !important;
   font-weight: 500 !important;
   transition: all var(--transition-fast) !important;
+  letter-spacing: -0.01em;
 }
 
 .el-button--primary {
   background: var(--theme-primary) !important;
   border-color: var(--theme-primary) !important;
-  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.18) !important;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.2) !important;
 }
 
 .el-button--primary:hover {
-  background: color-mix(in srgb, var(--theme-primary) 88%, black) !important;
-  border-color: color-mix(in srgb, var(--theme-primary) 88%, black) !important;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.24) !important;
+  background: color-mix(in srgb, var(--theme-primary) 90%, black) !important;
+  border-color: color-mix(in srgb, var(--theme-primary) 90%, black) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
   transform: translateY(-1px);
 }
 
 .el-button--primary:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.18) !important;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.2) !important;
 }
 
 .el-button--default {
@@ -288,6 +305,7 @@ code, pre {
   border-radius: var(--radius-sm) !important;
   font-weight: 500 !important;
   border: none !important;
+  letter-spacing: -0.01em;
 }
 .el-tag--info {
   background: var(--theme-primary-light) !important;
@@ -299,20 +317,26 @@ code, pre {
   background: var(--theme-card) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: 0 0 0 1px var(--theme-border) inset !important;
-  transition: box-shadow var(--transition-fast) !important;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast) !important;
 }
 .el-input__wrapper:hover {
   box-shadow: 0 0 0 1px var(--theme-border-strong) inset !important;
 }
 .el-input__wrapper.is-focus {
   box-shadow: 0 0 0 2px var(--theme-primary) inset !important;
+  border-color: var(--theme-primary) !important;
 }
 .el-textarea__inner {
   border-radius: var(--radius-md) !important;
   box-shadow: 0 0 0 1px var(--theme-border) inset !important;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast) !important;
+}
+.el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px var(--theme-border-strong) inset !important;
 }
 .el-textarea__inner:focus {
   box-shadow: 0 0 0 2px var(--theme-primary) inset !important;
+  border-color: var(--theme-primary) !important;
 }
 
 /* 下拉菜单 — 柔和阴影 + 圆角 */
@@ -321,7 +345,7 @@ code, pre {
   background: var(--theme-card) !important;
   border: 1px solid var(--theme-border) !important;
   border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-lg) !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04) !important;
   padding: var(--space-1) !important;
 }
 
@@ -329,7 +353,9 @@ code, pre {
   color: var(--theme-text) !important;
   border-radius: var(--radius-sm) !important;
   padding: var(--space-2) var(--space-3) !important;
-  transition: background var(--transition-fast) !important;
+  transition: background var(--transition-fast), color var(--transition-fast) !important;
+  font-size: 14px;
+  letter-spacing: -0.01em;
 }
 .el-dropdown-menu__item:hover,
 .el-dropdown-menu__item:focus {
@@ -341,7 +367,7 @@ code, pre {
   background: var(--theme-card) !important;
   border: 1px solid var(--theme-border) !important;
   border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-lg) !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04) !important;
 }
 
 /* 分隔线 */
@@ -366,8 +392,9 @@ code, pre {
 /* Dialog — 现代化 */
 .el-dialog {
   border-radius: var(--radius-xl) !important;
-  box-shadow: var(--shadow-xl) !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1), 0 8px 16px rgba(15, 23, 42, 0.04) !important;
   overflow: hidden;
+  border: 1px solid var(--theme-border);
 }
 .el-dialog__header {
   padding: var(--space-5) var(--space-6) !important;
@@ -376,6 +403,7 @@ code, pre {
 .el-dialog__title {
   font-weight: 600 !important;
   font-size: var(--text-lg) !important;
+  letter-spacing: -0.01em;
 }
 .el-dialog__body {
   padding: var(--space-6) !important;
@@ -385,7 +413,7 @@ code, pre {
 .el-message,
 .el-notification {
   border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-lg) !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04) !important;
   border: 1px solid var(--theme-border) !important;
 }
 
@@ -400,6 +428,16 @@ code, pre {
   background: var(--theme-primary) !important;
   color: #fff !important;
   border-radius: var(--radius-sm) !important;
+  font-weight: 600;
+}
+
+.el-pagination .el-pager li {
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.el-pagination .el-pager li:hover {
+  color: var(--theme-primary);
 }
 
 /* ========== 通用工具类 ========== */
@@ -418,6 +456,7 @@ code, pre {
   position: relative;
   background: var(--theme-card);
   border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
 .gradient-border::before {
@@ -427,14 +466,21 @@ code, pre {
   background: var(--gradient-primary);
   border-radius: inherit;
   z-index: -1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
 }
 
 .hover-lift {
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
 }
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  border-color: var(--theme-border-strong);
 }
 
 .hover-scale {
@@ -460,23 +506,23 @@ code, pre {
 
 /* 动画 — 保留但幅度收敛 */
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
-.animate-float-delay-1 { animation: float 6s ease-in-out 1s infinite; }
-.animate-float-delay-2 { animation: float 6s ease-in-out 2s infinite; }
+.animate-float-delay-1 { animation: float 6s cubic-bezier(0.4, 0, 0.2, 1) 1s infinite; }
+.animate-float-delay-2 { animation: float 6s cubic-bezier(0.4, 0, 0.2, 1) 2s infinite; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2.4s ease-in-out infinite;
+  animation: pulse-glow 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.32); }
-  50% { box-shadow: 0 0 0 14px rgba(79, 70, 229, 0); }
+  50% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
 }
 
 .animate-shimmer {
@@ -487,7 +533,7 @@ code, pre {
     var(--theme-card) 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.6s infinite;
+  animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes shimmer {
@@ -529,6 +575,18 @@ code, pre {
   .hide-desktop { display: none !important; }
 }
 
+/* 优化移动端触摸体验 */
+@media (hover: none) and (pointer: coarse) {
+  .hover-lift:hover,
+  .hover-scale:hover {
+    transform: none;
+  }
+  .hover-lift:active,
+  .hover-scale:active {
+    transform: scale(0.98);
+  }
+}
+
 .scroll-smooth { scroll-behavior: smooth; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide {
@@ -536,9 +594,17 @@ code, pre {
   scrollbar-width: none;
 }
 
+/* 平滑滚动 — 仅在用户未设置减少动画时生效 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 .theme-transition {
   transition: background-color var(--transition-normal),
     color var(--transition-normal),
-    border-color var(--transition-normal);
+    border-color var(--transition-normal),
+    box-shadow var(--transition-normal);
 }
 </style>

@@ -72,6 +72,19 @@ public class NewsItem extends BaseEntity {
     @Builder.Default
     private Integer qualityScore = 50;
 
+    /** 原始热度值（微博 rawHot、知乎浏览数等） */
+    @Column(name = "hot_score")
+    private Integer hotScore;
+
+    /** 情感标签: positive / negative / neutral */
+    @Column(length = 10)
+    @Builder.Default
+    private String sentiment = "neutral";
+
+    /** 逗号分隔的话题标签 */
+    @Column(length = 500)
+    private String topics;
+
     @Column(name = "filter_reason", length = 500)
     private String filterReason;
 

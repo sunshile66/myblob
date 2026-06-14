@@ -103,9 +103,17 @@
               v-model="searchQuery"
               clearable
               size="small"
-              placeholder="搜索 key / value / path"
+              placeholder="搜索 key / value / path（支持正则）"
               @keyup.enter="selectNextMatch"
-            />
+            >
+              <template #prepend>
+                <el-select v-model="searchMode" size="small" style="width:80px">
+                  <el-option label="模糊" value="fuzzy" />
+                  <el-option label="精确" value="exact" />
+                  <el-option label="正则" value="regex" />
+                </el-select>
+              </template>
+            </el-input>
             <span>{{ matchRows.length ? `${selectedMatchIndex + 1}/${matchRows.length}` : "0/0" }}</span>
             <el-button size="small" @click="selectPrevMatch">上一个</el-button>
             <el-button size="small" @click="selectNextMatch">下一个</el-button>
@@ -249,6 +257,7 @@ const indentSize = ref<number | "\t">(2);
 const sortKeys = ref(false);
 const deep = ref(5);
 const searchQuery = ref("");
+const searchMode = ref<"fuzzy" | "exact" | "regex">("fuzzy");
 const jsonPath = ref("");
 const pathResult = ref("");
 const viewMode = ref<ViewMode>("tree");
@@ -335,7 +344,10 @@ const makeChildPath = (parentPath: string, key: string, isArrayParent: boolean) 
 const treeRows = computed<TreeRow[]>(() => {
   if (parsedOutput.value === undefined) return [];
   const rows: TreeRow[] = [];
-  const keyword = searchQuery.value.trim().toLowerCase();
+  const rawKeyword = searchQuery.value.trim();
+const isRegex = searchMode.value === "regex";
+let regex: RegExp | null = null;
+if (isRegex && rawKeyword) { try { regex = new RegExp(rawKeyword, "i"); } catch { regex = null; } }
 
   const visit = (value: JsonValue, keyName: string, path: string, parentId: string, depth: number) => {
     if (rows.length >= 3000) return;
@@ -352,7 +364,7 @@ const treeRows = computed<TreeRow[]>(() => {
       preview: getPreview(value),
       meta: getMeta(value),
       expandable: type === "array" || type === "object",
-      matched: Boolean(keyword && searchable.includes(keyword)),
+      matched: (() => { if (!rawKeyword) return false; if (regex) return regex.test(searchable); if (searchMode.value==="exact") return searchable.includes(rawKeyword); return searchable.toLowerCase().includes(rawKeyword.toLowerCase()); })(),
     });
 
     if (Array.isArray(value)) {
@@ -740,10 +752,10 @@ resetExpanded();
 .result-pane {
   display: grid;
   min-height: 0;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .editor-pane {
@@ -767,7 +779,7 @@ resetExpanded();
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .pane-title {
@@ -776,12 +788,12 @@ resetExpanded();
 }
 
 .pane-title strong {
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 16px;
 }
 
 .pane-title span {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
 }
 
@@ -806,7 +818,7 @@ resetExpanded();
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  color: #334155;
+  color: var(--theme-text-secondary);
   font-family: "JetBrains Mono", "Consolas", monospace;
   font-size: 15px;
   line-height: 1.65;
@@ -816,7 +828,7 @@ resetExpanded();
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid var(--theme-border);
 }
 
 .result-toolbar {
@@ -832,15 +844,15 @@ resetExpanded();
   border-radius: 8px;
   padding: 7px 9px;
   background: transparent;
-  color: #0f172a;
+  color: var(--theme-text);
   cursor: pointer;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .tool-action:hover {
-  background: #f1f5f9;
-  color: #0f766e;
+  background: var(--theme-hover);
+  color: var(--theme-primary);
 }
 
 .tool-action svg {
@@ -852,25 +864,25 @@ resetExpanded();
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .deep-input {
   min-width: 34px;
   border-radius: 7px;
   padding: 2px 7px;
-  background: #f8fafc;
-  color: #0f766e;
+  background: var(--theme-hover);
+  color: var(--theme-primary);
   font-family: "JetBrains Mono", "Consolas", monospace;
-  outline: 1px solid rgba(15, 23, 42, 0.12);
+  outline: 1px solid var(--theme-border-strong);
   text-align: center;
 }
 
 .deep-input:focus {
   background: #ecfeff;
-  outline-color: rgba(20, 184, 166, 0.55);
+  outline-color: color-mix(in srgb, var(--theme-primary) 55%, transparent);
 }
 
 .json-error {
@@ -897,8 +909,8 @@ resetExpanded();
   overflow: auto;
   padding: 8px 8px 8px 32px;
   border-radius: 8px;
-  background: #fff;
-  color: #334155;
+  background: var(--theme-card);
+  color: var(--theme-text-secondary);
   font-family: "JetBrains Mono", "Consolas", monospace;
   font-size: 12px;
   font-weight: 500;
@@ -907,7 +919,7 @@ resetExpanded();
 .error-code :deep(.error-line) {
   background: rgba(239, 68, 68, 0.16);
   color: #b91c1c;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .result-body {
@@ -921,9 +933,9 @@ resetExpanded();
   position: fixed;
   z-index: 3000;
   inset: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--theme-border-strong);
   border-radius: 10px;
-  background: white;
+  background: var(--theme-card);
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
 }
 
@@ -933,11 +945,11 @@ resetExpanded();
   align-items: center;
   gap: 8px;
   padding: 9px 12px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid var(--theme-border);
   background: linear-gradient(90deg, #f8fafc, #ecfeff);
-  color: #475569;
+  color: var(--theme-text-secondary);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .result-tabs {
@@ -946,7 +958,7 @@ resetExpanded();
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .search-input {
@@ -962,7 +974,7 @@ resetExpanded();
 
 .json-tree {
   padding: 8px 0 16px;
-  background: #fff;
+  background: var(--theme-card);
   font-family: "JetBrains Mono", "Consolas", monospace;
   font-size: 14px;
   line-height: 1.8;
@@ -974,13 +986,13 @@ resetExpanded();
   gap: 6px;
   min-height: 28px;
   border-left: 1px dotted rgba(100, 116, 139, 0.32);
-  color: #0f172a;
+  color: var(--theme-text);
   white-space: nowrap;
 }
 
 .tree-row:hover,
 .tree-row.matched {
-  background: rgba(20, 184, 166, 0.08);
+  background: var(--theme-primary-light);
 }
 
 .toggle-btn,
@@ -992,14 +1004,14 @@ resetExpanded();
 .toggle-btn {
   border: 0;
   background: transparent;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   cursor: pointer;
   font-family: inherit;
 }
 
 .json-key {
   color: #9d174d;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .json-key[contenteditable="true"],
@@ -1016,12 +1028,12 @@ resetExpanded();
 }
 
 .colon {
-  color: #0f172a;
-  font-weight: 800;
+  color: var(--theme-text);
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .json-value {
-  color: #0f172a;
+  color: var(--theme-text);
   font-weight: 700;
 }
 
@@ -1042,7 +1054,7 @@ resetExpanded();
 }
 
 .json-meta {
-  color: #94a3b8;
+  color: var(--theme-text-tertiary);
   font-size: 12px;
 }
 
@@ -1062,10 +1074,10 @@ resetExpanded();
 .path-dock button {
   border: 0;
   background: transparent;
-  color: #0f766e;
+  color: var(--theme-primary);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .load-more {
@@ -1076,9 +1088,9 @@ resetExpanded();
   border-radius: 10px;
   padding: 10px;
   background: #f0fdfa;
-  color: #0f766e;
+  color: var(--theme-primary);
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .load-more:hover {
@@ -1087,7 +1099,7 @@ resetExpanded();
 
 .code-output {
   padding: 14px;
-  background: #111827;
+  background: var(--theme-text);
   color: #e5e7eb;
   font-family: "JetBrains Mono", "Consolas", monospace;
   font-size: 13px;
@@ -1097,13 +1109,13 @@ resetExpanded();
 
 .empty-state {
   padding: 24px;
-  color: #94a3b8;
+  color: var(--theme-text-tertiary);
 }
 
 .query-bar {
   display: grid;
   gap: 8px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid var(--theme-border);
 }
 
 .path-result {
@@ -1112,8 +1124,8 @@ resetExpanded();
   overflow: auto;
   padding: 10px;
   border-radius: 8px;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--theme-hover);
+  color: var(--theme-text);
   font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -1129,11 +1141,11 @@ resetExpanded();
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--theme-border-strong);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--theme-card);
   box-shadow: 0 16px 42px rgba(15, 23, 42, 0.18);
-  color: #334155;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
@@ -1145,7 +1157,7 @@ resetExpanded();
 }
 
 .path-dock strong {
-  color: #0f172a;
+  color: var(--theme-text);
   font-family: "JetBrains Mono", "Consolas", monospace;
 }
 

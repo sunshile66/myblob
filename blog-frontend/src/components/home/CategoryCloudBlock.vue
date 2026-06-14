@@ -71,7 +71,7 @@ defineEmits<{
 .category-cloud {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   height: 100%;
 }
 
@@ -83,10 +83,10 @@ defineEmits<{
 
 .category-cloud__kicker {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--theme-text);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .category-cloud__more {
@@ -94,16 +94,17 @@ defineEmits<{
   font-weight: 600;
   color: var(--theme-primary);
   text-decoration: none;
+  transition: opacity 0.2s ease;
 }
 
 .category-cloud__more:hover {
-  text-decoration: underline;
+  opacity: 0.8;
 }
 
 .category-cloud__section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .category-cloud__subtitle {
@@ -111,41 +112,60 @@ defineEmits<{
   font-weight: 600;
   color: var(--theme-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .category-cloud__list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .category-cloud__chip {
-  padding: 6px 14px;
+  padding: 7px 16px;
   border: 1px solid var(--theme-border);
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--theme-card);
   color: var(--theme-text);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
+  letter-spacing: -0.01em;
 }
 
 .category-cloud__chip:hover {
   border-color: var(--theme-primary);
   background: var(--theme-primary-light);
   color: var(--theme-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
 }
 
 .category-cloud__chip--tag {
   background: var(--theme-hover);
   border-style: dashed;
+  border-color: var(--theme-border-strong);
+}
+
+.category-cloud__chip--tag:hover {
+  border-style: solid;
 }
 
 .category-cloud__chip--empty {
   opacity: 0.4;
   cursor: default;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-cloud__chip,
+  .category-cloud__more {
+    transition: none;
+  }
+  .category-cloud__chip:hover {
+    transform: none;
+  }
 }
 </style>

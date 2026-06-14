@@ -289,10 +289,10 @@ const copySql = async () => {
 
 .panel {
   padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .schema-panel {
@@ -308,13 +308,13 @@ const copySql = async () => {
 
 h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 18px;
 }
 
 p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
@@ -335,7 +335,7 @@ p {
   padding: 14px;
   overflow: auto;
   border-radius: 8px;
-  background: #111827;
+  background: var(--theme-text);
   color: #e5e7eb;
   font-size: 13px;
   line-height: 1.65;
@@ -344,7 +344,7 @@ p {
 
 .schema-grid {
   overflow: auto;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
 }
 
@@ -354,7 +354,7 @@ p {
   gap: 12px;
   min-width: 720px;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid var(--theme-border);
   font-size: 13px;
 }
 
@@ -363,14 +363,14 @@ p {
 }
 
 .schema-head {
-  background: #f8fafc;
-  color: #475569;
+  background: var(--theme-hover);
+  color: var(--theme-text-secondary);
   font-weight: 800;
 }
 
 code {
   overflow-wrap: anywhere;
-  color: #334155;
+  color: var(--theme-text-secondary);
   font-family: "JetBrains Mono", "Consolas", monospace;
 }
 
@@ -384,4 +384,5 @@ code {
     flex-direction: column;
   }
 }
+:deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
 </style>

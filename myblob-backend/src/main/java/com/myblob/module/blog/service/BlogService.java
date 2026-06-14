@@ -83,8 +83,9 @@ public class BlogService {
         // IP 级别浏览量去重（30分钟内同一IP不计重复浏览）
         String clientIp = IpUtil.getClientIp(httpServletRequest);
         if (viewCountService.recordView(post.getId(), clientIp)) {
-            postRepository.flush();
-            post = postRepository.findBySlugWithDetails(slug).orElseThrow();
+            // 使用原子递增而非重新查询，避免额外 DB round-trip
+            postRepository.incrementViewCount(post.getId());
+            post.setViewCount(post.getViewCount() + 1);
         }
 
         Long currentUserId = SecurityUtil.getCurrentUserIdOrNull();
@@ -157,12 +158,10 @@ public class BlogService {
             post.setTags(tags);
         }
 
-        post = postRepository.save(post);
-
         if (postStatus == Post.Status.PUBLISHED) {
             post.setPublishedAt(LocalDateTime.now());
-            postRepository.save(post);
         }
+        post = postRepository.save(post);
 
         // 新创建的文章，当前用户尚未点赞/收藏
         Long currentUserId = SecurityUtil.getCurrentUserIdOrNull();

@@ -107,73 +107,81 @@ const visiblePosts = computed(() => props.posts.slice(0, props.maxVisible))
 .content-stream {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .content-stream__head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
 }
 
 .content-stream__kicker {
   display: inline-flex;
   width: fit-content;
-  padding: 3px 10px;
-  border-radius: 999px;
+  padding: 4px 12px;
+  border-radius: 8px;
   background: var(--theme-primary-light);
   color: var(--theme-primary);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .content-stream__title {
-  margin: 4px 0 2px;
-  font-size: 20px;
+  margin: 5px 0 3px;
+  font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--theme-text);
+  letter-spacing: -0.02em;
 }
 
 .content-stream__desc {
   margin: 0;
   font-size: 13px;
   color: var(--theme-text-secondary);
-  line-height: 1.4;
+  line-height: 1.5;
+  max-width: 400px;
 }
 
 .content-stream__tabs {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .content-stream__tab {
-  padding: 8px 18px;
+  padding: 9px 20px;
   border: none;
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--theme-hover);
   color: var(--theme-text-secondary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
+  letter-spacing: -0.01em;
 }
 
-.content-stream__tab:hover,
+.content-stream__tab:hover {
+  background: var(--theme-border);
+  color: var(--theme-text);
+}
+
 .content-stream__tab.active {
-  background: var(--gradient-primary);
+  background: var(--theme-primary);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
 }
 
 .content-stream__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .content-stream__grid--placeholder {
@@ -190,31 +198,31 @@ const visiblePosts = computed(() => props.posts.slice(0, props.maxVisible))
 .content-stream__placeholder-img {
   width: 100%;
   aspect-ratio: 3/4;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, var(--theme-hover) 25%, var(--theme-border) 50%, var(--theme-hover) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
+  animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .content-stream__placeholder-body {
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .content-stream__placeholder-line {
   height: 10px;
   border-radius: 5px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, var(--theme-hover) 25%, var(--theme-border) 50%, var(--theme-hover) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
+  animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .content-stream__placeholder-line--l { width: 75%; }
 .content-stream__placeholder-line--m { width: 50%; }
 
 .content-stream__empty {
-  padding: 24px;
+  padding: 32px;
   display: flex;
   justify-content: center;
 }
@@ -222,7 +230,7 @@ const visiblePosts = computed(() => props.posts.slice(0, props.maxVisible))
 .content-stream__more {
   display: flex;
   justify-content: center;
-  padding-top: 8px;
+  padding-top: 12px;
 }
 
 @keyframes shimmer {
@@ -234,10 +242,12 @@ const visiblePosts = computed(() => props.posts.slice(0, props.maxVisible))
   .content-stream__head {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
   }
 
   .content-stream__grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .content-stream__grid--placeholder {
@@ -257,6 +267,9 @@ const visiblePosts = computed(() => props.posts.slice(0, props.maxVisible))
   .content-stream__placeholder-line {
     animation: none;
     background: var(--theme-hover);
+  }
+  .content-stream__tab {
+    transition: none;
   }
 }
 </style>

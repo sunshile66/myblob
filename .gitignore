@@ -75,3 +75,13 @@ Thumbs.db
 
 # RSSHub local instance (cloned separately)
 rsshub-instance/
+
+# AI tools
+.claude/
+.agents/
+
+# Temp scripts
+fix_vars.ps1
+test_api.py
+test_pages.py
+{dst}'

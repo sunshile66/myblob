@@ -114,7 +114,7 @@
           </article>
         </div>
         <!-- 无限滚动触发器 - 始终渲染，通过visibility控制 -->
-        <div ref="sentinel" class="load-more" :style="{ visibility: hasMore && list.length ? 'visible' : 'hidden' }">
+        <div v-if="hasMore && list.length" ref="sentinel" class="load-more">
           <span v-if="loadingMore" class="loading-spinner"></span>
           <span v-else class="load-text">上滑加载更多</span>
         </div>
@@ -187,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, h, defineComponent } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick, h, defineComponent } from 'vue'
 import { getNewsList, getTrendingNews, getNewsSources } from '@/api/news'
 import type { NewsItem, NewsSource } from '@/types'
 
@@ -256,26 +256,40 @@ function fmtTime(t?: string) {
 }
 
 async function fetch(reset = false) {
-  if (loading.value) return
-  loading.value = true
-  if (reset) { page.value = 0; list.value = [] }
+  if (loading.value && !reset) return
+  if (reset) {
+    loading.value = true
+    page.value = 0
+    list.value = []
+  } else {
+    if (loading.value) return
+    loading.value = true
+  }
   try {
     const res: any = await getNewsList({
-      page: page.value, size: 20,
+      page: page.value, size: 30,
       category: curCat.value || undefined,
       language: curLang.value || undefined,
       search: search.value || undefined
     })
     const items = res?.results || []
-    list.value = reset ? items : [...list.value, ...items]
-    hasMore.value = items.length >= 20
-    totalNews.value = res?.count || totalNews.value
-    page.value++
+    if (items.length === 0) {
+      hasMore.value = false
+    } else {
+      list.value = reset ? items : [...list.value, ...items]
+      hasMore.value = items.length >= 30
+      totalNews.value = res?.count ?? items.length
+      page.value++
+    }
   } catch (e) {
     console.error(e)
+    if (!reset) hasMore.value = false
   } finally {
     loading.value = false
     loadingMore.value = false
+    // Re-setup observer after DOM updates (sentinel may be newly rendered)
+    await nextTick()
+    setupObserver()
   }
 }
 
@@ -304,26 +318,39 @@ let observer: IntersectionObserver | null = null
 
 function setupObserver() {
   if (observer) observer.disconnect()
+  if (!sentinel.value) return // not rendered yet; will be re-called by fetch()
   observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && hasMore.value && !loadingMore.value && !loading.value) {
       loadingMore.value = true
       fetch()
     }
-  }, { rootMargin: '200px' })
-  if (sentinel.value) observer.observe(sentinel.value)
+  }, { rootMargin: '400px' })
+  observer.observe(sentinel.value)
+}
+
+// Auto-refresh silently (append new items instead of resetting, unless user is at top)
+async function silentRefresh() {
+  try {
+    const res: any = await getNewsList({
+      page: 0, size: 5,
+      category: curCat.value || undefined,
+      language: curLang.value || undefined,
+      search: search.value || undefined
+    })
+    const latest = res?.results?.[0]
+    if (latest && (!list.value.length || latest.id !== list.value[0].id)) {
+      // New content available - refresh trending and source counts
+      loadTrending()
+      loadSources()
+    }
+  } catch (e) { /* silent */ }
 }
 
 onMounted(() => {
   reload()
   loadTrending()
   loadSources()
-  setupObserver()
-  // Auto refresh every 5 minutes
-  refreshTimer = setInterval(() => {
-    reload()
-    loadTrending()
-    loadSources()
-  }, 300000)
+  refreshTimer = setInterval(silentRefresh, 120000)
 })
 
 let refreshTimer: ReturnType<typeof setInterval>
@@ -333,13 +360,14 @@ onUnmounted(() => {
 })
 
 watch([curCat, curLang], () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   reload()
   loadTrending()
 })
 </script>
 
 <style scoped>
-.news-page { max-width: 1200px; margin: 0 auto; padding: 16px 20px; font-family: 'Inter', 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.news-page { max-width: 1200px; margin: 0 auto; padding: 16px 20px; font-family: 'Inter', 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--theme-background); }
 
 /* Top bar */
 .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -379,14 +407,14 @@ watch([curCat, curLang], () => {
 
 /* Main layout */
 .main-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
-@media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+@media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
 
 /* News list */
 .news-list { display: flex; flex-direction: column; gap: 2px; }
 .news-card { padding: 16px; border-radius: 12px; cursor: pointer; transition: all .2s; background: var(--theme-card, #fff);
   border: 1px solid transparent; }
 .news-card:hover { background: var(--theme-hover, #F1F5F9); border-color: var(--theme-border, #E5E7EB);
-  box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  box-shadow: 0 2px 12px rgba(0,0,0,.06); transform: translateY(-1px); }
 .card-body { display: flex; gap: 16px; }
 .card-text { flex: 1; min-width: 0; }
 .card-thumb { flex-shrink: 0; width: 120px; height: 80px; border-radius: 8px; overflow: hidden; position: relative; background: #f0f0f0; }
@@ -401,11 +429,11 @@ watch([curCat, curLang], () => {
 .news-title-zh { font-size: 13px; color: var(--theme-text-secondary, #64748B); font-weight: 400; margin: 0 0 4px 14px; line-height: 1.5; }
 .news-summary { font-size: 13px; color: var(--theme-text-secondary, #64748B); line-height: 1.7; margin: 4px 0 2px 14px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.news-summary-zh { font-size: 12px; color: #94A3B8; line-height: 1.6; margin: 2px 0 4px 14px;
+.news-summary-zh { font-size: 12px; color: var(--theme-text-secondary, #64748B); line-height: 1.6; margin: 2px 0 4px 14px;
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.news-meta { display: flex; align-items: center; gap: 6px; margin: 8px 0 0 14px; font-size: 12px; color: #94A3B8; }
+.news-meta { display: flex; align-items: center; gap: 6px; margin: 8px 0 0 14px; font-size: 12px; color: var(--theme-text-secondary, #64748B); }
 .meta-src { color: var(--theme-text-secondary, #64748B); font-weight: 500; }
-.meta-sep { color: #CBD5E1; }
+.meta-sep { color: var(--theme-border, #E5E7EB); }
 .meta-lang { padding: 1px 6px; border-radius: 4px; background: var(--theme-primary-light, rgba(79,70,229,.1)); color: var(--theme-primary, #4F46E5); font-size: 10px; font-weight: 600; }
 .meta-video { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 4px;
   background: rgba(239,68,68,.1); color: #EF4444; font-size: 10px; font-weight: 600; }
@@ -415,48 +443,60 @@ watch([curCat, curLang], () => {
 .skeleton-card { padding: 16px; background: var(--theme-card, #fff); border-radius: 12px; }
 .sk-body { display: flex; gap: 16px; }
 .sk-text { flex: 1; }
-.sk-title { height: 16px; background: #F1F5F9; border-radius: 4px; width: 75%; margin-bottom: 10px; animation: pulse 1.5s infinite; }
-.sk-summary { height: 13px; background: #F1F5F9; border-radius: 4px; width: 100%; margin-bottom: 6px; animation: pulse 1.5s infinite; }
-.sk-meta { height: 12px; background: #F1F5F9; border-radius: 4px; width: 30%; animation: pulse 1.5s infinite; }
-.sk-thumb { flex-shrink: 0; width: 120px; height: 80px; background: #F1F5F9; border-radius: 8px; animation: pulse 1.5s infinite; }
+.sk-title { height: 16px; background: var(--theme-hover, #F1F5F9); border-radius: 4px; width: 75%; margin-bottom: 10px; animation: pulse 1.5s infinite; }
+.sk-summary { height: 13px; background: var(--theme-hover, #F1F5F9); border-radius: 4px; width: 100%; margin-bottom: 6px; animation: pulse 1.5s infinite; }
+.sk-meta { height: 12px; background: var(--theme-hover, #F1F5F9); border-radius: 4px; width: 30%; animation: pulse 1.5s infinite; }
+.sk-thumb { flex-shrink: 0; width: 120px; height: 80px; background: var(--theme-hover, #F1F5F9); border-radius: 8px; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 
 /* Empty state */
-.empty-state { text-align: center; padding: 80px 0; color: #94A3B8; }
-.empty-state svg { margin-bottom: 16px; }
+.empty-state { text-align: center; padding: 80px 0; color: var(--theme-text-secondary, #64748B); }
+.empty-state svg { margin-bottom: 16px; opacity: 0.5; }
 .empty-state p { margin: 0; font-size: 16px; }
-.empty-sub { font-size: 13px !important; color: #CBD5E1; margin-top: 8px !important; }
+.empty-sub { font-size: 13px !important; color: var(--theme-text-secondary, #64748B); opacity: 0.7; margin-top: 8px !important; }
 
 /* Load more / sentinel */
-.load-more { text-align: center; padding: 24px 0; color: #94A3B8; font-size: 13px; min-height: 48px; }
-.loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #E5E7EB;
+.load-more { text-align: center; padding: 24px 0; color: var(--theme-text-secondary, #64748B); font-size: 13px; min-height: 48px; }
+.loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--theme-border, #E5E7EB);
   border-top-color: var(--theme-primary, #4F46E5); border-radius: 50%; animation: spin .6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Sidebar */
-.sidebar { position: sticky; top: 72px; display: flex; flex-direction: column; gap: 12px; }
+.sidebar { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 4px; }
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--theme-border, #E5E7EB); border-radius: 999px; }
 .sidebar-section { background: var(--theme-card, #fff); border: 1px solid var(--theme-border, #E5E7EB); border-radius: 12px; padding: 16px; }
 .sidebar-title { font-size: 13px; font-weight: 600; margin: 0 0 12px; color: var(--theme-text, #0F172A);
-  display: flex; align-items: center; gap: 6px; }
-.sidebar-title svg { color: var(--theme-primary, #4F46E5); }
-.sidebar-empty { text-align: center; padding: 20px 0; color: #CBD5E1; font-size: 13px; }
+  display: flex; align-items: center; gap: 6px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+.sidebar-title svg { color: var(--theme-primary, #4F46E5); flex-shrink: 0; }
+.sidebar-empty { text-align: center; padding: 20px 0; color: var(--theme-text-secondary, #64748B); font-size: 13px; opacity: 0.7; }
 
 /* Trending list */
-.trending-list { display: flex; flex-direction: column; }
+.trending-list { display: flex; flex-direction: column; max-height: 360px; overflow-y: auto; }
+.trending-list::-webkit-scrollbar { width: 4px; }
+.trending-list::-webkit-scrollbar-thumb { background: var(--theme-border, #E5E7EB); border-radius: 999px; }
 .trending-item { display: flex; gap: 10px; padding: 8px 6px; cursor: pointer; transition: background .15s;
   border-radius: 6px; }
 .trending-item:hover { background: var(--theme-hover, #F1F5F9); }
 .rank { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: #94A3B8; border-radius: 6px; margin-top: 1px; }
-.rank.top { color: #fff; background: var(--theme-primary, #4F46E5); }
-.trending-info { flex: 1; min-width: 0; }
-.trending-title { font-size: 13px; line-height: 1.5; margin: 0; color: var(--theme-text, #0F172A);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.trending-meta { font-size: 11px; color: #94A3B8; margin-top: 2px; display: block; }
+  font-size: 11px; font-weight: 600; color: var(--theme-text-secondary, #64748B); border-radius: 6px; }
+.rank.top { color: #fff; background: var(--theme-primary, #4F46E5); font-weight: 600; }
+.trending-info { flex: 1; min-width: 0; overflow: hidden; }
+.trending-title { font-size: 13px; line-height: 1.4; margin: 0; color: var(--theme-text, #0F172A);
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+.trending-meta { font-size: 11px; color: var(--theme-text-secondary, #64748B); margin-top: 2px; display: block;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 /* Stats */
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat-item { text-align: center; padding: 14px 0; background: var(--theme-hover, #F1F5F9); border-radius: 10px; }
 .stat-num { display: block; font-size: 22px; font-weight: 700; color: var(--theme-text, #0F172A); }
-.stat-label { font-size: 11px; color: #94A3B8; margin-top: 2px; display: block; }
+.stat-label { font-size: 11px; color: var(--theme-text-secondary, #64748B); margin-top: 2px; display: block; }
+
+/* Mobile sidebar — turn into horizontal scroll instead of hiding */
+@media (max-width: 900px) {
+  .sidebar { position: static; flex-direction: column; max-height: none; overflow-y: visible; gap: 16px; padding: 0 16px 24px; }
+  .sidebar-title { margin-bottom: 8px; }
+}
 </style>

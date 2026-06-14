@@ -26,8 +26,8 @@ const currentYear = new Date().getFullYear();
 
 <style scoped>
 .footer {
-  margin-top: 60px;
-  padding: 42px 0 34px;
+  margin-top: 64px;
+  padding: 48px 0 40px;
   border-top: 1px solid var(--theme-border);
   background: var(--theme-background);
 }
@@ -35,26 +35,32 @@ const currentYear = new Date().getFullYear();
 .footer-content {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
   display: grid;
-  gap: 18px;
+  gap: 24px;
 }
 
 .footer-brand {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .footer-badge {
   display: inline-flex;
   width: fit-content;
-  padding: 8px 12px;
-  border-radius: 999px;
+  padding: 8px 14px;
+  border-radius: 10px;
   background: var(--theme-primary-light);
   color: var(--theme-primary);
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
 .footer-brand p,
@@ -63,29 +69,46 @@ const currentYear = new Date().getFullYear();
   font-size: 13px;
   line-height: 1.7;
   color: var(--theme-text-secondary);
+  max-width: 400px;
 }
 
 .footer-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 20px;
+  gap: 16px 24px;
 }
 
 .footer-links a {
   color: var(--theme-text);
   text-decoration: none;
   font-size: 14px;
-  font-weight: 600;
-  transition: color var(--transition-fast);
+  font-weight: 500;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  display: inline-block;
 }
 
 .footer-links a:hover {
   color: var(--theme-primary);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
   .footer {
-    padding: 32px 0 26px;
+    padding: 36px 0 28px;
+  }
+  .footer-content {
+    padding: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-badge,
+  .footer-links a {
+    transition: none;
+  }
+  .footer-badge:hover,
+  .footer-links a:hover {
+    transform: none;
   }
 }
 </style>

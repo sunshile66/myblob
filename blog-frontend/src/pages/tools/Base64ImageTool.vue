@@ -15,9 +15,12 @@
           <el-button text @click="clearImage">清空</el-button>
         </div>
 
-        <label class="drop-zone">
+        <label class="drop-zone" :class="{ 'drop-active': isDragging }"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="isDragging = false; handleDrop($event)">
           <input type="file" accept="image/*" @change="handleFileChange" />
-          <span>点击选择图片</span>
+          <span>拖拽图片到此处或点击选择</span>
           <small>支持 PNG、JPEG、WebP、GIF、SVG 等浏览器可读格式</small>
         </label>
 
@@ -84,6 +87,7 @@ import { DocumentCopy } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import ToolPageShell from "@features/tools/ui/ToolPageShell.vue";
 
+const isDragging = ref(false);
 const fileName = ref("");
 const fileType = ref("");
 const fileSize = ref(0);
@@ -163,6 +167,20 @@ const handleFileChange = (event: Event) => {
   reader.readAsDataURL(file);
 };
 
+const handleDrop = (event: DragEvent) => {
+  const file = event.dataTransfer?.files?.[0];
+  if (!file || !file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    encodedDataUrl.value = String(reader.result || "");
+    fileName.value = file.name;
+    fileType.value = file.type || "image/*";
+    fileSize.value = file.size;
+    readImageSize(encodedDataUrl.value);
+  };
+  reader.readAsDataURL(file);
+};
+
 const clearImage = () => {
   fileName.value = "";
   fileType.value = "";
@@ -217,10 +235,10 @@ watch(decodedDataUrl, (value) => {
 
 .panel {
   padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .info-panel {
@@ -233,7 +251,7 @@ watch(decodedDataUrl, (value) => {
 .info-panel article {
   padding: 12px;
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--theme-hover);
 }
 
 .info-panel span,
@@ -242,14 +260,14 @@ watch(decodedDataUrl, (value) => {
 }
 
 .info-panel span {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
 }
 
 .info-panel strong {
   margin-top: 5px;
   overflow: hidden;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 15px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -264,13 +282,13 @@ watch(decodedDataUrl, (value) => {
 
 h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 18px;
 }
 
 p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
 }
 
@@ -279,25 +297,30 @@ p {
   place-items: center;
   min-height: 130px;
   margin-bottom: 12px;
-  border: 1px dashed rgba(15, 118, 110, 0.36);
+  border: 1px dashed var(--theme-primary);
   border-radius: 10px;
-  background: rgba(20, 184, 166, 0.06);
-  color: #0f766e;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
   cursor: pointer;
   text-align: center;
 }
 
+.drop-zone.drop-active {
+  border-color: var(--theme-primary);
+  background: var(--theme-primary-light);
+  transform: scale(1.01);
+}
 .drop-zone input {
   display: none;
 }
 
 .drop-zone span {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 .drop-zone small {
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 12px;
 }
 
@@ -309,11 +332,11 @@ p {
   overflow: hidden;
   border-radius: 10px;
   background:
-    linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
-    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
-    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
-  background-color: white;
+    linear-gradient(45deg, var(--theme-border) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--theme-border) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--theme-border) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--theme-border) 75%);
+  background-color: var(--theme-card);
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
   background-size: 20px 20px;
 }
@@ -340,8 +363,8 @@ p {
   padding: 14px;
   overflow: auto;
   border-radius: 8px;
-  background: #111827;
-  color: #e5e7eb;
+  background: var(--theme-text);
+  color: var(--theme-background);
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;

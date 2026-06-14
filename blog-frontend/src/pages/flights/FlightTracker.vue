@@ -48,7 +48,7 @@
     <!-- Stats -->
     <div class="stats-bar">
       <div class="stat-chip">
-        <span class="stat-dot" style="background: #4F46E5"></span>
+        <span class="stat-dot" :style="{ background: 'var(--theme-primary)' }"></span>
         总航班 <strong>{{ totalFlights }}</strong>
       </div>
       <div class="stat-chip new">
@@ -84,7 +84,7 @@
             <th>状态</th>
             <th>航班号</th>
             <th>航司</th>
-            <th>出发</th>
+            <th>出发(推断)</th>
             <th>到达</th>
             <th>高度(m)</th>
             <th>速度(m/s)</th>
@@ -102,7 +102,7 @@
             </td>
             <td class="callsign">{{ f.callsign || f.flightNumber }}</td>
             <td>{{ f.airline }}</td>
-            <td>{{ f.originAirport || '-' }}</td>
+            <td>{{ airportForCountry(f.country) || '-' }}</td>
             <td>{{ f.destinationAirport || '-' }}</td>
             <td>{{ f.altitude ? Math.round(f.altitude) : '-' }}</td>
             <td>{{ f.velocity ? Math.round(f.velocity) : '-' }}</td>
@@ -144,6 +144,21 @@ function changeLabel(ct?: string): string {
     default: return '正常'
   }
 }
+
+// Country → major airport code mapping for display
+const countryAirports: Record<string, string> = {
+  'United States': 'JFK/LAX', 'China': 'PEK/PVG', 'United Kingdom': 'LHR',
+  'Germany': 'FRA', 'France': 'CDG', 'Japan': 'NRT/HND', 'South Korea': 'ICN',
+  'Singapore': 'SIN', 'United Arab Emirates': 'DXB', 'Qatar': 'DOH',
+  'Netherlands': 'AMS', 'Turkey': 'IST', 'Canada': 'YYZ', 'Australia': 'SYD',
+  'Hong Kong': 'HKG', 'Thailand': 'BKK', 'India': 'DEL', 'Italy': 'FCO',
+  'Spain': 'MAD', 'Switzerland': 'ZRH', 'Austria': 'VIE', 'Belgium': 'BRU',
+  'Ireland': 'DUB', 'Sweden': 'ARN', 'Norway': 'OSL', 'Denmark': 'CPH',
+  'Finland': 'HEL', 'Russia': 'SVO', 'Brazil': 'GRU', 'Mexico': 'MEX',
+  'Malaysia': 'KUL', 'Vietnam': 'SGN', 'Philippines': 'MNL', 'Indonesia': 'CGK',
+  'New Zealand': 'AKL', 'South Africa': 'JNB', 'Egypt': 'CAI',
+}
+const airportForCountry = (c: string | null | undefined) => c ? (countryAirports[c] || c.slice(0,3).toUpperCase()) : null
 
 function fmtTime(t?: string) {
   if (!t) return '-'

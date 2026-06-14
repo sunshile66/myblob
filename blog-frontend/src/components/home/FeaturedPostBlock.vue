@@ -55,30 +55,31 @@ const formatNumber = (num: number | undefined | null): string => {
 <style scoped>
 .featured-post {
   display: flex;
-  gap: 16px;
+  gap: 18px;
   align-items: center;
   height: 100%;
 }
 
 .featured-post__cover {
   position: relative;
-  width: 120px;
-  height: 90px;
-  border-radius: 10px;
+  width: 124px;
+  height: 94px;
+  border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
   background: var(--theme-hover);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 .featured-post__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bento-card--interactive:hover .featured-post__img {
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 
 .featured-post__placeholder {
@@ -88,17 +89,18 @@ const formatNumber = (num: number | undefined | null): string => {
   align-items: center;
   justify-content: center;
   background: var(--gradient-primary);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .featured-post__badge {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
+  top: 7px;
+  left: 7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   color: #fff;
   display: flex;
   align-items: center;
@@ -110,15 +112,16 @@ const formatNumber = (num: number | undefined | null): string => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .featured-post__kicker {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--theme-primary);
+  opacity: 0.9;
 }
 
 .featured-post__title {
@@ -131,17 +134,20 @@ const formatNumber = (num: number | undefined | null): string => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 .featured-post__summary {
   margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--theme-text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-wrap: pretty;
 }
 
 .featured-post__meta {
@@ -149,11 +155,12 @@ const formatNumber = (num: number | undefined | null): string => {
   color: var(--theme-text-secondary);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  margin-top: 2px;
 }
 
 .featured-post__divider {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 @media (max-width: 768px) {
@@ -164,7 +171,13 @@ const formatNumber = (num: number | undefined | null): string => {
 
   .featured-post__cover {
     width: 100%;
-    height: 120px;
+    height: 130px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-post__img {
+    transition: none;
   }
 }
 </style>

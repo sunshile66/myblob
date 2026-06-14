@@ -500,9 +500,9 @@ const handleRegister = async () => {
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(1200px 600px at -10% -20%, rgba(99, 102, 241, 0.18), transparent 60%),
-    radial-gradient(900px 500px at 110% 110%, rgba(79, 70, 229, 0.16), transparent 60%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    radial-gradient(1200px 600px at -10% -20%, color-mix(in srgb, var(--theme-secondary) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, color-mix(in srgb, var(--theme-primary) 16%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--theme-background) 0%, var(--theme-hover) 100%);
 }
 
 .auth-shell {
@@ -511,10 +511,10 @@ const handleRegister = async () => {
   min-height: 620px;
   display: grid;
   grid-template-columns: 1.05fr 1fr;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
   border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
 
@@ -526,7 +526,7 @@ const handleRegister = async () => {
   background:
     radial-gradient(600px 300px at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
     radial-gradient(500px 260px at 0% 100%, rgba(255, 255, 255, 0.12), transparent 60%),
-    linear-gradient(160deg, #4338ca 0%, #4f46e5 45%, #6366f1 100%);
+    linear-gradient(160deg, color-mix(in srgb, var(--theme-primary) 90%, black) 0%, var(--theme-primary) 45%, var(--theme-secondary) 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -679,24 +679,24 @@ const handleRegister = async () => {
 
 .auth-tabs :deep(.el-tabs__nav-wrap::after) {
   height: 1px;
-  background: #e5e7eb;
+  background: var(--theme-border);
 }
 
 .auth-tabs :deep(.el-tabs__item) {
   font-size: 14px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--theme-text-tertiary);
   padding: 0 18px;
   height: 38px;
   line-height: 38px;
 }
 
 .auth-tabs :deep(.el-tabs__item.is-active) {
-  color: #4f46e5;
+  color: var(--theme-primary);
 }
 
 .auth-tabs :deep(.el-tabs__active-bar) {
-  background: #4f46e5;
+  background: var(--theme-primary);
   height: 2px;
   border-radius: 2px;
 }
@@ -709,23 +709,23 @@ const handleRegister = async () => {
 .auth-form :deep(.el-form-item__label) {
   font-size: 13px;
   font-weight: 500;
-  color: #334155;
+  color: var(--theme-text);
   padding-bottom: 6px;
   line-height: 1.4;
 }
 
 .auth-form :deep(.el-input__wrapper) {
   border-radius: 8px;
-  box-shadow: 0 0 0 1px #e5e7eb inset;
+  box-shadow: 0 0 0 1px var(--theme-border) inset;
   transition: box-shadow 0.18s ease;
 }
 
 .auth-form :deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px #c7d2fe inset;
+  box-shadow: 0 0 0 1px var(--theme-border-strong) inset;
 }
 
 .auth-form :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #4f46e5 inset, 0 0 0 4px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 1px var(--theme-primary) inset, 0 0 0 4px var(--theme-primary-light);
 }
 
 .form-grid {
@@ -743,20 +743,20 @@ const handleRegister = async () => {
   min-width: 116px;
   border-radius: 8px;
   font-weight: 500;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #4f46e5;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-card);
+  color: var(--theme-primary);
 }
 
 .code-btn:hover:not(:disabled) {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-  color: #4338ca;
+  border-color: color-mix(in srgb, var(--theme-primary) 40%, var(--theme-border));
+  background: var(--theme-primary-light);
+  color: color-mix(in srgb, var(--theme-primary) 80%, black);
 }
 
 .code-btn:disabled {
-  color: #94a3b8;
-  background: #f8fafc;
+  color: var(--theme-text-tertiary);
+  background: var(--theme-background);
 }
 
 .auth-button {
@@ -764,7 +764,7 @@ const handleRegister = async () => {
   height: 44px;
   font-size: 15px;
   font-weight: 600;
-  background: #4f46e5;
+  background: var(--theme-primary);
   border: none;
   border-radius: 10px;
   margin-top: 4px;
@@ -772,8 +772,8 @@ const handleRegister = async () => {
 }
 
 .auth-button:hover {
-  background: #4338ca;
-  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+  background: color-mix(in srgb, var(--theme-primary) 85%, black);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--theme-primary) 25%, transparent);
   transform: translateY(-1px);
 }
 
@@ -791,8 +791,8 @@ const handleRegister = async () => {
 }
 
 .agree-item :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+  background-color: var(--theme-primary);
+  border-color: var(--theme-primary);
 }
 
 /* Foot */
@@ -810,7 +810,7 @@ const handleRegister = async () => {
 }
 
 .forgot-link {
-  color: #4f46e5;
+  color: var(--theme-primary);
   font-size: 12px;
   font-weight: 500;
   text-decoration: none;
@@ -819,12 +819,12 @@ const handleRegister = async () => {
 }
 
 .forgot-link:hover {
-  color: #4338ca;
+  color: color-mix(in srgb, var(--theme-primary) 80%, black);
   text-decoration: underline;
 }
 
 .auth-link {
-  color: #4f46e5;
+  color: var(--theme-primary);
   cursor: pointer;
   font-weight: 500;
   text-decoration: none;
@@ -833,19 +833,19 @@ const handleRegister = async () => {
 }
 
 .auth-link:hover {
-  color: #4338ca;
+  color: color-mix(in srgb, var(--theme-primary) 80%, black);
   text-decoration: underline;
 }
 
 .auth-link-inline {
-  color: #4f46e5;
+  color: var(--theme-primary);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .auth-link-inline:hover {
-  color: #4338ca;
+  color: color-mix(in srgb, var(--theme-primary) 80%, black);
   text-decoration: underline;
 }
 

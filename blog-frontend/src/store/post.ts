@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref } from 'vue'
 import type { Post, Category, Tag } from '@/types'
 
@@ -42,3 +42,8 @@ export const usePostStore = defineStore('post', () => {
     setLoading
   }
 })
+
+// HMR 支持
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(usePostStore, import.meta.hot))
+}

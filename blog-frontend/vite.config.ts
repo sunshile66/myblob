@@ -51,19 +51,19 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    },
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 500,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          'element-plus': ['element-plus'],
-          'utils': ['axios', 'marked', 'markdown-it']
+          'element-plus': ['element-plus', '@element-plus/icons-vue'],
+          'utils': ['axios', 'marked', 'markdown-it'],
+          'crypto': ['crypto-js'],
+          'fabric': ['fabric'],
+          'curlconverter': ['curlconverter'],
+          'editor': ['browser-image-compression'],
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
@@ -73,8 +73,12 @@ export default defineConfig({
   },
   server: {
     port: 3001,
+    strictPort: true,
     open: true,
     cors: true,
+    warmup: {
+      clientFiles: ['./src/main.ts', './src/app/bootstrap.ts'],
+    },
     proxy: {
       '^/api(/|$)': {
         target: 'http://127.0.0.1:8000',

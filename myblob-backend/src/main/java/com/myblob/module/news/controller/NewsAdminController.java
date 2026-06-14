@@ -12,6 +12,7 @@ import com.myblob.module.news.service.NewsFetchService;
 import com.myblob.module.news.service.NewsFilterService;
 import com.myblob.module.news.service.NewsProxyConfig;
 import com.myblob.module.news.service.NewsSchedulerService;
+import com.myblob.module.news.service.NewsSourceSeeder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class NewsAdminController {
     private final NewsFilterService newsFilterService;
     private final NewsProxyConfig newsProxyConfig;
     private final NewsSchedulerService newsSchedulerService;
+    private final NewsSourceSeeder newsSourceSeeder;
 
     // ===== Global Toggle =====
 
@@ -201,5 +203,13 @@ public class NewsAdminController {
         status.put("lastDurationMs", newsSchedulerService.getLastFetchDurationMs());
         status.put("lastTime", newsSchedulerService.getLastFetchTime());
         return ResponseEntity.ok(ApiResponse.success(status));
+    }
+
+    @PostMapping("/sources/reseed/")
+    @Operation(summary = "重新播种新闻源（添加缺失的新源）")
+    public ResponseEntity<ApiResponse<String>> reseedSources() {
+        newsSourceSeeder.seedDefaultSources();
+        long count = newsSourceRepository.count();
+        return ResponseEntity.ok(ApiResponse.success("Reseed complete. Total sources: " + count));
     }
 }

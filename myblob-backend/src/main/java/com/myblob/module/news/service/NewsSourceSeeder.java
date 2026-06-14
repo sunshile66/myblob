@@ -35,14 +35,44 @@ public class NewsSourceSeeder {
                 createSource("环球时报", "环球时报", "https://www.globaltimes.cn/rss/outbrain.xml", "RSS", "官方媒体", "EN", 7),
                 createSource("人民日报国际", "人民日报", "http://www.people.com.cn/rss/world.xml", "RSS", "官方媒体", "CN", 3),
                 // 科技财经补充源
-                createDisabled("cnBeta", "cnBeta", "https://www.cnbeta.com.tw/backend.php", "RSS", "科技财经", "CN", 100), // XML解析失败
-                createDisabled("极客公园", "极客公园", "https://www.geekpark.net/rss", "RSS", "科技财经", "CN", 101), // 连接超时
-                createDisabled("品玩", "品玩", "https://www.pingwest.com/feed", "RSS", "科技财经", "CN", 102), // 405错误
+                createDisabled("cnBeta", "cnBeta", "https://www.cnbeta.com.tw/backend.php", "RSS", "科技财经", "CN", 100),
+                createDisabled("极客公园", "极客公园", "https://www.geekpark.net/rss", "RSS", "科技财经", "CN", 101),
+                createDisabled("品玩", "品玩", "https://www.pingwest.com/feed", "RSS", "科技财经", "CN", 102),
                 createSource("量子位", "量子位", "https://www.qbitai.com/feed", "RSS", "科技财经", "CN", 103),
                 // 社交媒体补充源
                 createSource("今日头条热榜", "今日头条", "TOUTIAIO_API", "JSOUP", "社交媒体", "CN", 104),
                 createSource("百度热搜", "百度热搜", "BAIDU_API", "JSOUP", "社交媒体", "CN", 105),
-                createSource("抖音热榜", "抖音热榜", "DOUYIN_API", "JSOUP", "社交媒体", "CN", 106)
+                createSource("抖音热榜", "抖音热榜", "DOUYIN_API", "JSOUP", "社交媒体", "CN", 106),
+                // 英语外刊源（国内服务器可能无法访问，默认禁用）
+                createDisabled("BBC Learning English", "BBC", "https://feeds.bbci.co.uk/learningenglish/english/rss", "RSS", "英语外刊", "EN", 110),
+                createDisabled("VOA English", "VOA", "https://www.voanews.com/api/z-qmget_qm_", "RSS", "英语外刊", "EN", 111),
+                createDisabled("The Economist", "The Economist", "https://www.economist.com/latest/rss.xml", "RSS", "英语外刊", "EN", 112),
+                // === 新增高质量中文源 ===
+                createSource("新华网", "新华网", "http://www.news.cn/politics/xhll.xml", "RSS", "官方媒体", "CN", 120),
+                createSource("央视新闻", "央视新闻", "https://news.cctv.com/2019/07/ga546k0esaonj2ta4n0gimlk2q6o8l13.xml", "RSS", "官方媒体", "CN", 121),
+                createSource("凤凰网", "凤凰网", "https://news.ifeng.com/rss/index.xml", "RSS", "官方媒体", "CN", 122),
+                createSource("网易新闻", "网易新闻", "https://www.163.com/rss", "RSS", "社交媒体", "CN", 123),
+                createSource("新浪新闻", "新浪新闻", "https://feed.mix.sina.com.cn/api/roll/get", "RSS", "社交媒体", "CN", 124),
+                createSource("腾讯新闻", "腾讯新闻", "https://news.qq.com/rss_news.xml", "RSS", "社交媒体", "CN", 125),
+                createSource("搜狐新闻", "搜狐新闻", "https://news.sohu.com/rss", "RSS", "社交媒体", "CN", 126),
+                createSource("证券时报", "证券时报", "https://www.stcn.com/rss", "RSS", "科技财经", "CN", 130),
+                createSource("第一财经", "第一财经", "https://www.yicai.com/feed/rss", "RSS", "科技财经", "CN", 131),
+                createSource("每日经济新闻", "每日经济新闻", "https://www.nbd.com.cn/rss", "RSS", "科技财经", "CN", 132),
+                createSource("21世纪经济报道", "21世纪经济报道", "https://www.21jingji.com/rss", "RSS", "科技财经", "CN", 133),
+                // 海外可访问中文源
+                createSource("FT中文网", "FT中文网", "https://www.ftchinese.com/rss/feed", "RSS", "科技财经", "CN", 140),
+                createSource("华尔街见闻", "华尔街见闻", "https://wallstreetcn.com/rss", "RSS", "科技财经", "CN", 141),
+                createSource("InfoQ中文", "InfoQ", "https://www.infoq.cn/feed", "RSS", "开源开发者", "CN", 142),
+                createSource("开源中国", "开源中国", "https://www.oschina.net/news/rss", "RSS", "开源开发者", "CN", 143),
+                createSource("CSDN", "CSDN", "https://blog.csdn.net/rss.html", "RSS", "开源开发者", "CN", 144),
+                createSource("掘金", "掘金", "https://juejin.cn/rss", "RSS", "开源开发者", "CN", 145),
+                createSource("SegmentFault", "SegmentFault", "https://segmentfault.com/feeds", "RSS", "开源开发者", "CN", 146),
+                // 英文源补充
+                createSource("The Register", "The Register", "https://www.theregister.com/headlines.atom", "RSS", "科技媒体", "EN", 150),
+                createSource("Mashable", "Mashable", "https://mashable.com/feed", "RSS", "科技媒体", "EN", 151),
+                createSource("Gizmodo", "Gizmodo", "https://gizmodo.com/rss", "RSS", "科技媒体", "EN", 152),
+                createSource("VentureBeat", "VentureBeat", "https://venturebeat.com/feed/", "RSS", "科技媒体", "EN", 153),
+                createSource("TheNextWeb", "TheNextWeb", "https://thenextweb.com/feed", "RSS", "科技媒体", "EN", 154)
         );
         for (NewsSource candidate : candidates) {
             if (newsSourceRepository.findByName(candidate.getName()) == null) {

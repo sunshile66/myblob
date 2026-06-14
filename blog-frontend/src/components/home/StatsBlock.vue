@@ -67,34 +67,41 @@ watch(() => props.value, (newVal) => {
 .stats-block {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   height: 100%;
-  min-height: 60px;
+  min-height: 72px;
 }
 
 .stats-block__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-block:hover .stats-block__icon {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .stats-block__body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .stats-block__value {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
   line-height: 1;
   color: var(--theme-text);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -102,5 +109,12 @@ watch(() => props.value, (newVal) => {
   font-size: 13px;
   font-weight: 500;
   color: var(--theme-text-secondary);
+  letter-spacing: -0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-block__icon {
+    transition: none;
+  }
 }
 </style>

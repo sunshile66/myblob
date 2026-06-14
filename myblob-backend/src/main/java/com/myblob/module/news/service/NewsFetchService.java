@@ -205,7 +205,13 @@ public class NewsFetchService {
                 }
             }
         } catch (Exception e) {
-            log.warn("RSS fetch failed for {}: {}", source.getName(), e.getMessage());
+            log.warn("RSS fetch failed for {}: {}. Attempting Jsoup fallback.", source.getName(), e.getMessage());
+            // Fallback: try to extract feeds using Jsoup HTML parsing
+            try {
+                return fetchJsoup(source);
+            } catch (Exception ex2) {
+                log.debug("Jsoup fallback also failed for {}: {}", source.getName(), ex2.getMessage());
+            }
         }
         return items;
     }
@@ -245,18 +251,71 @@ public class NewsFetchService {
      * Strip control characters that break XML parsing, and remove DOCTYPE
      * declarations
      */
+    /**
+     * Sanitize RSS/XML bytes to handle common issues from Chinese and non-standard feeds:
+     * - BOM (UTF-8 byte order mark)
+     * - DOCTYPE declarations that Rome's parser rejects
+     * - HTML entities (&nbsp;, &copy;) not valid in XML
+     * - -- inside XML comments
+     * - Content before XML declaration (ads, HTML headers)
+     * - HTML tags mixed into RSS (script, style blocks)
+     * - Non-XML attributes like "defer" without value
+     * Falls back to extracting feeds via Jsoup if XML parsing fails.
+     */
     private byte[] sanitizeXmlBytes(byte[] bytes) {
         String s = new String(bytes, StandardCharsets.UTF_8);
-        // Remove DOCTYPE declaration (some parsers disallow it)
+
+        // 1. Strip BOM
+        if (s.startsWith("﻿")) s = s.substring(1);
+
+        // 2. Remove DOCTYPE
         s = s.replaceAll("(?i)<!DOCTYPE[^>]*>", "");
+
+        // 3. Remove script/style blocks with their content
+        s = s.replaceAll("(?is)<script[^>]*>.*?</script>", "");
+        s = s.replaceAll("(?is)<style[^>]*>.*?</style>", "");
+
+        // 4. Fix "defer" and similar HTML boolean attributes without values
+        s = s.replaceAll("(?i)\\sdefer(\\s|>)", " defer=\"defer\"$1");
+        s = s.replaceAll("(?i)\\sasync(\\s|>)", " async=\"async\"$1");
+        s = s.replaceAll("(?i)\\schecked(\\s|>)", " checked=\"checked\"$1");
+        s = s.replaceAll("(?i)\\sdisabled(\\s|>)", " disabled=\"disabled\"$1");
+        s = s.replaceAll("(?i)\\sselected(\\s|>)", " selected=\"selected\"$1");
+
+        // 5. Remove -- from inside XML comments (replace with ==)
+        StringBuilder result = new StringBuilder();
+        java.util.regex.Pattern commentPattern = java.util.regex.Pattern.compile("<!--(.*?)-->", java.util.regex.Pattern.DOTALL);
+        java.util.regex.Matcher cm = commentPattern.matcher(s);
+        while (cm.find()) {
+            String comment = cm.group(1).replace("--", "==").replace("$", "\\$");
+            cm.appendReplacement(result, "<!--" + comment + "-->");
+        }
+        cm.appendTail(result);
+        s = result.toString();
+
+        // 6. Find XML start: trim content before <?xml or <rss or <feed or <channel
+        int xmlStart = -1;
+        for (String marker : new String[]{"<?xml", "<rss", "<feed", "<RDF", "<channel", "<atom"}) {
+            int idx = s.indexOf(marker);
+            if (idx >= 0 && (xmlStart < 0 || idx < xmlStart)) xmlStart = idx;
+        }
+        if (xmlStart > 0) s = s.substring(xmlStart);
+
+        // 7. Replace non-breaking space with regular space
+        s = s.replace(" ", " ");
+
+        // 8. Encode bare & not followed by entity reference
+        s = s.replaceAll("&(?!amp;|lt;|gt;|quot;|apos;|#\\d+;|#x[0-9a-fA-F]+;)", "&amp;");
+
+        // 9. Strip control characters except tab, LF, CR
         StringBuilder sb = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            // Allow tab (9), LF (10), CR (13), and chars >= 0x20 (space)
             if (c == 0x9 || c == 0xA || c == 0xD || c >= 0x20) {
                 sb.append(c);
             }
         }
+
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
@@ -593,7 +652,92 @@ public class NewsFetchService {
         if ("抖音热榜".equals(source.getPlatformName())) {
             return fetchDouyinHot(source);
         }
-        return fetchRss(source);
+        // Generic fallback: try to extract feeds using Jsoup's forgiving HTML parser
+        return fetchJsoupGeneric(source);
+    }
+
+    /**
+     * Use Jsoup to extract feed items from RSS/Atom/HTML pages.
+     * More forgiving than Rome's strict XML parser — handles broken XML from Chinese sites.
+     */
+    private List<NewsItem> fetchJsoupGeneric(NewsSource source) {
+        List<NewsItem> items = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(source.getFeedUrl())
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36")
+                    .timeout(newsProxyConfig.getProxy().getReadTimeout())
+                    .ignoreContentType(true)
+                    .get();
+
+            // Try RSS <item> elements first
+            Elements rssItems = doc.select("item, entry");
+            int maxItems = newsProxyConfig.getFetch().getMaxItemsPerSource();
+            int count = 0;
+
+            for (Element item : rssItems) {
+                if (count >= maxItems) break;
+                String title = item.selectFirst("title") != null
+                        ? item.selectFirst("title").text().trim() : "";
+                if (title.isEmpty() && item.selectFirst("entry > title") != null)
+                    title = item.selectFirst("entry > title").text().trim();
+                if (title.isEmpty()) continue;
+
+                String link = "";
+                Element linkEl = item.selectFirst("link");
+                if (linkEl != null) {
+                    link = linkEl.attr("href");
+                    if (link.isEmpty()) link = linkEl.text();
+                }
+
+                String summary = "";
+                Element descEl = item.selectFirst("description, summary, content");
+                if (descEl != null) {
+                    summary = Jsoup.parse(descEl.text()).text();
+                    if (summary.length() > 500) summary = summary.substring(0, 497) + "...";
+                }
+
+                NewsItem newsItem = NewsItem.builder()
+                        .title(title).summary(summary).sourceUrl(link)
+                        .sourcePlatform(source.getPlatformName())
+                        .sourceName(source.getName())
+                        .category(source.getCategory())
+                        .language(source.getLanguage())
+                        .publishedAt(LocalDateTime.now())
+                        .mediaType("text").sentiment("neutral")
+                        .qualityScore(50).isFiltered(false).deleted(false)
+                        .build();
+                items.add(newsItem);
+                count++;
+            }
+
+            // If no RSS items found, try to extract links from the page
+            if (items.isEmpty()) {
+                Elements links = doc.select("a[href]");
+                for (Element a : links) {
+                    if (count >= maxItems) break;
+                    String title = a.text().trim();
+                    if (title.length() < 10) continue;
+                    String href = a.absUrl("href");
+                    if (href.isEmpty()) continue;
+
+                    NewsItem newsItem = NewsItem.builder()
+                            .title(title).sourceUrl(href)
+                            .sourcePlatform(source.getPlatformName())
+                            .sourceName(source.getName()).category(source.getCategory())
+                            .language(source.getLanguage()).publishedAt(LocalDateTime.now())
+                            .mediaType("text").sentiment("neutral")
+                            .qualityScore(40).isFiltered(false).deleted(false)
+                            .build();
+                    items.add(newsItem);
+                    count++;
+                }
+            }
+
+            log.debug("Jsoup generic for {}: extracted {} items", source.getName(), items.size());
+        } catch (Exception e) {
+            log.debug("Jsoup generic fallback failed for {}: {}", source.getName(), e.getMessage());
+        }
+        return items;
     }
 
     @SuppressWarnings("unchecked")

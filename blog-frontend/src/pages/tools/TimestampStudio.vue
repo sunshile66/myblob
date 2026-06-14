@@ -41,6 +41,7 @@
                 style="width: 100%"
               />
               <el-button type="primary" @click="convertDateTime">转换</el-button>
+              <el-button @click="useNowDateTime">现在</el-button>
             </div>
             <div v-if="dateTimeResults.length" class="grid">
               <article v-for="item in dateTimeResults" :key="item.label" class="result">
@@ -187,6 +188,12 @@ const useNow = () => {
   convertTimestamp();
 };
 
+const useNowDateTime = () => {
+  const now = new Date();
+  dateTime.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  convertDateTime();
+};
+
 const convertTimestamp = () => {
   if (!ensure(timestamp.value, "时间戳")) return;
   if (!/^-?\d+$/.test(timestamp.value.trim())) {
@@ -242,15 +249,15 @@ const copy = async (value: string) => {
 .tabs {
   padding: 20px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.06);
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .panel {
   padding: 18px;
   border-radius: 20px;
-  background: rgba(15, 23, 42, 0.03);
+  background: var(--theme-background);
 }
 
 .row,
@@ -278,22 +285,22 @@ const copy = async (value: string) => {
 .result {
   padding: 16px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
 }
 
 .result span {
   display: block;
   margin-bottom: 8px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .result strong {
   display: block;
   font-size: 15px;
   line-height: 1.7;
-  color: #0f172a;
+  color: var(--theme-text);
   word-break: break-word;
 }
 

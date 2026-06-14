@@ -159,25 +159,25 @@ const clearEditor = () => {
 }
 
 .markdown-output :deep(code) {
-  background: var(--theme-background);
+  background: var(--theme-hover);
   padding: 2px 8px;
-  border-radius: 4px;
-  font-family: 'Fira Code', monospace;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
   font-size: 0.9em;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .markdown-output :deep(pre) {
-  background: #0f172a;
+  background: var(--theme-text);
   padding: 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow-x: auto;
   margin: 20px 0;
 }
 
 .markdown-output :deep(pre code) {
   background: transparent;
-  color: #e2e8f0;
+  color: var(--theme-border);
   padding: 0;
 }
 

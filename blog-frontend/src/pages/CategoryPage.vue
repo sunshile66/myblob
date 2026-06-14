@@ -1,97 +1,120 @@
 <template>
-  <DefaultLayout>
-    <div class="category-page">
-      <h2 class="page-title">分类: {{ categoryName }}</h2>
-      <div v-if="loading" class="loading">
-        <el-skeleton :rows="5" animated />
+  <SimpleLayout>
+    <div class="cat-page">
+      <nav class="breadcrumb">
+        <router-link to="/" class="bc-link">首页</router-link>
+        <span class="bc-sep">/</span>
+        <span class="bc-current">{{ categoryName }}</span>
+      </nav>
+
+      <div class="page-head">
+        <h1>{{ categoryName }}</h1>
+        <span>{{ total }} 篇文章</span>
       </div>
-      <div v-else>
-        <PostCard v-for="post in posts" :key="post.id" :post="post" />
-        <el-pagination
-          v-if="total > 0"
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          :total="total"
-          layout="prev, pager, next"
-          @current-change="loadPosts"
-        />
-        <el-empty v-if="posts.length === 0" description="该分类下暂无文章" />
+
+      <div v-if="loading" class="loading-state">
+        <div class="sk-card" v-for="i in 4" :key="i">
+          <div class="sk-line sk-title"></div><div class="sk-line sk-summary"></div>
+        </div>
+      </div>
+
+      <div v-else-if="posts.length" class="post-list">
+        <article v-for="post in posts" :key="post.id" class="post-card" @click="$router.push('/note/' + post.slug)">
+          <div class="card-left">
+            <h3>{{ post.title }}</h3>
+            <p v-if="post.summary" class="card-summary">{{ post.summary }}</p>
+            <div class="card-meta">
+              <span v-if="post.author?.nickname">{{ post.author.nickname }}</span>
+              <span>{{ post.viewCount }} 阅读</span>
+              <span>{{ fmtDate(post.publishedAt) }}</span>
+            </div>
+          </div>
+          <div v-if="post.cover" class="card-cover">
+            <img :src="post.cover" :alt="post.title" loading="lazy" />
+          </div>
+        </article>
+      </div>
+
+      <el-empty v-else description="该分类下暂无文章" />
+
+      <div class="pagination" v-if="total > pageSize">
+        <el-pagination v-model:current-page="currentPage" :page-size="pageSize" :total="total" layout="prev, pager, next" @current-change="loadPosts" />
       </div>
     </div>
-  </DefaultLayout>
+  </SimpleLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import DefaultLayout from '@/layout/DefaultLayout.vue'
-import PostCard from '@/components/post/PostCard.vue'
+import SimpleLayout from '@/layout/SimpleLayout.vue'
 import { getPosts, getCategories } from '@/api/post'
 import type { Post, Category } from '@/types'
 
 const route = useRoute()
-
 const posts = ref<Post[]>([])
 const categories = ref<Category[]>([])
 const loading = ref(false)
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = 10
 const total = ref(0)
 
 const categoryName = computed(() => {
   const slug = route.params.slug as string
-  const category = categories.value.find(c => c.slug === slug)
-  return category?.name || slug
+  const cat = categories.value.find(c => c.slug === slug)
+  return cat?.name || slug
 })
+
+const fmtDate = (t?: string) => {
+  if (!t) return ''
+  return new Date(t).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+}
 
 const loadPosts = async (page = 1) => {
   loading.value = true
   try {
     const slug = route.params.slug as string
-    const response = await getPosts({
-      page,
-      page_size: pageSize.value,
-      category: slug,
-      status: 'published',
-      ordering: '-published_at'
-    })
-    posts.value = response.results
-    total.value = response.count
-  } catch (error) {
-    console.error('Failed to load posts:', error)
-  } finally {
-    loading.value = false
-  }
+    const res = await getPosts({ page: page - 1, page_size: pageSize, category: slug, status: 'published', ordering: '-published_at' })
+    posts.value = res.results; total.value = res.count; currentPage.value = page
+  } catch (err) { console.error(err) }
+  finally { loading.value = false }
 }
 
-const loadCategories = async () => {
-  try {
-    categories.value = await getCategories()
-  } catch (error) {
-    console.error('Failed to load categories:', error)
-  }
-}
-
-onMounted(() => {
-  loadCategories()
+onMounted(async () => {
+  try { categories.value = await getCategories() } catch {}
   loadPosts()
 })
 </script>
 
 <style scoped>
-.category-page {
-  padding: 0;
-}
+.cat-page { max-width: 800px; margin: 0 auto; padding: 20px 20px 48px; }
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 16px; }
+.bc-link { color: var(--theme-text-secondary); text-decoration: none; }
+.bc-link:hover { color: var(--theme-primary); }
+.bc-sep { color: var(--theme-border); }
+.bc-current { color: var(--theme-text); font-weight: 600; }
 
-.page-title {
-  font-size: 24px;
-  margin-bottom: 24px;
-  color: #333;
-}
+.page-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
+.page-head h1 { font-size: 1.6rem; margin: 0; color: var(--theme-text); }
+.page-head span { font-size: 14px; color: var(--theme-text-secondary); }
 
-.loading {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+.post-list { display: flex; flex-direction: column; gap: 10px; }
+.post-card { display: flex; gap: 16px; padding: 18px 20px; background: var(--theme-card); border: 1px solid var(--theme-border); border-radius: 12px; cursor: pointer; transition: all .2s; }
+.post-card:hover { border-color: var(--theme-primary); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.card-left { flex: 1; min-width: 0; }
+.card-left h3 { font-size: 16px; margin: 0 0 6px; color: var(--theme-text); }
+.card-summary { font-size: 13px; color: var(--theme-text-secondary); line-height: 1.6; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-meta { display: flex; gap: 12px; font-size: 12px; color: var(--theme-text-secondary); margin-top: 10px; }
+.card-cover { flex-shrink: 0; width: 120px; height: 80px; border-radius: 8px; overflow: hidden; background: var(--theme-hover); }
+.card-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.loading-state { display: flex; flex-direction: column; gap: 10px; }
+.sk-card { padding: 20px; background: var(--theme-card); border-radius: 12px; }
+.sk-line { background: var(--theme-hover); border-radius: 4px; animation: pulse 1.5s infinite; }
+.sk-title { height: 18px; width: 60%; margin-bottom: 10px; }
+.sk-summary { height: 14px; width: 85%; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.pagination { margin-top: 24px; display: flex; justify-content: center; }
+@media (max-width: 600px) { .post-card { flex-direction: column-reverse; } .card-cover { width: 100%; height: 140px; } }
 </style>

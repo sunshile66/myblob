@@ -76,12 +76,9 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
-        if (userOpt.isEmpty()) {
-            userOpt = userRepository.findByEmail(request.getUsername());
-        }
-
-        User user = userOpt.orElseThrow(() -> new BusinessException("用户名或密码错误"));
+        // 单次查询：按用户名或邮箱查找
+        User user = userRepository.findByUsernameOrEmail(request.getUsername())
+                .orElseThrow(() -> new BusinessException("用户名或密码错误"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException("用户名或密码错误");
@@ -235,13 +232,17 @@ public class UserService {
     public UserDTO toDTO(User user, Long currentUserId) {
         List<Long> userIds = List.of(user.getId());
         Set<Long> followingIds = Set.of();
-        if (currentUserId != null && !currentUserId.equals(user.getId())) {
+        Map<Long, Long> followerCounts = Map.of();
+        Map<Long, Long> followingCounts = Map.of();
+
+        // 仅在需要交互状态时查询，避免无效 DB 查询
+        if (currentUserId != null) {
             followingIds = new HashSet<>(followRepository.findFollowingIds(currentUserId, userIds));
+            followerCounts = followRepository.countFollowersGrouped(userIds).stream()
+                    .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+            followingCounts = followRepository.countFollowingGrouped(userIds).stream()
+                    .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
         }
-        Map<Long, Long> followerCounts = followRepository.countFollowersGrouped(userIds).stream()
-                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
-        Map<Long, Long> followingCounts = followRepository.countFollowingGrouped(userIds).stream()
-                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
         return UserDTOAssembler.toFullDTO(user, currentUserId, followingIds, followerCounts, followingCounts);
     }
 }

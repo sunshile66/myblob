@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { Delete, Refresh, Upload } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { UploadFile } from "element-plus";
@@ -133,9 +133,7 @@ const loadFile = async (file: UploadFile) => {
   ElMessage.success("文件内容已读取");
 };
 
-watch([inputText, hmacKey, caseMode], () => {
-  // computed results update automatically; the watcher keeps Element Plus inputs responsive after file loads.
-});
+// Results update reactively via computed(), no manual watcher needed
 </script>
 
 <style scoped>
@@ -147,10 +145,10 @@ watch([inputText, hmacKey, caseMode], () => {
 
 .panel {
   padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  background: var(--theme-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .panel-head {
@@ -162,13 +160,13 @@ watch([inputText, hmacKey, caseMode], () => {
 
 h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 18px;
 }
 
 p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -190,7 +188,7 @@ p {
 .settings-grid label {
   display: grid;
   gap: 8px;
-  color: #334155;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
@@ -207,26 +205,26 @@ p {
   gap: 12px;
   width: 100%;
   padding: 11px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--theme-hover);
   cursor: pointer;
   text-align: left;
 }
 
 .result-row:hover {
-  border-color: #14b8a6;
-  background: rgba(20, 184, 166, 0.08);
+  border-color: var(--theme-primary);
+  background: var(--theme-primary-light);
 }
 
 .result-row span {
-  color: #334155;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
 
 .result-row code {
-  color: #0f172a;
+  color: var(--theme-text);
   font-size: 13px;
   word-break: break-all;
 }
@@ -243,4 +241,5 @@ p {
     flex-direction: column;
   }
 }
+:deep(.el-textarea__inner) { font-family: var(--font-mono); font-size: 14px; line-height: 1.7; }
 </style>
