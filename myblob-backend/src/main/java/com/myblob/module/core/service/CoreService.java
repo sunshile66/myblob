@@ -26,21 +26,14 @@ public class CoreService {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getActiveAnnouncements() {
         return announcementRepository
-                .findByActiveTrueAndPublishTimeBeforeOrderByPinnedDescSortAscPublishTimeDesc(LocalDateTime.now())
+                .findActiveAnnouncements(LocalDateTime.now())
                 .stream().map(this::toAnnouncementMap).toList();
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getActiveAds(String position) {
-        return adRepository.findByActiveTrueOrderByPositionAscSortAscCreatedAtDesc()
+        return adRepository.findActiveAds(position, LocalDateTime.now())
                 .stream()
-                .filter(ad -> position == null || ad.getPosition().equals(position))
-                .filter(ad -> {
-                    LocalDateTime now = LocalDateTime.now();
-                    if (ad.getStartTime() != null && now.isBefore(ad.getStartTime())) return false;
-                    if (ad.getEndTime() != null && now.isAfter(ad.getEndTime())) return false;
-                    return true;
-                })
                 .map(this::toAdMap)
                 .toList();
     }

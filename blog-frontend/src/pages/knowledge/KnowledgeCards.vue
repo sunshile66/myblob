@@ -91,7 +91,7 @@ const categoryName = computed(() => catNames[categoryKey.value] || categoryKey.v
 const fetchList = async () => {
   loading.value = true
   try {
-    const params: any = { page: currentPage.value - 1, size: pageSize, category: categoryKey.value }
+    const params: any = { page: currentPage.value - 1, size: pageSize, category: categoryKey.value, sort: sortBy.value }
     if (searchQuery.value) params.search = searchQuery.value
     const res = await getKnowledgeItems(params)
     const data: any = (res as any)

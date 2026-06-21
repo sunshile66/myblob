@@ -67,7 +67,7 @@ export interface KnowledgeCategory {
 }
 
 export const getKnowledgeItems = (params?: {
-  page?: number; size?: number; category?: string; search?: string
+  page?: number; size?: number; category?: string; search?: string; sort?: string
 }) => request.get<PaginatedResponse<KnowledgeItem>>('/knowledge/items', { params })
 
 export const getKnowledgeDetail = (id: number) =>
@@ -75,6 +75,12 @@ export const getKnowledgeDetail = (id: number) =>
 
 export const getKnowledgeCategories = () =>
   request.get<KnowledgeCategory[]>('/knowledge/items/categories')
+
+export const getKnowledgeItemCount = () =>
+  request.get<number>('/knowledge/items/count')
+
+export const getVocabularyCount = () =>
+  request.get<number>('/knowledge/vocabulary/count')
 
 // ==================== 间隔重复复习 ====================
 

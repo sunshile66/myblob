@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
-import { getRandomVocabulary, type VocabularyItem } from '@/api/knowledge'
+import { getRandomVocabulary, gradeReview, type VocabularyItem } from '@/api/knowledge'
 import KnowledgeLayout from './components/KnowledgeLayout.vue'
 
 const quizStarted = ref(false)
@@ -173,6 +173,9 @@ const selectOption = (opt: Option) => {
   } else {
     wrongWords.value.push(currentWord.value!)
   }
+  // 提交评分到间隔重复系统（静默，不阻塞UI）
+  const quality = opt.correct ? 4 : 1
+  gradeReview(currentWord.value!.id, quality).catch(() => {})
 }
 
 const nextQuestion = () => {

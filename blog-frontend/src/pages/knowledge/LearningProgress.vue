@@ -245,10 +245,14 @@ const getHeatmapClass = (count: number) => {
   return 'level-4'
 }
 
-// 获取掌握度百分比
+// 获取掌握度百分比（相对于最高掌握度的分类）
+const maxMastery = computed(() => {
+  if (!categoryMastery.value.length) return 1
+  return Math.max(1, ...categoryMastery.value.map(c => c.count))
+})
+
 const getMasteryPercentage = (count: number) => {
-  // 假设每个分类有 20 个条目
-  return Math.min(100, Math.round((count / 20) * 100))
+  return Math.min(100, Math.round((count / maxMastery.value) * 100))
 }
 
 // 获取状态类型

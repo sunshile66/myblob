@@ -85,6 +85,12 @@ public class KnowledgeController {
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
+    @GetMapping("/vocabulary/count")
+    @Operation(summary = "获取词汇总数")
+    public ResponseEntity<ApiResponse<Long>> getVocabularyCount() {
+        return ResponseEntity.ok(ApiResponse.success(vocabularyItemRepository.count()));
+    }
+
     // ==================== 知识卡片接口 ====================
 
     @GetMapping("/items")
@@ -93,16 +99,18 @@ public class KnowledgeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "hot") String sort) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "viewCount"));
+        Sort dbSort = "new".equals(sort)
+                ? Sort.by(Sort.Direction.DESC, "createdAt")
+                : Sort.by(Sort.Direction.DESC, "viewCount");
+        Pageable pageable = PageRequest.of(page, size, dbSort);
         Page<KnowledgeItem> items;
 
         if (search != null && !search.isBlank()) {
-            // 优先使用全文搜索
             items = knowledgeItemRepository.fullTextSearch(search.trim(), pageable);
             if (items.isEmpty()) {
-                // 回退到模糊搜索
                 items = knowledgeItemRepository.search(search, pageable);
             }
         } else if (category != null && !category.isBlank()) {

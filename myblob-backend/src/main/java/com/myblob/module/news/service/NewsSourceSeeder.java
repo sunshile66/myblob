@@ -43,10 +43,15 @@ public class NewsSourceSeeder {
                 createSource("今日头条热榜", "今日头条", "TOUTIAIO_API", "JSOUP", "社交媒体", "CN", 104),
                 createSource("百度热搜", "百度热搜", "BAIDU_API", "JSOUP", "社交媒体", "CN", 105),
                 createSource("抖音热榜", "抖音热榜", "DOUYIN_API", "JSOUP", "社交媒体", "CN", 106),
-                // 英语外刊源（国内服务器可能无法访问，默认禁用）
-                createDisabled("BBC Learning English", "BBC", "https://feeds.bbci.co.uk/learningenglish/english/rss", "RSS", "英语外刊", "EN", 110),
-                createDisabled("VOA English", "VOA", "https://www.voanews.com/api/z-qmget_qm_", "RSS", "英语外刊", "EN", 111),
-                createDisabled("The Economist", "The Economist", "https://www.economist.com/latest/rss.xml", "RSS", "英语外刊", "EN", 112),
+                // 英语外刊源
+                createSource("BBC Learning English", "BBC", "https://feeds.bbci.co.uk/learningenglish/english/rss", "RSS", "英语外刊", "EN", 110),
+                createSource("VOA English", "VOA", "https://www.voanews.com/api/z-qmget_qm_", "RSS", "英语外刊", "EN", 111),
+                createSource("The Economist", "The Economist", "https://www.economist.com/latest/rss.xml", "RSS", "英语外刊", "EN", 112),
+                createSource("BBC News", "BBC News", "https://feeds.bbci.co.uk/news/world/rss.xml", "RSS", "英语外刊", "EN", 113),
+                createSource("Reuters", "Reuters", "https://www.reutersagency.com/feed/", "RSS", "英语外刊", "EN", 114),
+                createSource("The Guardian", "The Guardian", "https://www.theguardian.com/world/rss", "RSS", "英语外刊", "EN", 115),
+                createSource("NPR", "NPR", "https://www.npr.org/rss/rss.xml", "RSS", "英语外刊", "EN", 116),
+                createSource("Al Jazeera", "Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml", "RSS", "英语外刊", "EN", 117),
                 // === 新增高质量中文源 ===
                 createSource("新华网", "新华网", "http://www.news.cn/politics/xhll.xml", "RSS", "官方媒体", "CN", 120),
                 createSource("央视新闻", "央视新闻", "https://news.cctv.com/2019/07/ga546k0esaonj2ta4n0gimlk2q6o8l13.xml", "RSS", "官方媒体", "CN", 121),
@@ -72,7 +77,21 @@ public class NewsSourceSeeder {
                 createSource("Mashable", "Mashable", "https://mashable.com/feed", "RSS", "科技媒体", "EN", 151),
                 createSource("Gizmodo", "Gizmodo", "https://gizmodo.com/rss", "RSS", "科技媒体", "EN", 152),
                 createSource("VentureBeat", "VentureBeat", "https://venturebeat.com/feed/", "RSS", "科技媒体", "EN", 153),
-                createSource("TheNextWeb", "TheNextWeb", "https://thenextweb.com/feed", "RSS", "科技媒体", "EN", 154)
+                createSource("TheNextWeb", "TheNextWeb", "https://thenextweb.com/feed", "RSS", "科技媒体", "EN", 154),
+                // 更多国际源
+                createSource("MIT Technology Review", "MIT Tech Review", "https://www.technologyreview.com/feed/", "RSS", "科技媒体", "EN", 155),
+                createSource("Nature News", "Nature", "https://www.nature.com/nature.rss", "RSS", "科技媒体", "EN", 156),
+                createSource("Science Daily", "Science Daily", "https://www.sciencedaily.com/rss/all.xml", "RSS", "科技媒体", "EN", 157),
+                createSource("IEEE Spectrum", "IEEE Spectrum", "https://spectrum.ieee.org/feeds/feed.rss", "RSS", "科技媒体", "EN", 158),
+                createSource("Smashing Magazine", "Smashing Mag", "https://www.smashingmagazine.com/feed/", "RSS", "开源开发者", "EN", 159),
+                createSource("CSS-Tricks", "CSS-Tricks", "https://css-tricks.com/feed/", "RSS", "开源开发者", "EN", 160),
+                createSource("A List Apart", "A List Apart", "https://alistapart.com/main/feed/", "RSS", "开源开发者", "EN", 161),
+                createSource("Stack Overflow Blog", "SO Blog", "https://stackoverflow.blog/feed/", "RSS", "开源开发者", "EN", 162),
+                createSource("Towards Data Science", "TDS", "https://towardsdatascience.com/feed", "RSS", "科技媒体", "EN", 163),
+                createSource("The New Stack", "The New Stack", "https://thenewstack.io/feed/", "RSS", "开源开发者", "EN", 164),
+                createSource("Linux Journal", "Linux Journal", "https://www.linuxjournal.com/node/feed", "RSS", "开源开发者", "EN", 165),
+                createSource("CoinDesk", "CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/", "RSS", "科技财经", "EN", 166),
+                createSource("Bloomberg Tech", "Bloomberg", "https://www.bloomberg.com/feed/podcast/tech", "RSS", "科技财经", "EN", 167)
         );
         for (NewsSource candidate : candidates) {
             if (newsSourceRepository.findByName(candidate.getName()) == null) {

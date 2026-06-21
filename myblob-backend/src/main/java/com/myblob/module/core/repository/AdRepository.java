@@ -13,10 +13,14 @@ import java.util.List;
 @Repository
 public interface AdRepository extends JpaRepository<Ad, Long> {
 
-    List<Ad> findByActiveTrueAndPositionAndStartTimeBeforeAndEndTimeAfterOrActiveTrueAndPositionAndStartTimeIsNullAndEndTimeIsNull(
-            String position, LocalDateTime now1, LocalDateTime now2, String position2);
-
     List<Ad> findByActiveTrueOrderByPositionAscSortAscCreatedAtDesc();
+
+    @Query("SELECT a FROM Ad a WHERE a.active = true " +
+           "AND (:position IS NULL OR a.position = :position) " +
+           "AND (a.startTime IS NULL OR a.startTime <= :now) " +
+           "AND (a.endTime IS NULL OR a.endTime >= :now) " +
+           "ORDER BY a.position ASC, a.sort ASC, a.createdAt DESC")
+    List<Ad> findActiveAds(@Param("position") String position, @Param("now") LocalDateTime now);
 
     @Modifying
     @Query("UPDATE Ad a SET a.clickCount = a.clickCount + 1 WHERE a.id = :adId")

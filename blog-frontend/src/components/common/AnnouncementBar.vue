@@ -6,7 +6,21 @@
         <div class="announcement-content">
           <span
             v-for="(item, index) in announcements"
-            :key="item.id"
+            :key="'a-' + item.id"
+            class="announcement-item"
+          >
+            <el-tag
+              v-if="item.is_pinned"
+              type="danger"
+              size="small"
+              class="pinned-tag"
+              >置顶</el-tag
+            >
+            {{ item.title }}
+          </span>
+          <span
+            v-for="(item, index) in announcements"
+            :key="'b-' + item.id"
             class="announcement-item"
           >
             <el-tag

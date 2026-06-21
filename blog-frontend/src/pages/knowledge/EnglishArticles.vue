@@ -51,9 +51,8 @@ const formatDate = (d: string) => {
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await getNewsList({ language: 'EN', size: 20 })
-    const data = (res as any).data || res
-    articles.value = data.content || []
+    const res = await getNewsList({ language: 'EN', size: 20, category: '英语外刊' })
+    articles.value = (res as any)?.results || []
   } finally {
     loading.value = false
   }

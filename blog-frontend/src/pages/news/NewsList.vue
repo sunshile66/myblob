@@ -187,6 +187,7 @@ const IconCpu = defineComponent({ render: () => h('svg', { width: 14, height: 14
 const IconCode = defineComponent({ render: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('polyline', { points: '16 18 22 12 16 6' }), h('polyline', { points: '8 6 2 12 8 18' })]) })
 const IconPlane = defineComponent({ render: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('path', { d: 'M22 2L11 13' }), h('path', { d: 'M22 2l-7 20-4-9-9-4 20-7z' })]) })
 const IconAll = defineComponent({ render: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('rect', { x: 3, y: 3, width: 7, height: 7 }), h('rect', { x: 14, y: 3, width: 7, height: 7 }), h('rect', { x: 14, y: 14, width: 7, height: 7 }), h('rect', { x: 3, y: 14, width: 7, height: 7 })]) })
+const IconGlobe = defineComponent({ render: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('circle', { cx: 12, cy: 12, r: 10 }), h('line', { x1: 2, y1: 12, x2: 22, y2: 12 }), h('path', { d: 'M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z' })]) })
 
 const list = ref<NewsItem[]>([])
 const page = ref(0)
@@ -209,6 +210,7 @@ const cats = [
   { l: '科技财经', v: '科技财经', icon: IconCpu },
   { l: '科技媒体', v: '科技媒体', icon: IconCpu },
   { l: '开源开发者', v: '开源开发者', icon: IconCode },
+  { l: '英语外刊', v: '英语外刊', icon: IconGlobe },
   { l: '国际航司', v: '国际航司', icon: IconPlane },
 ]
 const langs = [

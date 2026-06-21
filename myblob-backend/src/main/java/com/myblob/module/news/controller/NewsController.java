@@ -85,7 +85,7 @@ public class NewsController {
     @GetMapping("/categories/")
     @Operation(summary = "获取分类列表")
     public ResponseEntity<ApiResponse<List<String>>> getCategories() {
-        List<String> categories = List.of("官方媒体", "社交媒体", "科技财经", "科技媒体", "开源开发者", "国际航司");
+        List<String> categories = List.of("官方媒体", "社交媒体", "科技财经", "科技媒体", "开源开发者", "英语外刊", "国际航司");
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 

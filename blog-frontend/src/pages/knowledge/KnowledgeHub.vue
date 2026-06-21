@@ -105,11 +105,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Reading, Notebook, EditPen, Document, Collection, Search, DataLine } from '@element-plus/icons-vue'
-import { getKnowledgeCategories, getKnowledgeItems, getKnowledgeDetail, type KnowledgeCategory, type KnowledgeItem } from '@/api/knowledge'
+import { getKnowledgeCategories, getKnowledgeItems, getKnowledgeDetail, getVocabularyCount, type KnowledgeCategory, type KnowledgeItem } from '@/api/knowledge'
 import KnowledgeLayout from './components/KnowledgeLayout.vue'
 import MarkdownIt from 'markdown-it'
 
@@ -118,7 +118,8 @@ const router = useRouter()
 const categories = ref<KnowledgeCategory[]>([])
 const categoriesLoading = ref(false)
 const catCounts = reactive<Record<string, number>>({})
-const vocabCount = ref(45019)
+const vocabCount = ref(0)
+const knowledgeCount = ref(0)
 const globalSearch = ref('')
 const searching = ref(false)
 const searchResults = ref<KnowledgeItem[]>([])
@@ -126,12 +127,12 @@ const searchTotal = ref(0)
 const detailVisible = ref(false)
 const detailItem = ref<KnowledgeItem | null>(null)
 
-const stats = [
-  { label: '知识分类', value: '11', color: '#4F46E5' },
-  { label: '英语词汇', value: '45,019', color: '#10B981' },
-  { label: '知识条目', value: '108+', color: '#F59E0B' },
+const stats = computed(() => [
+  { label: '知识分类', value: String(categories.value.length || 11), color: '#4F46E5' },
+  { label: '英语词汇', value: vocabCount.value > 0 ? vocabCount.value.toLocaleString() : '—', color: '#10B981' },
+  { label: '知识条目', value: knowledgeCount.value > 0 ? knowledgeCount.value.toLocaleString() : '—', color: '#F59E0B' },
   { label: '全文搜索', value: 'PG tsvector', color: '#8B5CF6' },
-]
+])
 
 const catDesc = (key: string) => {
   const map: Record<string, string> = {
@@ -190,9 +191,12 @@ onMounted(async () => {
       try {
         const res = await getKnowledgeItems({ category: c.key, page: 0, size: 1 })
         catCounts[c.key] = (res as any).totalElements || 0
+        knowledgeCount.value += catCounts[c.key]
       } catch { catCounts[c.key] = 0 }
     }
   } finally { categoriesLoading.value = false }
+
+  getVocabularyCount().then(c => { vocabCount.value = c as any }).catch(() => {})
 })
 </script>
 

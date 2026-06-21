@@ -8,12 +8,6 @@ export const contentRoutes: RouteRecordRaw[] = [
     meta: { title: "首页" },
   },
   {
-    path: "/full",
-    name: "FullHome",
-    component: () => import("@/pages/home/FullHomePage.vue"),
-    meta: { title: "完整首页" },
-  },
-  {
     path: "/note/:slug",
     name: "NoteDetail",
     component: () => import("@/pages/note/SimpleNoteDetailPage.vue"),
