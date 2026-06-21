@@ -93,6 +93,7 @@ public class NewsFetchService {
         return CompletableFuture.completedFuture(fetchSource(source));
     }
 
+    @Transactional
     public int fetchSource(NewsSource source) {
         try {
             String method = source.getFetchMethod() != null ? source.getFetchMethod().toUpperCase() : "RSS";

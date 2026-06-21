@@ -49,9 +49,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onUnmounted } from "vue"
 import { VideoCamera, Loading, Delete } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api"
 
 interface Props {
   modelValue?: File | null
@@ -118,11 +120,11 @@ const uploadVideo = async (file: File) => {
     formData.append("media_type", "video")
 
     const xhr = new XMLHttpRequest()
-    xhr.open("POST", "http://localhost:8000/api/media/media-assets/")
+    xhr.open("POST", `${BASE_URL}/media/media-assets/`)
 
     const token = localStorage.getItem("token")
     if (token) {
-      xhr.setRequestHeader("Authorization", `Token ${token}`)
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`)
     }
 
     xhr.upload.addEventListener("progress", (e) => {
@@ -155,6 +157,9 @@ const uploadVideo = async (file: File) => {
 }
 
 const removeVideo = () => {
+  if (videoPreviewUrl.value) {
+    URL.revokeObjectURL(videoPreviewUrl.value)
+  }
   videoFile.value = null
   videoPreviewUrl.value = ""
   uploadProgress.value = 0
@@ -163,6 +168,12 @@ const removeVideo = () => {
     fileInput.value.value = ""
   }
 }
+
+onUnmounted(() => {
+  if (videoPreviewUrl.value) {
+    URL.revokeObjectURL(videoPreviewUrl.value)
+  }
+})
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 B"

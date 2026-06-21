@@ -9,7 +9,7 @@
     class="announcement-modal"
   >
     <div class="announcement-content">
-      <div class="content-text" v-html="formattedContent"></div>
+      <div class="content-text">{{ announcement?.content || '' }}</div>
       
       <div v-if="!canClose" class="countdown">
         <span>{{ countdown }}秒后可以关闭</span>
@@ -40,9 +40,6 @@ let countdownTimer: number | null = null
 let autoCloseTimer: number | null = null
 
 const canClose = computed(() => countdown.value <= 0)
-const formattedContent = computed(() => {
-  return announcement?.content?.replace(/\n/g, '<br>') || ''
-})
 
 const loadAnnouncements = async () => {
   try {
@@ -142,6 +139,7 @@ onUnmounted(() => {
   line-height: 1.8;
   color: var(--theme-text);
   font-size: 15px;
+  white-space: pre-line;
 }
 
 .countdown {

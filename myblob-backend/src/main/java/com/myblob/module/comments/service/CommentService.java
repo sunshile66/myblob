@@ -102,11 +102,15 @@ public class CommentService {
             builder.parent(parent);
         }
 
+        boolean hasNickname = request.getNickname() != null
+                || (user != null && user.getNickname() != null)
+                || user != null;
+
         if (request.getReplyToId() != null) {
             Comment replyTo = commentRepository.findById(request.getReplyToId())
                     .orElseThrow(() -> BusinessException.notFound("被回复评论"));
             builder.replyTo(replyTo);
-            if (builder.build().getNickname() == null && replyTo.getUser() != null) {
+            if (!hasNickname && replyTo.getUser() != null) {
                 builder.nickname(replyTo.getUser().getNickname());
             }
         }

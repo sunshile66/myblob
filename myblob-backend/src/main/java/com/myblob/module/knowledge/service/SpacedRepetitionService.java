@@ -35,6 +35,7 @@ public class SpacedRepetitionService {
     /**
      * 获取或创建学习进度
      */
+    @Transactional
     public LearningProgress getOrCreateProgress(User user, String itemType, Long itemId) {
         Optional<LearningProgress> existing = learningProgressRepository
                 .findByUserAndItemTypeAndItemId(user, itemType, itemId);
@@ -57,6 +58,7 @@ public class SpacedRepetitionService {
     /**
      * 获取待复习卡片
      */
+    @Transactional(readOnly = true)
     public List<LearningProgress> getDueReviews(User user, int limit) {
         return learningProgressRepository.findDueReviews(user, PageRequest.of(0, limit));
     }
@@ -123,6 +125,7 @@ public class SpacedRepetitionService {
     /**
      * 获取学习统计
      */
+    @Transactional(readOnly = true)
     public LearningStats getStats(User user) {
         long totalLearned = learningProgressRepository.countByUserAndStatusGreaterThan(user, STATUS_NEW);
         long mastered = learningProgressRepository.countByUserAndStatus(user, STATUS_MASTERED);
@@ -134,6 +137,7 @@ public class SpacedRepetitionService {
     /**
      * 获取热力图数据（最近一年）
      */
+    @Transactional(readOnly = true)
     public List<Object[]> getHeatmapData(User user) {
         LocalDateTime since = LocalDateTime.now().minusYears(1);
         return learningProgressRepository.getHeatmapData(user.getId(), since);
@@ -142,6 +146,7 @@ public class SpacedRepetitionService {
     /**
      * 获取分类掌握度
      */
+    @Transactional(readOnly = true)
     public List<Object[]> getCategoryMastery(User user) {
         return learningProgressRepository.getCategoryMastery(user);
     }

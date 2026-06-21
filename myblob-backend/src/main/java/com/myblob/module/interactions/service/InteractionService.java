@@ -86,7 +86,7 @@ public class InteractionService {
         Long userId = SecurityUtil.getCurrentUserId();
         Pageable pageable = PageRequest.of(page, size);
         Page<com.myblob.module.blog.dto.PostDTO> favorites = favoriteRepository
-                .findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .findByUserIdWithPost(userId, pageable)
                 .map(f -> PostDTOAssembler.toBasicDTO(f.getPost()));
         return PageResponse.of(favorites);
     }

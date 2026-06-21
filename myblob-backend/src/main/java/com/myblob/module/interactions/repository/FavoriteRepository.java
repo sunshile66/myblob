@@ -22,6 +22,9 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     Page<Favorite> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    @Query("SELECT f FROM Favorite f JOIN FETCH f.post WHERE f.user.id = :userId AND f.deleted = false ORDER BY f.createdAt DESC")
+    Page<Favorite> findByUserIdWithPost(@Param("userId") Long userId, Pageable pageable);
+
     /**
      * 批量查询用户对文章列表的收藏状态，避免 N+1 查询
      */

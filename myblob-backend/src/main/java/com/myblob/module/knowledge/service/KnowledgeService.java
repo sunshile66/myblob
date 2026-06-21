@@ -19,29 +19,34 @@ public class KnowledgeService {
     private final KnowledgeItemRepository knowledgeItemRepository;
 
     @Cacheable(value = "knowledge", key = "#id")
+    @Transactional(readOnly = true)
     public KnowledgeItem getItemById(Long id) {
         return knowledgeItemRepository.findById(id).orElse(null);
     }
 
     @Cacheable(value = "knowledge-list", key = "#category + ':' + #page + ':' + #size")
+    @Transactional(readOnly = true)
     public Page<KnowledgeItem> getByCategory(String category, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "viewCount"));
         return knowledgeItemRepository.findByCategory(category, pageable);
     }
 
     @Cacheable(value = "knowledge-list", key = "'hot:' + #category + ':' + #page")
+    @Transactional(readOnly = true)
     public Page<KnowledgeItem> getHotByCategory(String category, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return knowledgeItemRepository.findByCategoryOrderByViewCountDesc(category, pageable);
     }
 
     @Cacheable(value = "knowledge-list", key = "'all:' + #page + ':' + #size")
+    @Transactional(readOnly = true)
     public Page<KnowledgeItem> getAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "viewCount"));
         return knowledgeItemRepository.findAll(pageable);
     }
 
     @Cacheable(value = "knowledge-list", key = "'search:' + #query + ':' + #page")
+    @Transactional(readOnly = true)
     public Page<KnowledgeItem> search(String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "viewCount"));
         return knowledgeItemRepository.fullTextSearch(query.trim(), pageable);

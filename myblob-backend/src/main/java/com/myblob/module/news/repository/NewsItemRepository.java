@@ -53,7 +53,7 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
     @Query("SELECT n FROM NewsItem n WHERE n.deleted = false AND n.qualityScore >= :minScore ORDER BY n.publishedAt DESC")
     Page<NewsItem> findByMinScore(@Param("minScore") Integer minScore, Pageable pageable);
 
-    @Query("SELECT n FROM NewsItem n WHERE n.deleted = false AND n.publishedAtAfter = :dateTime")
+    @Query("SELECT n FROM NewsItem n WHERE n.deleted = false AND n.publishedAt > :dateTime")
     List<NewsItem> findByPublishedAtAfter(@Param("dateTime") LocalDateTime dateTime);
 
     @Query("SELECT COUNT(n) FROM NewsItem n WHERE n.isFiltered = false AND n.deleted = false")

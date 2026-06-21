@@ -39,22 +39,19 @@ public class ViewCountService {
         String key = clientIp + ":" + postId;
         long now = System.currentTimeMillis();
 
-        Long lastView = viewCache.putIfAbsent(key, now);
-        if (lastView == null) {
-            // 首次访问，计入浏览
+        final boolean[] isNew = {false};
+        viewCache.compute(key, (k, lastView) -> {
+            if (lastView == null || now - lastView >= DEDUP_WINDOW_MS) {
+                isNew[0] = true;
+                return now;
+            }
+            return lastView;
+        });
+
+        if (isNew[0]) {
             postRepository.incrementViewCount(postId);
-            return true;
         }
-
-        // 窗口内重复，不计入
-        if (now - lastView < DEDUP_WINDOW_MS) {
-            return false;
-        }
-
-        // 窗口已过期，更新时间戳并计入
-        viewCache.put(key, now);
-        postRepository.incrementViewCount(postId);
-        return true;
+        return isNew[0];
     }
 
     /**

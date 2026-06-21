@@ -89,22 +89,6 @@ class HttpClient {
           }
         }
 
-        if (error.response?.status === 403) {
-          ElMessage.error("没有权限访问该资源");
-        }
-
-        if (error.response?.status === 404) {
-          ElMessage.error("请求的资源不存在");
-        }
-
-        if (error.response?.status === 500) {
-          ElMessage.error("服务器内部错误，请稍后重试");
-        }
-
-        if (!error.response && error.message === "Network Error") {
-          ElMessage.error("网络连接失败，请检查网络设置");
-        }
-
         const errorMessage = error.response?.data?.message || error.message || "请求失败";
         return Promise.reject(new Error(errorMessage));
       }

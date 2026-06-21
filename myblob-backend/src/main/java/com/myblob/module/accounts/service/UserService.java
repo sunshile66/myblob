@@ -43,7 +43,7 @@ public class UserService {
         Long userId = SecurityUtil.getCurrentUserId();
         User user = userRepository.findByIdWithProfile(userId)
                 .orElseThrow(() -> BusinessException.notFound("用户"));
-        return toDTO(user, userId);
+        return toDTOSelf(user);
     }
 
     @Transactional
@@ -69,7 +69,7 @@ public class UserService {
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         return LoginResponse.builder()
                 .token(token)
-                .user(toDTO(user, user.getId()))
+                .user(toDTOSelf(user))
                 .isNew(true)
                 .build();
     }
@@ -87,7 +87,7 @@ public class UserService {
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         return LoginResponse.builder()
                 .token(token)
-                .user(toDTO(user, user.getId()))
+                .user(toDTOSelf(user))
                 .build();
     }
 
@@ -227,6 +227,13 @@ public class UserService {
 
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
+    }
+
+    /**
+     * 自己查看自己资料，跳过关注状态查询（3次DB查询→0次）
+     */
+    private UserDTO toDTOSelf(User user) {
+        return UserDTOAssembler.toFullDTO(user, user.getId(), Set.of(), Map.of(), Map.of());
     }
 
     public UserDTO toDTO(User user, Long currentUserId) {
