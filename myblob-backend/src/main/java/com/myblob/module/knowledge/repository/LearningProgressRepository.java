@@ -16,29 +16,35 @@ import java.util.Optional;
 @Repository
 public interface LearningProgressRepository extends JpaRepository<LearningProgress, Long> {
 
-    Optional<LearningProgress> findByUserAndItemTypeAndItemId(User user, String itemType, Long itemId);
+    @Query("SELECT lp FROM LearningProgress lp WHERE lp.user = :user AND lp.itemType = :itemType AND lp.itemId = :itemId AND lp.deleted = false")
+    Optional<LearningProgress> findByUserAndItemTypeAndItemId(@Param("user") User user, @Param("itemType") String itemType, @Param("itemId") Long itemId);
 
-    List<LearningProgress> findByUserAndNextReviewBefore(User user, LocalDateTime dateTime);
+    @Query("SELECT lp FROM LearningProgress lp WHERE lp.user = :user AND lp.nextReview < :dateTime AND lp.deleted = false")
+    List<LearningProgress> findByUserAndNextReviewBefore(@Param("user") User user, @Param("dateTime") LocalDateTime dateTime);
 
-    List<LearningProgress> findByUserAndNextReviewBetween(User user, LocalDateTime start, LocalDateTime end);
+    @Query("SELECT lp FROM LearningProgress lp WHERE lp.user = :user AND lp.nextReview BETWEEN :start AND :end AND lp.deleted = false")
+    List<LearningProgress> findByUserAndNextReviewBetween(@Param("user") User user, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    long countByUserAndStatusGreaterThan(User user, Integer status);
+    @Query("SELECT COUNT(lp) FROM LearningProgress lp WHERE lp.user = :user AND lp.status > :status AND lp.deleted = false")
+    long countByUserAndStatusGreaterThan(@Param("user") User user, @Param("status") Integer status);
 
-    long countByUserAndStatus(User user, Integer status);
+    @Query("SELECT COUNT(lp) FROM LearningProgress lp WHERE lp.user = :user AND lp.status = :status AND lp.deleted = false")
+    long countByUserAndStatus(@Param("user") User user, @Param("status") Integer status);
 
-    long countByUserAndNextReviewBefore(User user, LocalDateTime dateTime);
+    @Query("SELECT COUNT(lp) FROM LearningProgress lp WHERE lp.user = :user AND lp.nextReview < :dateTime AND lp.deleted = false")
+    long countByUserAndNextReviewBefore(@Param("user") User user, @Param("dateTime") LocalDateTime dateTime);
 
-    @Query("SELECT lp.itemType, COUNT(lp) FROM LearningProgress lp WHERE lp.user = :user AND lp.status = 2 GROUP BY lp.itemType")
+    @Query("SELECT lp.itemType, COUNT(lp) FROM LearningProgress lp WHERE lp.user = :user AND lp.status = 2 AND lp.deleted = false GROUP BY lp.itemType")
     List<Object[]> getCategoryMastery(@Param("user") User user);
 
     @Query(value = """
         SELECT DATE(last_review) as review_date, COUNT(*) as count
         FROM learning_progress
-        WHERE user_id = :userId AND last_review IS NOT NULL AND last_review >= :since
+        WHERE user_id = :userId AND last_review IS NOT NULL AND last_review >= :since AND deleted = false
         GROUP BY DATE(last_review)
         """, nativeQuery = true)
     List<Object[]> getHeatmapData(@Param("userId") Long userId, @Param("since") LocalDateTime since);
 
-    @Query("SELECT lp FROM LearningProgress lp WHERE lp.user = :user AND lp.status = 1 ORDER BY lp.nextReview ASC")
+    @Query("SELECT lp FROM LearningProgress lp WHERE lp.user = :user AND lp.status = 1 AND lp.deleted = false ORDER BY lp.nextReview ASC")
     List<LearningProgress> findDueReviews(@Param("user") User user, Pageable pageable);
 }

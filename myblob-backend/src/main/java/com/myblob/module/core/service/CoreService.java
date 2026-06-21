@@ -47,10 +47,7 @@ public class CoreService {
 
     @Transactional
     public void recordAdClick(Long adId) {
-        adRepository.findById(adId).ifPresent(ad -> {
-            ad.setClickCount(ad.getClickCount() + 1);
-            adRepository.save(ad);
-        });
+        adRepository.incrementClickCount(adId);
     }
 
     @Transactional(readOnly = true)

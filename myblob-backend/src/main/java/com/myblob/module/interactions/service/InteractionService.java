@@ -37,7 +37,7 @@ public class InteractionService {
     @Transactional(readOnly = true)
     public PageResponse<BoardMessageDTO> getBoardMessages(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<BoardMessageDTO> messages = boardMessageRepository.findByIsPublicTrueOrderByIdDesc(pageable)
+        Page<BoardMessageDTO> messages = boardMessageRepository.findByIsPublicTrueAndDeletedFalseOrderByIdDesc(pageable)
                 .map(this::toBoardMessageDTO);
         return PageResponse.of(messages);
     }
@@ -64,7 +64,7 @@ public class InteractionService {
     public PageResponse<NotificationDTO> getNotifications(int page, int size) {
         Long userId = SecurityUtil.getCurrentUserId();
         Pageable pageable = PageRequest.of(page, size);
-        Page<NotificationDTO> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+        Page<NotificationDTO> notifications = notificationRepository.findByUserIdAndDeletedFalseOrderByCreatedAtDesc(userId, pageable)
                 .map(this::toNotificationDTO);
         return PageResponse.of(notifications);
     }
@@ -72,7 +72,7 @@ public class InteractionService {
     @Transactional(readOnly = true)
     public long getUnreadNotificationCount() {
         Long userId = SecurityUtil.getCurrentUserId();
-        return notificationRepository.countByUserIdAndReadFalse(userId);
+        return notificationRepository.countByUserIdAndReadFalseAndDeletedFalse(userId);
     }
 
     @Transactional

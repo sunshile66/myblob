@@ -53,9 +53,9 @@ public class FileManagerService {
         Pageable pageable = PageRequest.of(page, size);
         Page<FileEntity> files;
         if (folderId != null) {
-            files = fileRepository.findByUserIdAndFolderIdOrderByCreatedAtDesc(userId, folderId, pageable);
+            files = fileRepository.findByUserIdAndFolderIdAndDeletedFalseOrderByCreatedAtDesc(userId, folderId, pageable);
         } else {
-            files = fileRepository.findByUserIdAndFolderIdIsNullOrderByCreatedAtDesc(userId, pageable);
+            files = fileRepository.findByUserIdAndFolderIdIsNullAndDeletedFalseOrderByCreatedAtDesc(userId, pageable);
         }
         return PageResponse.of(files.map(this::toFileMap));
     }
@@ -101,8 +101,8 @@ public class FileManagerService {
     public List<Map<String, Object>> getMyFolders(Long parentId) {
         Long userId = SecurityUtil.getCurrentUserId();
         List<Folder> folders = parentId != null
-                ? folderRepository.findByUserIdAndParentIdOrderByNameAsc(userId, parentId)
-                : folderRepository.findByUserIdAndParentIdIsNullOrderByNameAsc(userId);
+                ? folderRepository.findByUserIdAndParentIdAndDeletedFalseOrderByNameAsc(userId, parentId)
+                : folderRepository.findByUserIdAndParentIdIsNullAndDeletedFalseOrderByNameAsc(userId);
         return folders.stream().map(this::toFolderMap).toList();
     }
 

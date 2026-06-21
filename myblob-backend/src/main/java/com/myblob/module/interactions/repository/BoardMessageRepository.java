@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BoardMessageRepository extends JpaRepository<BoardMessage, Long> {
 
-    Page<BoardMessage> findByIsPublicTrueOrderByIdDesc(Pageable pageable);
+    Page<BoardMessage> findByIsPublicTrueAndDeletedFalseOrderByIdDesc(Pageable pageable);
 }

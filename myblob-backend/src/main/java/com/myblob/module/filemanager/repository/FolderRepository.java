@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface FolderRepository extends JpaRepository<Folder, Long> {
 
-    List<Folder> findByUserIdAndParentIdIsNullOrderByNameAsc(Long userId);
+    List<Folder> findByUserIdAndParentIdIsNullAndDeletedFalseOrderByNameAsc(Long userId);
 
-    List<Folder> findByUserIdAndParentIdOrderByNameAsc(Long userId, Long parentId);
+    List<Folder> findByUserIdAndParentIdAndDeletedFalseOrderByNameAsc(Long userId, Long parentId);
 }

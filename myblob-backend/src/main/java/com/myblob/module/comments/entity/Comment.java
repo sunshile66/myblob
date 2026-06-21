@@ -14,7 +14,8 @@ import java.util.List;
 @Table(name = "blog_comment", indexes = {
         @Index(name = "idx_comment_post_approved", columnList = "post_id, is_approved, created_at"),
         @Index(name = "idx_comment_user", columnList = "user_id"),
-        @Index(name = "idx_comment_parent_created", columnList = "parent_id, created_at")
+        @Index(name = "idx_comment_parent_created", columnList = "parent_id, created_at"),
+        @Index(name = "idx_comment_reply_to", columnList = "reply_to_id")
 })
 @Getter
 @Setter
@@ -58,12 +59,7 @@ public class Comment extends BaseEntity {
     @org.hibernate.annotations.ColumnDefault("true")
     private Boolean approved = true;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    @org.hibernate.annotations.ColumnDefault("false")
-    private Boolean deleted = false;
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Builder.Default
     private List<Comment> children = new ArrayList<>();
 }

@@ -113,8 +113,7 @@ public class CommentService {
 
         Comment comment = commentRepository.save(builder.build());
 
-        post.setCommentCount(post.getCommentCount() + 1);
-        postRepository.save(post);
+        postRepository.incrementCommentCount(post.getId());
 
         return toDTO(comment);
     }
@@ -129,21 +128,17 @@ public class CommentService {
         }
         CommentLike like = CommentLike.builder().comment(comment).user(userRepository.getReferenceById(userId)).build();
         commentLikeRepository.save(like);
-        comment.setLikeCount(comment.getLikeCount() + 1);
-        commentRepository.save(comment);
+        commentRepository.incrementLikeCount(commentId);
     }
 
     @Transactional
     public void unlikeComment(Long commentId) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> BusinessException.notFound("评论"));
         if (!commentLikeRepository.existsByCommentIdAndUserId(commentId, userId)) {
             throw new BusinessException("还没有点赞");
         }
         commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
-        comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1));
-        commentRepository.save(comment);
+        commentRepository.decrementLikeCount(commentId);
     }
 
     @Transactional

@@ -34,8 +34,8 @@ public class SecurityModuleService {
     @Transactional(readOnly = true)
     public PageResponse<Map<String, Object>> getBlockedIPs(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Map<String, Object>> result = requestLogRepository.findAllByOrderByCreatedAtDesc(pageable)
-                .map(this::toRequestLogMap);
+        Page<Map<String, Object>> result = ipBlockRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(this::toIPBlockMap);
         return PageResponse.of(result);
     }
 
@@ -94,6 +94,17 @@ public class SecurityModuleService {
         map.put("response_time", log.getResponseTime());
         map.put("blocked", log.getBlocked());
         map.put("created_at", log.getCreatedAt());
+        return map;
+    }
+
+    private Map<String, Object> toIPBlockMap(IPBlock block) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", block.getId());
+        map.put("ip", block.getIp());
+        map.put("reason", block.getReason());
+        map.put("blocked_until", block.getBlockedUntil());
+        map.put("is_active", block.getActive());
+        map.put("created_at", block.getCreatedAt());
         return map;
     }
 

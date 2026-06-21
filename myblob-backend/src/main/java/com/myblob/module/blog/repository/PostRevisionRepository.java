@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface PostRevisionRepository extends JpaRepository<PostRevision, Long> {
 
-    List<PostRevision> findByPostIdOrderByCreatedAtDesc(Long postId);
+    List<PostRevision> findByPostIdAndDeletedFalseOrderByCreatedAtDesc(Long postId);
 }

@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface FileShareRepository extends JpaRepository<FileShare, Long> {
 
-    Optional<FileShare> findByShareCode(String shareCode);
+    Optional<FileShare> findByShareCodeAndDeletedFalse(String shareCode);
 }

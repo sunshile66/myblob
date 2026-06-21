@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
-    Page<FileEntity> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    Page<FileEntity> findByUserIdAndDeletedFalseOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
-    Page<FileEntity> findByUserIdAndFolderIdOrderByCreatedAtDesc(Long userId, Long folderId, Pageable pageable);
+    Page<FileEntity> findByUserIdAndFolderIdAndDeletedFalseOrderByCreatedAtDesc(Long userId, Long folderId, Pageable pageable);
 
-    Page<FileEntity> findByUserIdAndFolderIdIsNullOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    Page<FileEntity> findByUserIdAndFolderIdIsNullAndDeletedFalseOrderByCreatedAtDesc(Long userId, Pageable pageable);
 }

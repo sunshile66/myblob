@@ -19,7 +19,8 @@ import java.util.Set;
         @Index(name = "idx_post_slug", columnList = "slug"),
         @Index(name = "idx_post_type", columnList = "post_type"),
         @Index(name = "idx_post_top", columnList = "is_top, published_at"),
-        @Index(name = "idx_post_created", columnList = "created_at")
+        @Index(name = "idx_post_created", columnList = "created_at"),
+        @Index(name = "idx_post_deleted", columnList = "is_deleted")
 })
 @Getter
 @Setter

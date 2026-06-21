@@ -6,7 +6,9 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "blog_category")
+@Table(name = "blog_category", indexes = {
+        @Index(name = "idx_category_active_sort", columnList = "is_active, sort")
+})
 @Getter
 @Setter
 @NoArgsConstructor

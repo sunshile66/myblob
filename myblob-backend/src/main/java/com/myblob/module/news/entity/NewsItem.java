@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
         @Index(name = "idx_news_item_source_platform", columnList = "source_platform"),
         @Index(name = "idx_news_quality_score", columnList = "quality_score"),
         @Index(name = "idx_news_language", columnList = "language"),
-        @Index(name = "idx_news_is_filtered", columnList = "is_filtered")
+        @Index(name = "idx_news_is_filtered", columnList = "is_filtered"),
+        @Index(name = "idx_news_filtered_category", columnList = "is_filtered, category"),
+        @Index(name = "idx_news_filtered_published", columnList = "is_filtered, published_at")
 })
 @Getter
 @Setter

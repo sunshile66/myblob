@@ -1114,7 +1114,7 @@ public class NewsFetchService {
     }
 
     @Transactional
-    private int saveNewItems(List<NewsItem> items, NewsSource source) {
+    int saveNewItems(List<NewsItem> items, NewsSource source) {
         if (items.isEmpty()) {
             return 0;
         }

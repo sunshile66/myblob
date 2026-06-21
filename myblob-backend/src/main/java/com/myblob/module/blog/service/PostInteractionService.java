@@ -30,7 +30,7 @@ public class PostInteractionService {
     @Transactional
     public void likePost(String slug) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Post post = postRepository.findBySlug(slug)
+        Post post = postRepository.findBySlugActive(slug)
                 .orElseThrow(() -> BusinessException.notFound("文章"));
         if (postLikeRepository.existsByUserIdAndPostId(userId, post.getId())) {
             throw new BusinessException("已经点赞过了");
@@ -46,7 +46,7 @@ public class PostInteractionService {
     @Transactional
     public void unlikePost(String slug) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Post post = postRepository.findBySlug(slug)
+        Post post = postRepository.findBySlugActive(slug)
                 .orElseThrow(() -> BusinessException.notFound("文章"));
         if (!postLikeRepository.existsByUserIdAndPostId(userId, post.getId())) {
             throw new BusinessException("还没有点赞");
@@ -58,7 +58,7 @@ public class PostInteractionService {
     @Transactional
     public void favoritePost(String slug) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Post post = postRepository.findBySlug(slug)
+        Post post = postRepository.findBySlugActive(slug)
                 .orElseThrow(() -> BusinessException.notFound("文章"));
         if (favoriteRepository.existsByUserIdAndPostId(userId, post.getId())) {
             throw new BusinessException("已经收藏过了");
@@ -73,7 +73,7 @@ public class PostInteractionService {
     @Transactional
     public void unfavoritePost(String slug) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Post post = postRepository.findBySlug(slug)
+        Post post = postRepository.findBySlugActive(slug)
                 .orElseThrow(() -> BusinessException.notFound("文章"));
         if (!favoriteRepository.existsByUserIdAndPostId(userId, post.getId())) {
             throw new BusinessException("还没有收藏");

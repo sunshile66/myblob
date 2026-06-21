@@ -16,6 +16,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
        Optional<Post> findBySlug(String slug);
 
+       @Query("SELECT p FROM Post p WHERE p.slug = :slug AND p.deleted = false")
+       Optional<Post> findBySlugActive(@Param("slug") String slug);
+
        @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.author.profile " +
                      "LEFT JOIN FETCH p.category LEFT JOIN FETCH p.tags WHERE p.slug = :slug AND p.deleted = false")
        Optional<Post> findBySlugWithDetails(@Param("slug") String slug);
@@ -61,4 +64,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
        @Modifying
        @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
        void incrementViewCount(@Param("postId") Long postId);
+
+       /**
+        * 原子递增文章评论数
+        */
+       @Modifying
+       @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :postId")
+       void incrementCommentCount(@Param("postId") Long postId);
+
+       /**
+        * 原子递减文章评论数
+        */
+       @Modifying
+       @Query("UPDATE Post p SET p.commentCount = GREATEST(p.commentCount - 1, 0) WHERE p.id = :postId")
+       void decrementCommentCount(@Param("postId") Long postId);
 }

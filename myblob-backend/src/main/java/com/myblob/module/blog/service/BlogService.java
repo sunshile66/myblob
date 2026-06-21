@@ -81,10 +81,9 @@ public class BlogService {
                 .orElseThrow(() -> BusinessException.notFound("文章"));
 
         // IP 级别浏览量去重（30分钟内同一IP不计重复浏览）
+        // recordView 内部已调用 postRepository.incrementViewCount()，此处只更新内存对象
         String clientIp = IpUtil.getClientIp(httpServletRequest);
         if (viewCountService.recordView(post.getId(), clientIp)) {
-            // 使用原子递增而非重新查询，避免额外 DB round-trip
-            postRepository.incrementViewCount(post.getId());
             post.setViewCount(post.getViewCount() + 1);
         }
 
@@ -261,7 +260,7 @@ public class BlogService {
     @Transactional
     public void deletePost(String slug) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Post post = postRepository.findBySlug(slug)
+        Post post = postRepository.findBySlugActive(slug)
                 .orElseThrow(() -> BusinessException.notFound("文章"));
         if (!post.getAuthor().getId().equals(userId)) {
             throw BusinessException.forbidden("无权删除此文章");
@@ -349,7 +348,7 @@ public class BlogService {
      */
     @Transactional(readOnly = true)
     public List<PostRevisionDTO> getRevisions(Long postId) {
-        List<PostRevision> revisions = postRevisionRepository.findByPostIdOrderByCreatedAtDesc(postId);
+        List<PostRevision> revisions = postRevisionRepository.findByPostIdAndDeletedFalseOrderByCreatedAtDesc(postId);
         return revisions.stream()
                 .map(r -> PostRevisionDTO.builder()
                         .id(r.getId())

@@ -15,16 +15,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.username = :usernameOrEmail OR u.email = :usernameOrEmail")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND u.deleted = false")
     Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String usernameOrEmail);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.username = :username")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.username = :username AND u.deleted = false")
     Optional<User> findByUsernameWithProfile(@Param("username") String username);
 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.id = :id")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.id = :id AND u.deleted = false")
     Optional<User> findByIdWithProfile(@Param("id") Long id);
 }

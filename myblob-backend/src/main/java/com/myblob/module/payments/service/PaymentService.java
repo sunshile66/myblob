@@ -71,7 +71,8 @@ public class PaymentService {
     @Transactional
     public OrderDTO payOrder(Long orderId, String paymentMethod) {
         Long userId = SecurityUtil.getCurrentUserId();
-        Order order = orderRepository.findById(orderId)
+        // 使用悲观锁防止并发重复支付
+        Order order = orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> BusinessException.notFound("订单"));
 
         if (!order.getUser().getId().equals(userId)) {
@@ -86,6 +87,13 @@ public class PaymentService {
             throw new BusinessException("订单已过期，请重新下单");
         }
 
+        Order.PaymentMethod method;
+        try {
+            method = Order.PaymentMethod.valueOf(paymentMethod.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("不支持的支付方式: " + paymentMethod);
+        }
+
         Payment payment = Payment.builder()
                 .order(order)
                 .paymentNo("PAY" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8))
@@ -97,7 +105,7 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         order.setStatus(Order.OrderStatus.PAID);
-        order.setPaymentMethod(Order.PaymentMethod.valueOf(paymentMethod.toUpperCase()));
+        order.setPaymentMethod(method);
         order.setPaidTime(LocalDateTime.now());
         orderRepository.save(order);
 
@@ -123,7 +131,7 @@ public class PaymentService {
         return toOrderDTO(order);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public WalletDTO getMyWallet() {
         Long userId = SecurityUtil.getCurrentUserId();
         Wallet wallet = walletRepository.findByUserId(userId)

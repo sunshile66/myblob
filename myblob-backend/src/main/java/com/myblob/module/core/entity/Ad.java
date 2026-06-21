@@ -8,7 +8,9 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "ad")
+@Table(name = "ad", indexes = {
+        @Index(name = "idx_ad_active_position", columnList = "is_active, position")
+})
 @Getter
 @Setter
 @NoArgsConstructor
