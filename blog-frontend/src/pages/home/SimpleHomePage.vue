@@ -76,6 +76,11 @@
           @click="goToTool"
         />
 
+        <!-- Row 4: Ad Banner (full width, horizontal) -->
+        <div class="ad-section">
+          <AdBanner position="banner" />
+        </div>
+
         <!-- Row 5: Content Stream (full width) -->
         <ContentStreamBlock
           :posts="posts"
@@ -89,8 +94,6 @@
           @view-note="viewNote"
         />
       </BentoGrid>
-
-      <AdBanner position="sidebar" />
     </div>
   </SimpleLayout>
 </template>
@@ -258,7 +261,12 @@ onMounted(async () => {
 
 <style scoped>
 .bento-home {
-  padding-top: 12px;
+  padding-top: 0;
+}
+
+.ad-section {
+  grid-column: 1 / -1;
+  padding: 4px 0 8px;
 }
 
 /* ===== Responsive ===== */

@@ -1,9 +1,38 @@
 <template>
-  <div class="ad-banner" v-if="ads.length > 0">
-    <div v-for="ad in ads" :key="ad.id" class="ad-item" @click="handleAdClick(ad)">
-      <el-image v-if="ad.image" :src="ad.image" fit="cover" class="ad-image" />
-      <div v-else class="ad-text">
-        <span>{{ ad.title }}</span>
+  <div :class="['ad-banner', `ad-banner--${position}`]" v-if="loading || ads.length > 0">
+    <!-- 骨架屏 -->
+    <div v-if="loading" class="ad-skeleton">
+      <div class="skeleton-item" v-for="i in 2" :key="i">
+        <div class="skeleton-image"></div>
+      </div>
+    </div>
+
+    <!-- 广告列表 -->
+    <div v-else class="ad-list">
+      <div
+        v-for="ad in ads"
+        :key="ad.id"
+        class="ad-item"
+        @click="handleAdClick(ad)"
+        role="link"
+        :aria-label="ad.title"
+      >
+        <el-image
+          v-if="ad.image"
+          :src="ad.image"
+          fit="cover"
+          class="ad-image"
+          loading="lazy"
+        >
+          <template #error>
+            <div class="ad-image-fallback">
+              <span>{{ ad.title }}</span>
+            </div>
+          </template>
+        </el-image>
+        <div v-else class="ad-text">
+          <span class="ad-text-title">{{ ad.title }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -23,13 +52,17 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const ads = ref<Ad[]>([])
+const loading = ref(true)
 
 const loadAds = async () => {
+  loading.value = true
   try {
     const response = await getAds(props.position)
     ads.value = response.results || []
   } catch (error) {
     console.error('Failed to load ads:', error)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -58,31 +91,133 @@ onMounted(() => {
   width: 100%;
 }
 
-.ad-item {
-  width: 100%;
-  border-radius: 12px;
+/* 侧边栏样式（垂直堆叠） */
+.ad-banner--sidebar .ad-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ad-banner--sidebar .ad-item {
+  border-radius: var(--radius-lg, 12px);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 16px;
+  transition: transform var(--transition-fast, 0.12s), box-shadow var(--transition-fast, 0.12s);
+  border: 1px solid var(--theme-border);
 }
 
-.ad-item:hover {
+.ad-banner--sidebar .ad-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
+/* 横幅样式（水平排列） */
+.ad-banner--banner .ad-list {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 0;
+}
+
+.ad-banner--banner .ad-list::-webkit-scrollbar {
+  display: none;
+}
+
+.ad-banner--banner .ad-item {
+  flex-shrink: 0;
+  width: 100%;
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition-fast, 0.12s), box-shadow var(--transition-fast, 0.12s);
+  border: 1px solid var(--theme-border);
+}
+
+.ad-banner--banner .ad-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 通用图片 */
 .ad-image {
   width: 100%;
   display: block;
+  aspect-ratio: 16 / 9;
+}
+
+.ad-image-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-muted);
+  color: var(--theme-text-secondary);
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
 }
 
 .ad-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary, linear-gradient(135deg, #4F46E5 0%, #6366F1 100%));
   color: white;
-  padding: 24px;
+  padding: 20px 24px;
   text-align: center;
-  font-size: 16px;
+}
+
+.ad-text-title {
+  font-size: 15px;
   font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* 骨架屏 */
+.ad-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-item {
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(
+    90deg,
+    var(--theme-muted) 0%,
+    var(--theme-hover) 50%,
+    var(--theme-muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-image {
+    animation: none;
+  }
+
+  .ad-item:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .ad-banner--banner .ad-item {
+    min-width: 280px;
+  }
 }
 </style>
