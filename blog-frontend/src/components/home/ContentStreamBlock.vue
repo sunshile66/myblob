@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BentoCard from '@/components/common/BentoCard.vue'
-import NoteCard from '@/components/post/NoteCard.vue'
+import NoteCard from '@/components/blog/NoteCard.vue'
 import type { Post } from '@/types'
 
 interface TabDef {

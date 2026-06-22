@@ -119,7 +119,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getNewsStats, getGlobalStatus, toggleGlobal, fetchNow } from '@/api/newsAdmin'
+import { getNewsStats, getGlobalStatus, toggleGlobal, fetchNow } from '@/api/news'
 import { ElMessage } from 'element-plus'
 
 const stats = ref<any>({})

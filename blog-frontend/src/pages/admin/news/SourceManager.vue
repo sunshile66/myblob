@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getAdminSources, toggleSource, deleteSource, testFetchSource } from '@/api/newsAdmin'
+import { getAdminSources, toggleSource, deleteSource, testFetchSource } from '@/api/news'
 import { ElMessage } from 'element-plus'
 import type { NewsSource } from '@/types'
 

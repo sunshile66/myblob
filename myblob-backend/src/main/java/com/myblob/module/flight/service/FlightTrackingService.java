@@ -28,7 +28,7 @@ import java.util.*;
 public class FlightTrackingService {
 
     private final FlightRouteRepository flightRouteRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // OpenSky Network API - free, no API key required

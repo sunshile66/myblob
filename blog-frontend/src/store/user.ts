@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref, computed } from "vue";
-import { getUserProfile } from "@/api/user";
+import { getUserProfile } from "@/api/accounts";
 import type { User } from "@/types";
 
 export const useUserStore = defineStore("user", () => {

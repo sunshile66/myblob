@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getAdminItems, deleteItem, unfilterItem } from '@/api/newsAdmin'
+import { getAdminItems, deleteItem, unfilterItem } from '@/api/news'
 import { ElMessage } from 'element-plus'
 import type { NewsItem } from '@/types'
 

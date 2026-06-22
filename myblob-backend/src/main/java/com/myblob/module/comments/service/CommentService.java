@@ -12,6 +12,7 @@ import com.myblob.module.comments.entity.*;
 import com.myblob.module.comments.repository.*;
 import com.myblob.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -118,6 +120,8 @@ public class CommentService {
         Comment comment = commentRepository.save(builder.build());
 
         postRepository.incrementCommentCount(post.getId());
+
+        log.info("评论创建: postId={}, userId={}, parentId={}", request.getPostId(), userId, request.getParentId());
 
         return toDTO(comment);
     }

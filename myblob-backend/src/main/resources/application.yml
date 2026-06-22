@@ -12,8 +12,8 @@ spring:
     password: ${DB_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: 10
+      minimum-idle: 3
       connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
@@ -87,7 +87,7 @@ news:
     connect-timeout: 10000
     read-timeout: 15000
   fetch:
-    thread-pool-size: 20
+    thread-pool-size: 5
     max-items-per-source: 100
   twitter:
     api-key: ${TWITTER_API_KEY:}
@@ -98,10 +98,3 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-
-logging:
-  level:
-    root: INFO
-    com.myblob: DEBUG
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN

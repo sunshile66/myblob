@@ -1,5 +1,7 @@
 import request from '@/utils/request'
-import type { NewsItem, NewsSource, PaginatedResponse } from '@/types'
+import type { NewsItem, NewsSource, NewsStats, FetchStatus, PaginatedResponse } from '@/types'
+
+// ===== 公共接口 =====
 
 export const getNewsList = (params?: {
   page?: number; size?: number; category?: string; source?: string;
@@ -39,37 +41,52 @@ export const getTrendingTopics = (params?: { limit?: number }) =>
 export const getSentimentSummary = () =>
   request.get<SentimentSummary>('/news/sentiment/')
 
-// ===== Flight Tracking API =====
-export interface FlightRoute {
-  id: number
-  callsign?: string
-  flightNumber?: string
-  airline?: string
-  airlineCode?: string
-  originAirport?: string
-  destinationAirport?: string
-  departureTime?: string
-  arrivalTime?: string
-  status?: string
-  changeType?: string
-  altitude?: number
-  velocity?: number
-  latitude?: number
-  longitude?: number
-  country?: string
-  lastSeen?: string
-  createdAt: string
-  updatedAt: string
-}
+// ===== 管理后台接口 =====
 
-export const getFlights = (params?: { page?: number; size?: number; airline?: string; changeType?: string }) =>
-  request.get<PaginatedResponse<FlightRoute>>('/flights/', { params })
+export const getGlobalStatus = () =>
+  request.get<{ enabled: boolean }>('/admin/news/global-status/')
 
-export const getFlightChanges = (params?: { size?: number }) =>
-  request.get<FlightRoute[]>('/flights/changes/', { params })
+export const toggleGlobal = () =>
+  request.post<{ enabled: boolean }>('/admin/news/global-toggle/')
 
-export const getFlightAirlines = () =>
-  request.get<string[]>('/flights/airlines/')
+export const getNewsStats = () =>
+  request.get<NewsStats>('/admin/news/stats/')
 
-export const triggerFlightFetch = () =>
-  request.post<number>('/flights/fetch/')
+export const getAdminSources = () =>
+  request.get<NewsSource[]>('/admin/news/sources/')
+
+export const createSource = (data: Partial<NewsSource>) =>
+  request.post<NewsSource>('/admin/news/sources/', data)
+
+export const updateSource = (id: number, data: Partial<NewsSource>) =>
+  request.put<NewsSource>(`/admin/news/sources/${id}/`, data)
+
+export const deleteSource = (id: number) =>
+  request.delete(`/admin/news/sources/${id}/`)
+
+export const toggleSource = (id: number) =>
+  request.patch<NewsSource>(`/admin/news/sources/${id}/toggle/`)
+
+export const testFetchSource = (id: number) =>
+  request.post<string>(`/admin/news/sources/${id}/test-fetch/`)
+
+export const getAdminItems = (page = 0, size = 20) =>
+  request.get<{ results: NewsItem[]; count: number }>('/admin/news/items/', { params: { page, size } })
+
+export const updateItem = (id: number, data: Partial<NewsItem>) =>
+  request.put<NewsItem>(`/admin/news/items/${id}/`, data)
+
+export const deleteItem = (id: number) =>
+  request.delete(`/admin/news/items/${id}/`)
+
+export const unfilterItem = (id: number) =>
+  request.post<NewsItem>(`/admin/news/items/${id}/unfilter/`)
+
+export const batchDeleteItems = (ids: number[]) =>
+  request.post('/admin/news/items/batch-delete/', { ids })
+
+export const fetchNow = () =>
+  request.post<string>('/admin/news/fetch-now/')
+
+export const getFetchStatus = () =>
+  request.get<FetchStatus>('/admin/news/fetch-status/')

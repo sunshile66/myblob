@@ -58,7 +58,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
-import NoteCard from '@/components/post/NoteCard.vue'
+import NoteCard from '@/components/blog/NoteCard.vue'
 import SimpleSidebar from '@/components/layout/SimpleSidebar.vue'
 import type { Post, User, Category, Tag } from '@/types'
 

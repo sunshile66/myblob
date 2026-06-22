@@ -14,8 +14,8 @@ spring:
         order_updates: true
   datasource:
     hikari:
-      maximum-pool-size: 30
-      minimum-idle: 10
+      maximum-pool-size: 10
+      minimum-idle: 3
       connection-timeout: 10000
       idle-timeout: 600000
       max-lifetime: 1800000
@@ -39,26 +39,12 @@ spring:
 
 server:
   tomcat:
-    max-connections: 8192
+    max-connections: 2000
     accept-count: 100
     connection-timeout: 20000
     threads:
-      max: 200
-      min-spare: 20
-
-logging:
-  level:
-    root: WARN
-    com.myblob: INFO
-    org.hibernate.SQL: ERROR
-    org.hibernate.type.descriptor.sql.BasicBinder: ERROR
-  file:
-    name: ./logs/myblob.log
-  logback:
-    rollingpolicy:
-      max-file-size: 100MB
-      max-history: 30
-      total-size-cap: 3GB
+      max: 50
+      min-spare: 10
 
 # 生产环境必须配置的环境变量:
 # DB_PASSWORD - 数据库密码

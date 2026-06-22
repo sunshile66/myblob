@@ -60,7 +60,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getAllUsers } from '@/api/user'
+import { getAllUsers } from '@/api/accounts'
 import type { User } from '@/types'
 
 const router = useRouter()

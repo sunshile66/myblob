@@ -103,7 +103,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Document, Operation, Reading, ChatLineSquare } from "@element-plus/icons-vue";
-import { getCategories, getPosts, getTags } from "@/api/post";
+import { getCategories, getPosts, getTags } from "@/api/blog";
 import { getNewsList } from "@/api/news";
 import AnnouncementBar from "@/components/common/AnnouncementBar.vue";
 import AdBanner from "@/components/common/AdBanner.vue";

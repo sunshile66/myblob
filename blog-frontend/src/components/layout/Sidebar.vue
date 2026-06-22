@@ -70,7 +70,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Search, Picture } from "@element-plus/icons-vue";
-import { getCategories, getTags } from "@/api/post";
+import { getCategories, getTags } from "@/api/blog";
 import type { Category, Tag } from "@/types";
 
 const router = useRouter();

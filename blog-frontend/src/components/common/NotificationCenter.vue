@@ -52,7 +52,7 @@ import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-} from "@/api/notification";
+} from "@/api/interactions";
 import type { Notification } from "@/types";
 import { useUserStore } from "@/store/user";
 

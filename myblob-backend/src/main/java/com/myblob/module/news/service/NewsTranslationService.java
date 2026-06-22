@@ -2,6 +2,7 @@ package com.myblob.module.news.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -11,20 +12,11 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class NewsTranslationService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public NewsTranslationService() {
-        this.restTemplate = new RestTemplate();
-        this.restTemplate.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {
-            {
-                setConnectTimeout(5000);
-                setReadTimeout(5000);
-            }
-        });
-    }
 
     // MyMemory API - accessible from China, free, no key needed
     private static final String MYMEMORY_API = "https://api.mymemory.translated.net/get?q=%s&langpair=en|zh-CN";

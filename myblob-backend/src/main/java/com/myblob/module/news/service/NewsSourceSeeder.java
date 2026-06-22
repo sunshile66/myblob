@@ -7,8 +7,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 新闻源种子数据初始化
+ * 仅插入不存在的新源，不影响已有数据
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -18,81 +23,17 @@ public class NewsSourceSeeder {
 
     @PostConstruct
     public void seedDefaultSources() {
-        seedGeneralSources();
-        seedAirlineSources();
-        seedMissingSources(); // 补充新增源（不影响已有源）
-        // Google News / Twitter / YouTube / Bluesky 已禁用（国内GFW无法访问）
+        seedSources(NewsSourceData.getGeneralSources(), "通用");
+        seedSources(NewsSourceData.getAirlineSources(), "航空公司");
+        seedSources(NewsSourceData.getSupplementarySources(), "补充");
+        disableFailedSources();
     }
 
     /**
-     * 补充新增源：仅插入 name 不存在的新源，不影响已有数据。
-     * 每次新增源时在这里追加即可，无需清库。
+     * 批量插入不存在的新闻源
      */
-    private void seedMissingSources() {
-        List<NewsSource> toAdd = new java.util.ArrayList<>();
-        List<NewsSource> candidates = List.of(
-                createSource("中国新闻网", "中国新闻网", "https://www.chinanews.com/rss/scroll-news.xml", "RSS", "官方媒体", "CN", 6),
-                createSource("环球时报", "环球时报", "https://www.globaltimes.cn/rss/outbrain.xml", "RSS", "官方媒体", "EN", 7),
-                createSource("人民日报国际", "人民日报", "http://www.people.com.cn/rss/world.xml", "RSS", "官方媒体", "CN", 3),
-                // 科技财经补充源
-                createDisabled("cnBeta", "cnBeta", "https://www.cnbeta.com.tw/backend.php", "RSS", "科技财经", "CN", 100),
-                createDisabled("极客公园", "极客公园", "https://www.geekpark.net/rss", "RSS", "科技财经", "CN", 101),
-                createDisabled("品玩", "品玩", "https://www.pingwest.com/feed", "RSS", "科技财经", "CN", 102),
-                createSource("量子位", "量子位", "https://www.qbitai.com/feed", "RSS", "科技财经", "CN", 103),
-                // 社交媒体补充源
-                createSource("今日头条热榜", "今日头条", "TOUTIAIO_API", "JSOUP", "社交媒体", "CN", 104),
-                createSource("百度热搜", "百度热搜", "BAIDU_API", "JSOUP", "社交媒体", "CN", 105),
-                createSource("抖音热榜", "抖音热榜", "DOUYIN_API", "JSOUP", "社交媒体", "CN", 106),
-                // 英语外刊源
-                createSource("BBC Learning English", "BBC", "https://feeds.bbci.co.uk/learningenglish/english/rss", "RSS", "英语外刊", "EN", 110),
-                createSource("VOA English", "VOA", "https://www.voanews.com/api/z-qmget_qm_", "RSS", "英语外刊", "EN", 111),
-                createSource("The Economist", "The Economist", "https://www.economist.com/latest/rss.xml", "RSS", "英语外刊", "EN", 112),
-                createSource("BBC News", "BBC News", "https://feeds.bbci.co.uk/news/world/rss.xml", "RSS", "英语外刊", "EN", 113),
-                createSource("Reuters", "Reuters", "https://www.reutersagency.com/feed/", "RSS", "英语外刊", "EN", 114),
-                createSource("The Guardian", "The Guardian", "https://www.theguardian.com/world/rss", "RSS", "英语外刊", "EN", 115),
-                createSource("NPR", "NPR", "https://www.npr.org/rss/rss.xml", "RSS", "英语外刊", "EN", 116),
-                createSource("Al Jazeera", "Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml", "RSS", "英语外刊", "EN", 117),
-                // === 新增高质量中文源 ===
-                createSource("新华网", "新华网", "http://www.news.cn/politics/xhll.xml", "RSS", "官方媒体", "CN", 120),
-                createSource("央视新闻", "央视新闻", "https://news.cctv.com/2019/07/ga546k0esaonj2ta4n0gimlk2q6o8l13.xml", "RSS", "官方媒体", "CN", 121),
-                createSource("凤凰网", "凤凰网", "https://news.ifeng.com/rss/index.xml", "RSS", "官方媒体", "CN", 122),
-                createSource("网易新闻", "网易新闻", "https://www.163.com/rss", "RSS", "社交媒体", "CN", 123),
-                createSource("新浪新闻", "新浪新闻", "https://feed.mix.sina.com.cn/api/roll/get", "RSS", "社交媒体", "CN", 124),
-                createSource("腾讯新闻", "腾讯新闻", "https://news.qq.com/rss_news.xml", "RSS", "社交媒体", "CN", 125),
-                createSource("搜狐新闻", "搜狐新闻", "https://news.sohu.com/rss", "RSS", "社交媒体", "CN", 126),
-                createSource("证券时报", "证券时报", "https://www.stcn.com/rss", "RSS", "科技财经", "CN", 130),
-                createSource("第一财经", "第一财经", "https://www.yicai.com/feed/rss", "RSS", "科技财经", "CN", 131),
-                createSource("每日经济新闻", "每日经济新闻", "https://www.nbd.com.cn/rss", "RSS", "科技财经", "CN", 132),
-                createSource("21世纪经济报道", "21世纪经济报道", "https://www.21jingji.com/rss", "RSS", "科技财经", "CN", 133),
-                // 海外可访问中文源
-                createSource("FT中文网", "FT中文网", "https://www.ftchinese.com/rss/feed", "RSS", "科技财经", "CN", 140),
-                createSource("华尔街见闻", "华尔街见闻", "https://wallstreetcn.com/rss", "RSS", "科技财经", "CN", 141),
-                createSource("InfoQ中文", "InfoQ", "https://www.infoq.cn/feed", "RSS", "开源开发者", "CN", 142),
-                createSource("开源中国", "开源中国", "https://www.oschina.net/news/rss", "RSS", "开源开发者", "CN", 143),
-                createSource("CSDN", "CSDN", "https://blog.csdn.net/rss.html", "RSS", "开源开发者", "CN", 144),
-                createSource("掘金", "掘金", "https://juejin.cn/rss", "RSS", "开源开发者", "CN", 145),
-                createSource("SegmentFault", "SegmentFault", "https://segmentfault.com/feeds", "RSS", "开源开发者", "CN", 146),
-                // 英文源补充
-                createSource("The Register", "The Register", "https://www.theregister.com/headlines.atom", "RSS", "科技媒体", "EN", 150),
-                createSource("Mashable", "Mashable", "https://mashable.com/feed", "RSS", "科技媒体", "EN", 151),
-                createSource("Gizmodo", "Gizmodo", "https://gizmodo.com/rss", "RSS", "科技媒体", "EN", 152),
-                createSource("VentureBeat", "VentureBeat", "https://venturebeat.com/feed/", "RSS", "科技媒体", "EN", 153),
-                createSource("TheNextWeb", "TheNextWeb", "https://thenextweb.com/feed", "RSS", "科技媒体", "EN", 154),
-                // 更多国际源
-                createSource("MIT Technology Review", "MIT Tech Review", "https://www.technologyreview.com/feed/", "RSS", "科技媒体", "EN", 155),
-                createSource("Nature News", "Nature", "https://www.nature.com/nature.rss", "RSS", "科技媒体", "EN", 156),
-                createSource("Science Daily", "Science Daily", "https://www.sciencedaily.com/rss/all.xml", "RSS", "科技媒体", "EN", 157),
-                createSource("IEEE Spectrum", "IEEE Spectrum", "https://spectrum.ieee.org/feeds/feed.rss", "RSS", "科技媒体", "EN", 158),
-                createSource("Smashing Magazine", "Smashing Mag", "https://www.smashingmagazine.com/feed/", "RSS", "开源开发者", "EN", 159),
-                createSource("CSS-Tricks", "CSS-Tricks", "https://css-tricks.com/feed/", "RSS", "开源开发者", "EN", 160),
-                createSource("A List Apart", "A List Apart", "https://alistapart.com/main/feed/", "RSS", "开源开发者", "EN", 161),
-                createSource("Stack Overflow Blog", "SO Blog", "https://stackoverflow.blog/feed/", "RSS", "开源开发者", "EN", 162),
-                createSource("Towards Data Science", "TDS", "https://towardsdatascience.com/feed", "RSS", "科技媒体", "EN", 163),
-                createSource("The New Stack", "The New Stack", "https://thenewstack.io/feed/", "RSS", "开源开发者", "EN", 164),
-                createSource("Linux Journal", "Linux Journal", "https://www.linuxjournal.com/node/feed", "RSS", "开源开发者", "EN", 165),
-                createSource("CoinDesk", "CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/", "RSS", "科技财经", "EN", 166),
-                createSource("Bloomberg Tech", "Bloomberg", "https://www.bloomberg.com/feed/podcast/tech", "RSS", "科技财经", "EN", 167)
-        );
+    private void seedSources(List<NewsSource> candidates, String category) {
+        List<NewsSource> toAdd = new ArrayList<>();
         for (NewsSource candidate : candidates) {
             if (newsSourceRepository.findByName(candidate.getName()) == null) {
                 toAdd.add(candidate);
@@ -100,36 +41,21 @@ public class NewsSourceSeeder {
         }
         if (!toAdd.isEmpty()) {
             newsSourceRepository.saveAll(toAdd);
-            log.info("Added {} missing news sources: {}", toAdd.size(),
+            log.info("Added {} {} news sources: {}", toAdd.size(), category,
                     toAdd.stream().map(NewsSource::getName).toList());
         }
-        
-        // 禁用已失效的源
-        disableFailedSources();
     }
-    
+
     /**
-     * 禁用已失效或国内无法访问的RSS源（避免浪费资源尝试获取）
+     * 禁用已失效或国内无法访问的源
      */
     private void disableFailedSources() {
-        List<String> failedSourceNames = List.of(
-                // 已失效的源
-                "新华社",       // RSS域名已弃用
-                "机器之心",     // RSS返回非标准XML
-                "果壳",        // RSS返回404
-                "知乎热榜",     // 403禁止访问
-                "cnBeta",      // XML解析失败
-                "品玩",        // 405错误
-                "极客公园",     // 连接超时
-                // 国内无法访问的海外源
-                "HackerNews",  // Firebase API国内超时
-                "GitHub Trending"  // 国内超时
-        );
-        
-        // 禁用所有Google和YouTube前缀的源
-        List<String> prefixes = List.of("Google-", "YouTube-");
+        List<String> failedNames = NewsSourceData.getFailedSourceNames();
+        List<String> failedPrefixes = NewsSourceData.getFailedPrefixes();
         int disabledCount = 0;
-        for (String name : failedSourceNames) {
+
+        // 按名称禁用
+        for (String name : failedNames) {
             NewsSource source = newsSourceRepository.findByName(name);
             if (source != null && Boolean.TRUE.equals(source.getEnabled())) {
                 source.setEnabled(false);
@@ -138,11 +64,11 @@ public class NewsSourceSeeder {
                 log.info("Disabled failed source: {}", name);
             }
         }
-        
-        // 按前缀禁用（Google-xxx, YouTube-xxx等）
+
+        // 按前缀禁用
         for (NewsSource source : newsSourceRepository.findAll()) {
             if (Boolean.TRUE.equals(source.getEnabled())) {
-                for (String prefix : prefixes) {
+                for (String prefix : failedPrefixes) {
                     if (source.getName().startsWith(prefix)) {
                         source.setEnabled(false);
                         newsSourceRepository.save(source);
@@ -153,241 +79,9 @@ public class NewsSourceSeeder {
                 }
             }
         }
-        
+
         if (disabledCount > 0) {
             log.info("Disabled {} failed/inaccessible news sources", disabledCount);
         }
-    }
-
-    // seedNewSocialSources / seedGoogleNewsGeneralSources 已移除：国外源在国内无法访问
-
-    private void seedGeneralSources() {
-        if (newsSourceRepository.count() > 0) {
-            log.info("General news sources already seeded, skipping");
-            return;
-        }
-
-        List<NewsSource> sources = List.of(
-                // 官方媒体（直接RSS）
-                createDisabled("新华社", "新华社", "http://www.xinhuanet.com/politics/xhll.xml", "RSS", "官方媒体", "CN", 1), // RSS域名已弃用，无可用端点
-                createSource("人民日报", "人民日报", "http://www.people.com.cn/rss/politics.xml", "RSS", "官方媒体", "CN", 2),
-                createSource("人民日报国际", "人民日报", "http://www.people.com.cn/rss/world.xml", "RSS", "官方媒体", "CN", 3),
-                createSource("中国新闻网", "中国新闻网", "https://www.chinanews.com/rss/scroll-news.xml", "RSS", "官方媒体", "CN", 6),
-                createSource("环球时报", "环球时报", "https://www.globaltimes.cn/rss/outbrain.xml", "RSS", "官方媒体", "EN", 7),
-                // 社交媒体（Jsoup爬虫）
-                createSource("微博热搜", "微博热搜", "WEIBO_API", "JSOUP", "社交媒体", "CN", 4),
-                createDisabled("知乎热榜", "知乎热榜", "ZHIHU_HOT", "JSOUP", "社交媒体", "CN", 5), // 403
-                // 科技财经（直接RSS）
-                createSource("36氪", "36氪", "https://36kr.com/feed", "RSS", "科技财经", "CN", 8),
-                createSource("少数派", "少数派", "https://sspai.com/feed", "RSS", "科技财经", "CN", 9),
-                createSource("虎嗅", "虎嗅", "https://www.huxiu.com/rss/0.xml", "RSS", "科技财经", "CN", 10),
-                createDisabled("机器之心", "机器之心", "https://www.jiqizhixin.com/rss", "RSS", "科技财经", "CN", 11), // RSS失效
-                createSource("爱范儿", "爱范儿", "https://www.ifanr.com/feed", "RSS", "科技财经", "CN", 12),
-                createDisabled("果壳", "果壳", "https://www.guokr.com/rss/", "RSS", "科技财经", "CN", 13), // RSS失效
-                // 新增中文源
-                createSource("IT之家", "IT之家", "https://www.ithome.com/rss/", "RSS", "科技财经", "CN", 14),
-                createSource("钛媒体", "钛媒体", "https://www.tmtpost.com/rss.xml", "RSS", "科技财经", "CN", 15),
-                createSource("界面新闻", "界面新闻", "https://www.jiemian.com/lists/4.rss", "RSS", "科技财经", "CN", 16),
-                createSource("澎湃新闻", "澎湃新闻", "https://www.thepaper.cn/rss_newsDetail_channel_25950", "RSS", "官方媒体",
-                        "CN", 17),
-                createSource("观察者网", "观察者网", "https://www.guancha.cn/rss/feed.xml", "RSS", "官方媒体", "CN", 18),
-                createSource("快科技", "快科技", "https://www.mydrivers.com/rss.aspx", "RSS", "科技财经", "CN", 19),
-                // 海外社交媒体（国内GFW无法访问，默认禁用）
-                createDisabled("Reddit", "Reddit", "REDDIT_API", "API", "社交媒体", "EN", 20),
-                // 海外科技媒体（部分国内可访问）
-                createSource("HackerNews", "HackerNews", "HN_API", "API", "科技媒体", "EN", 21),
-                createSource("TechCrunch", "TechCrunch", "https://techcrunch.com/feed/", "RSS", "科技媒体", "EN", 22),
-                createSource("Dev.to", "Dev.to", "https://dev.to/feed", "RSS", "科技媒体", "EN", 23),
-                createSource("The Verge", "The Verge", "https://www.theverge.com/rss/index.xml", "RSS", "科技媒体", "EN",
-                        24),
-                createSource("Ars Technica", "Ars Technica", "https://feeds.arstechnica.com/arstechnica/index", "RSS",
-                        "科技媒体", "EN", 25),
-                createSource("Wired", "Wired", "https://www.wired.com/feed/rss", "RSS", "科技媒体", "EN", 26),
-                createSource("Engadget", "Engadget", "https://www.engadget.com/rss.xml", "RSS", "科技媒体", "EN", 27),
-                createSource("ZDNet", "ZDNet", "https://www.zdnet.com/news/rss.xml", "RSS", "科技媒体", "EN", 28),
-                // 开源开发者
-                createSource("GitHub Trending", "GitHub Trending", "GITHUB_TRENDING", "JSOUP", "开源开发者", "EN", 30),
-                createSource("Product Hunt", "Product Hunt", "https://www.producthunt.com/feed", "RSS", "开源开发者", "EN",
-                        31),
-                createSource("HackerNoon", "HackerNoon", "https://hackernoon.com/feed", "RSS", "科技媒体", "EN", 32),
-                createSource("freeCodeCamp", "freeCodeCamp", "https://www.freecodecamp.org/news/rss/", "RSS", "开源开发者",
-                        "EN", 33));
-
-        newsSourceRepository.saveAll(sources);
-        log.info("Seeded {} general news sources", sources.size());
-    }
-
-    private void seedAirlineSources() {
-        // Check if airline sources already exist
-        long airlineCount = newsSourceRepository.countByCategory("国际航司");
-        if (airlineCount > 0) {
-            log.info("Airline news sources already seeded ({}), skipping", airlineCount);
-            return;
-        }
-
-        List<NewsSource> sources = List.of(
-                // === 航空新闻媒体 ===
-                createSource("Simple Flying", "Simple Flying", "https://simpleflying.com/feed/", "RSS", "国际航司", "EN",
-                        40),
-                createSource("FlightGlobal", "FlightGlobal", "https://www.flightglobal.com/rss", "RSS", "国际航司", "EN",
-                        41),
-                createSource("Airways Magazine", "Airways Magazine", "https://airwaysmag.com/feed/", "RSS", "国际航司",
-                        "EN", 42),
-                createSource("AeroTime", "AeroTime", "https://www.aerotime.aero/feed", "RSS", "国际航司", "EN", 43),
-                createSource("The Aviationist", "The Aviationist", "https://theaviationist.com/feed/", "RSS", "国际航司",
-                        "EN", 44),
-                createSource("Airline Weekly", "Airline Weekly", "https://www.airlineweekly.com/feed/", "RSS", "国际航司",
-                        "EN", 45),
-                createSource("One Mile at a Time", "One Mile at a Time", "https://onemileatatime.com/feed/", "RSS",
-                        "国际航司", "EN", 46),
-                createSource("TPG Aviation", "The Points Guy", "https://thepointsguy.com/category/airlines/feed/",
-                        "RSS", "国际航司", "EN", 47),
-                createSource("Runway Girl", "Runway Girl Network", "https://www.runwaygirlnetwork.com/feed/", "RSS",
-                        "国际航司", "EN", 48),
-                createSource("Air Guide", "Air Guide Online", "https://airguideonline.com/feed/", "RSS", "国际航司", "EN",
-                        49),
-
-                // === Google News 航司专题 (国内GFW无法访问，默认禁用) ===
-                createDisabled("Google-Emirates", "Emirates",
-                        "https://news.google.com/rss/search?q=Emirates+airline&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 50),
-                createDisabled("Google-Qatar", "Qatar Airways",
-                        "https://news.google.com/rss/search?q=Qatar+Airways&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 51),
-                createDisabled("Google-Etihad", "Etihad Airways",
-                        "https://news.google.com/rss/search?q=Etihad+Airways&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 52),
-                createDisabled("Google-Lufthansa", "Lufthansa",
-                        "https://news.google.com/rss/search?q=Lufthansa+airline&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 53),
-                createDisabled("Google-BA", "British Airways",
-                        "https://news.google.com/rss/search?q=British+Airways&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 54),
-                createDisabled("Google-AFKLM", "Air France-KLM",
-                        "https://news.google.com/rss/search?q=Air+France+KLM+airline&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 55),
-                createDisabled("Google-Ryanair", "Ryanair",
-                        "https://news.google.com/rss/search?q=Ryanair&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN", 56),
-                createDisabled("Google-easyJet", "easyJet",
-                        "https://news.google.com/rss/search?q=easyJet+airline&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 57),
-                createDisabled("Google-Singapore", "Singapore Airlines",
-                        "https://news.google.com/rss/search?q=Singapore+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 58),
-                createDisabled("Google-Cathay", "Cathay Pacific",
-                        "https://news.google.com/rss/search?q=Cathay+Pacific&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 59),
-                createDisabled("Google-ANA", "All Nippon Airways",
-                        "https://news.google.com/rss/search?q=ANA+All+Nippon+Airways&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 60),
-                createDisabled("Google-JAL", "Japan Airlines",
-                        "https://news.google.com/rss/search?q=Japan+Airlines+JAL&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 61),
-                createDisabled("Google-Korean", "Korean Air",
-                        "https://news.google.com/rss/search?q=Korean+Air&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN",
-                        62),
-                createDisabled("Google-Turkish", "Turkish Airlines",
-                        "https://news.google.com/rss/search?q=Turkish+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 63),
-                createDisabled("Google-Delta", "Delta Air Lines",
-                        "https://news.google.com/rss/search?q=Delta+Air+Lines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 64),
-                createDisabled("Google-United", "United Airlines",
-                        "https://news.google.com/rss/search?q=United+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 65),
-                createDisabled("Google-American", "American Airlines",
-                        "https://news.google.com/rss/search?q=American+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 66),
-                createDisabled("Google-Southwest", "Southwest Airlines",
-                        "https://news.google.com/rss/search?q=Southwest+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 67),
-                createDisabled("Google-JetBlue", "JetBlue Airways",
-                        "https://news.google.com/rss/search?q=JetBlue+Airways&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 68),
-                createDisabled("Google-Qantas", "Qantas",
-                        "https://news.google.com/rss/search?q=Qantas+airline&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 69),
-                createDisabled("Google-Virgin", "Virgin Atlantic",
-                        "https://news.google.com/rss/search?q=Virgin+Atlantic+airline&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 70),
-                createDisabled("Google-AirCanada", "Air Canada",
-                        "https://news.google.com/rss/search?q=Air+Canada&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN",
-                        71),
-                createDisabled("Google-Asiana", "Asiana Airlines",
-                        "https://news.google.com/rss/search?q=Asiana+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 72),
-                createDisabled("Google-Thai", "Thai Airways",
-                        "https://news.google.com/rss/search?q=Thai+Airways&hl=en&gl=US&ceid=US:en", "RSS", "国际航司", "EN",
-                        73),
-                createDisabled("Google-Vietnam", "Vietnam Airlines",
-                        "https://news.google.com/rss/search?q=Vietnam+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 74),
-                createDisabled("Google-Malaysia", "Malaysia Airlines",
-                        "https://news.google.com/rss/search?q=Malaysia+Airlines&hl=en&gl=US&ceid=US:en", "RSS", "国际航司",
-                        "EN", 75),
-                createDisabled("Google-Philippine", "Philippine Airlines",
-                        "https://news.google.com/rss/search?q=Philippine+Airlines&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 76),
-                createDisabled("Google-IndiGo", "IndiGo",
-                        "https://news.google.com/rss/search?q=IndiGo+airline+India&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 77),
-                createDisabled("Google-SAS", "SAS Scandinavian",
-                        "https://news.google.com/rss/search?q=SAS+Scandinavian+Airlines&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 78),
-                createDisabled("Google-Swiss", "Swiss Air",
-                        "https://news.google.com/rss/search?q=Swiss+International+Air+Lines&hl=en&gl=US&ceid=US:en",
-                        "RSS", "国际航司", "EN", 79),
-
-                // === 航空综合话题 Google News (国内GFW无法访问，默认禁用) ===
-                createDisabled("Google-Airfare", "Airfare Deals",
-                        "https://news.google.com/rss/search?q=airline+fare+deals+promo&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 96),
-                createDisabled("Google-Routes", "Airline Routes",
-                        "https://news.google.com/rss/search?q=airline+new+routes+launch&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 97),
-                createDisabled("Google-Fuel", "Airline Fuel",
-                        "https://news.google.com/rss/search?q=airline+fuel+surcharge+adjustment&hl=en&gl=US&ceid=US:en",
-                        "RSS", "国际航司", "EN", 98),
-                createDisabled("Google-Aviation", "Aviation Industry",
-                        "https://news.google.com/rss/search?q=aviation+industry+news&hl=en&gl=US&ceid=US:en", "RSS",
-                        "国际航司", "EN", 99)
-        );
-
-        newsSourceRepository.saveAll(sources);
-        log.info("Seeded {} airline news sources", sources.size());
-    }
-
-    private NewsSource createSource(String name, String platform, String feedUrl,
-            String method, String category, String lang, int priority) {
-        return NewsSource.builder()
-                .name(name)
-                .platformName(platform)
-                .feedUrl(feedUrl)
-                .fetchMethod(method)
-                .category(category)
-                .language(lang)
-                .enabled(true)
-                .priority(priority)
-                .fetchIntervalSeconds(900)
-                .errorCount(0)
-                .consecutiveErrors(0)
-                .build();
-    }
-
-    private NewsSource createDisabled(String name, String platform, String feedUrl,
-            String method, String category, String lang, int priority) {
-        return NewsSource.builder()
-                .name(name)
-                .platformName(platform)
-                .feedUrl(feedUrl)
-                .fetchMethod(method)
-                .category(category)
-                .language(lang)
-                .enabled(false)
-                .priority(priority)
-                .fetchIntervalSeconds(900)
-                .errorCount(0)
-                .consecutiveErrors(0)
-                .build();
     }
 }

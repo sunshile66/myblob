@@ -12,6 +12,7 @@ import com.myblob.module.media.repository.MediaAssetRepository;
 import com.myblob.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BlogService {
@@ -162,6 +164,8 @@ public class BlogService {
         }
         post = postRepository.save(post);
 
+        log.info("文章创建成功: id={}, title={}, author={}", post.getId(), post.getTitle(), userId);
+
         // 新创建的文章，当前用户尚未点赞/收藏
         Long currentUserId = SecurityUtil.getCurrentUserIdOrNull();
         return PostDTOAssembler.toFullDTO(post, currentUserId, Set.of(), Set.of());
@@ -268,6 +272,8 @@ public class BlogService {
         // 使用软删除，与 BaseEntity.deleted 字段保持一致
         post.setDeleted(true);
         postRepository.save(post);
+
+        log.info("文章软删除: slug={}, operator={}", slug, userId);
     }
 
     @Transactional(readOnly = true)

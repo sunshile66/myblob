@@ -212,7 +212,7 @@ export const toolRoutes: RouteRecordRaw[] = [
   {
     path: "/tools/flight-tracker",
     name: "FlightTracker",
-    component: () => import("@/pages/flights/FlightTracker.vue"),
+    component: () => import("@/pages/flight/FlightTracker.vue"),
     meta: { title: "航班追踪" },
   },
 ];

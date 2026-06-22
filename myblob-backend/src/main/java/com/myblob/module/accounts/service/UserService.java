@@ -14,6 +14,7 @@ import com.myblob.module.accounts.repository.UserProfileRepository;
 import com.myblob.security.JwtUtil;
 import com.myblob.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -66,6 +68,8 @@ public class UserService {
         UserProfile profile = UserProfile.builder().user(user).build();
         userProfileRepository.save(profile);
 
+        log.info("新用户注册: username={}, email={}", request.getUsername(), request.getEmail());
+
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         return LoginResponse.builder()
                 .token(token)
@@ -78,11 +82,17 @@ public class UserService {
     public LoginResponse login(LoginRequest request) {
         // 单次查询：按用户名或邮箱查找
         User user = userRepository.findByUsernameOrEmail(request.getUsername())
-                .orElseThrow(() -> new BusinessException("用户名或密码错误"));
+                .orElseThrow(() -> {
+                    log.warn("登录失败: username={}, reason=用户不存在", request.getUsername());
+                    return new BusinessException("用户名或密码错误");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.warn("登录失败: username={}, reason=密码错误", request.getUsername());
             throw new BusinessException("用户名或密码错误");
         }
+
+        log.info("用户登录: username={}", request.getUsername());
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         return LoginResponse.builder()
