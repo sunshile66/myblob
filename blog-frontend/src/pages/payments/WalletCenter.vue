@@ -303,18 +303,18 @@ onMounted(() => {
 }
 
 .transaction-icon.income {
-  background: rgba(103, 194, 58, 0.1);
-  color: #67c23a;
+  background: var(--theme-success-light);
+  color: var(--theme-success);
 }
 
 .transaction-icon.expense {
-  background: rgba(245, 108, 108, 0.1);
-  color: #f56c6c;
+  background: var(--theme-danger-light);
+  color: var(--theme-danger);
 }
 
 .transaction-icon.refund {
-  background: rgba(64, 158, 255, 0.1);
-  color: #409eff;
+  background: var(--theme-info-light);
+  color: var(--theme-info);
 }
 
 .transaction-icon .el-icon {
@@ -350,11 +350,11 @@ onMounted(() => {
 }
 
 .transaction-amount.income {
-  color: #67c23a;
+  color: var(--theme-success);
 }
 
 .transaction-amount.expense {
-  color: #f56c6c;
+  color: var(--theme-danger);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -192,13 +192,13 @@ onMounted(() => {
 .edit-header h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: var(--theme-text);
   margin: 0 0 8px 0;
 }
 
 .edit-header p {
   font-size: 14px;
-  color: #999;
+  color: var(--theme-text-tertiary);
   margin: 0;
 }
 
@@ -223,7 +223,7 @@ onMounted(() => {
 }
 
 .avatar-uploader .avatar-preview {
-  border: 4px solid #f0f0f0;
+  border: 4px solid var(--theme-border);
   transition: all var(--transition-fast);
 }
 
@@ -258,7 +258,7 @@ onMounted(() => {
 }
 
 .disabled-input :deep(.el-input__wrapper) {
-  background-color: #f5f5f5;
+  background-color: var(--theme-hover);
   cursor: not-allowed;
 }
 
@@ -274,17 +274,17 @@ onMounted(() => {
   gap: 12px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--theme-border);
 }
 
 :deep(.el-divider__text) {
   font-weight: 600;
-  color: #666;
+  color: var(--theme-text-secondary);
 }
 
 :deep(.el-form-item__label) {
   font-weight: 500;
-  color: #333;
+  color: var(--theme-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
