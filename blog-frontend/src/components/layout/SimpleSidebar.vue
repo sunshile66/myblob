@@ -91,7 +91,7 @@ const tags = ref<Tag[]>([
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    console.log('搜索:', searchQuery.value)
+    // 搜索逻辑已移至 SearchPage
   }
 };
 </script>
