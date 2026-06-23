@@ -218,8 +218,8 @@ onMounted(async () => {
 }
 
 .flip-card-back {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--theme-text-inverse);
   transform: rotateY(180deg);
   overflow-y: auto;
 }
@@ -245,8 +245,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--theme-text-inverse);
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   margin-bottom: 8px;
@@ -254,12 +254,12 @@ onMounted(async () => {
 
 .card-speaker:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--shadow-md);
 }
 
 .card-difficulty { margin-bottom: 4px; }
 .star { color: var(--theme-border); font-size: 13px; }
-.star.active { color: #f0ad4e; }
+.star.active { color: var(--theme-warning); }
 
 .card-category-tag {
   font-size: 11px;
@@ -298,7 +298,7 @@ onMounted(async () => {
   padding: 6px 14px;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  color: var(--theme-text-inverse);
   font-size: 12px;
   cursor: pointer;
   display: inline-flex;

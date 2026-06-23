@@ -197,10 +197,10 @@ onMounted(async () => {
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-xs);
-  color: #fff;
+  color: var(--theme-text-inverse);
 }
 
-.phonetic-us .phonetic-label { background: #667eea; }
+.phonetic-us .phonetic-label { background: var(--theme-primary); }
 .phonetic-uk .phonetic-label { background: #e07b5a; }
 
 .phonetic-text {
@@ -215,15 +215,15 @@ onMounted(async () => {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--theme-text-inverse);
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .speaker-btn:hover {
   transform: scale(1.15);
-  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.35);
+  box-shadow: var(--shadow-md);
 }
 
 .word-meta {
@@ -245,7 +245,7 @@ onMounted(async () => {
 }
 
 .star.active {
-  color: #f0ad4e;
+  color: var(--theme-warning);
 }
 
 .primary-pos {
@@ -347,7 +347,7 @@ onMounted(async () => {
 .phrase-text {
   font-size: 15px;
   font-weight: 600;
-  color: #667eea;
+  color: var(--theme-primary);
   white-space: nowrap;
 }
 
