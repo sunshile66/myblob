@@ -37,15 +37,15 @@
         总航班 <strong>{{ totalFlights }}</strong>
       </div>
       <div class="stat-chip new">
-        <span class="stat-dot" style="background: #10B981"></span>
+        <span class="stat-dot" style="background: var(--theme-success)"></span>
         新增 <strong>{{ newCount }}</strong>
       </div>
       <div class="stat-chip cancelled">
-        <span class="stat-dot" style="background: #EF4444"></span>
+        <span class="stat-dot" style="background: var(--theme-danger)"></span>
         取消 <strong>{{ cancelledCount }}</strong>
       </div>
       <div class="stat-chip delayed">
-        <span class="stat-dot" style="background: #F59E0B"></span>
+        <span class="stat-dot" style="background: var(--theme-warning)"></span>
         延误 <strong>{{ delayedCount }}</strong>
       </div>
     </div>
@@ -57,7 +57,7 @@
         <p>正在获取航班数据...</p>
       </div>
       <div v-else-if="!flights.length" class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--theme-border-strong)" stroke-width="1">
           <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
         </svg>
         <p>暂无航班数据</p>
@@ -281,7 +281,7 @@ onUnmounted(() => clearInterval(timer))
 
 .filter-btn.active {
   background: var(--theme-primary);
-  color: #fff;
+  color: var(--theme-text-inverse);
   border-color: var(--theme-primary);
 }
 
@@ -361,9 +361,9 @@ onUnmounted(() => clearInterval(timer))
   font-weight: 600;
 }
 
-.change-badge.new { background: rgba(16, 185, 129, .15); color: #059669; }
-.change-badge.cancelled { background: rgba(239, 68, 68, .15); color: #DC2626; }
-.change-badge.delayed { background: rgba(245, 158, 11, .15); color: #D97706; }
+.change-badge.new { background: var(--theme-success-light); color: var(--theme-success-hover); }
+.change-badge.cancelled { background: var(--theme-danger-light); color: var(--theme-danger-hover); }
+.change-badge.delayed { background: var(--theme-warning-light); color: var(--theme-warning-hover); }
 .change-badge.normal { background: var(--theme-hover); color: var(--theme-text-secondary); }
 
 .callsign {
