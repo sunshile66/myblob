@@ -45,22 +45,22 @@
     <IOPanel title="密码强度说明">
       <div class="strength-guide">
         <div class="guide-item">
-          <span class="guide-color" style="background: #f56c6c"></span>
+          <span class="guide-color strength-weak"></span>
           <span class="guide-label">弱</span>
           <span class="guide-desc">少于 8 位，仅包含一种字符类型</span>
         </div>
         <div class="guide-item">
-          <span class="guide-color" style="background: #e6a23c"></span>
+          <span class="guide-color strength-medium"></span>
           <span class="guide-label">中</span>
           <span class="guide-desc">8-12 位，包含两种字符类型</span>
         </div>
         <div class="guide-item">
-          <span class="guide-color" style="background: #409eff"></span>
+          <span class="guide-color strength-strong"></span>
           <span class="guide-label">强</span>
           <span class="guide-desc">12-16 位，包含三种字符类型</span>
         </div>
         <div class="guide-item">
-          <span class="guide-color" style="background: #67c23a"></span>
+          <span class="guide-color strength-very-strong"></span>
           <span class="guide-label">非常强</span>
           <span class="guide-desc">16 位以上，包含全部字符类型</span>
         </div>
@@ -125,10 +125,10 @@ const strength = computed(() => {
 })
 
 const strengthColor = computed(() => {
-  if (strength.value < 30) return '#f56c6c'
-  if (strength.value < 60) return '#e6a23c'
-  if (strength.value < 80) return '#409eff'
-  return '#67c23a'
+  if (strength.value < 30) return 'var(--theme-danger)'
+  if (strength.value < 60) return 'var(--theme-warning)'
+  if (strength.value < 80) return 'var(--theme-info)'
+  return 'var(--theme-success)'
 })
 
 const strengthLabel = computed(() => {
@@ -238,6 +238,18 @@ const generateMultiple = () => {
   width: 16px;
   height: 16px;
   border-radius: 4px;
+}
+.guide-color.strength-weak {
+  background: var(--theme-danger);
+}
+.guide-color.strength-medium {
+  background: var(--theme-warning);
+}
+.guide-color.strength-strong {
+  background: var(--theme-info);
+}
+.guide-color.strength-very-strong {
+  background: var(--theme-success);
 }
 .guide-label {
   font-weight: 600;

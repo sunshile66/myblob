@@ -240,10 +240,10 @@ const loadSample = () => {
 .stat {
   font-weight: 600;
 }
-.stat-added { color: #67c23a; }
-.stat-removed { color: #f56c6c; }
-.stat-modified { color: #e6a23c; }
-.stat-equal { color: #909399; }
+.stat-added { color: var(--theme-success); }
+.stat-removed { color: var(--theme-danger); }
+.stat-modified { color: var(--theme-warning); }
+.stat-equal { color: var(--theme-text-tertiary); }
 .diff-list {
   max-height: 400px;
   overflow: auto;
@@ -259,31 +259,31 @@ const loadSample = () => {
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
 }
-.diff-item.added { background: #f0f9ff; }
-.diff-item.removed { background: #fef0f0; }
-.diff-item.modified { background: #fdf6ec; }
-.diff-item.equal { background: #f5f7fa; }
+.diff-item.added { background: var(--diff-added-bg); }
+.diff-item.removed { background: var(--diff-removed-bg); }
+.diff-item.modified { background: var(--diff-modified-bg); }
+.diff-item.equal { background: var(--theme-muted); }
 .diff-indicator {
   min-width: 16px;
   text-align: center;
   font-weight: 600;
 }
-.diff-item.added .diff-indicator { color: #67c23a; }
-.diff-item.removed .diff-indicator { color: #f56c6c; }
-.diff-item.modified .diff-indicator { color: #e6a23c; }
-.diff-item.equal .diff-indicator { color: #909399; }
+.diff-item.added .diff-indicator { color: var(--diff-added-text); }
+.diff-item.removed .diff-indicator { color: var(--diff-removed-text); }
+.diff-item.modified .diff-indicator { color: var(--diff-modified-text); }
+.diff-item.equal .diff-indicator { color: var(--theme-text-tertiary); }
 .diff-path {
-  color: #409eff;
+  color: var(--theme-info);
   min-width: 150px;
 }
 .diff-value {
   flex: 1;
   word-break: break-all;
 }
-.diff-value .old { color: #f56c6c; text-decoration: line-through; }
-.diff-value .new { color: #67c23a; }
-.diff-value .arrow { margin: 0 8px; color: #909399; }
-.diff-value.equal { color: #606266; }
+.diff-value .old { color: var(--theme-danger); text-decoration: line-through; }
+.diff-value .new { color: var(--theme-success); }
+.diff-value .arrow { margin: 0 8px; color: var(--theme-text-tertiary); }
+.diff-value.equal { color: var(--theme-text-secondary); }
 .no-diff {
   display: flex;
   flex-direction: column;
@@ -294,7 +294,7 @@ const loadSample = () => {
 }
 .no-diff p {
   font-size: 16px;
-  color: #67c23a;
+  color: var(--theme-success);
   margin: 0;
 }
 </style>

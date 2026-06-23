@@ -122,15 +122,15 @@ const handleSearch = () => {
   gap: 10px;
   padding: 12px 16px;
   border-radius: 10px;
-  color: #475569;
+  color: var(--theme-text-secondary);
   text-decoration: none;
   transition: all 0.25s ease;
   font-weight: 500;
 }
 
 .quick-link:hover {
-  background: #dbeafe;
-  color: #2563eb;
+  background: var(--theme-primary-light);
+  color: var(--theme-primary);
 }
 
 .category-menu {
@@ -144,7 +144,7 @@ const handleSearch = () => {
 }
 
 .tag-item:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  color: #fff !important;
+  background: var(--gradient-primary) !important;
+  color: var(--theme-text-inverse) !important;
 }
 </style>

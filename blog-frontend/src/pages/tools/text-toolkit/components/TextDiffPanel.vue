@@ -210,12 +210,12 @@ const clearAll = () => {
   border-radius: 2px;
 }
 .diff-line.added {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--diff-added-bg);
+  color: var(--diff-added-text);
 }
 .diff-line.removed {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--diff-removed-bg);
+  color: var(--diff-removed-text);
 }
 .diff-line.equal {
   color: var(--el-text-color-regular);

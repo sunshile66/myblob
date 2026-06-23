@@ -212,6 +212,6 @@ const clearAll = () => {
   font-weight: 600;
 }
 .info-value.is-yes {
-  color: #67c23a;
+  color: var(--theme-success);
 }
 </style>
