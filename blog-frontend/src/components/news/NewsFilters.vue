@@ -1,3 +1,17 @@
+<!--
+/**
+ * NewsFilters - 新闻筛选器组件
+ * @description 新闻分类和语言筛选器，支持双向绑定
+ *
+ * @usage 基本用法
+ * ```vue
+ * <NewsFilters
+ *   v-model="filters"
+ *   :categories="categories"
+ *   :languages="languages"
+ * />
+ * ```
+ -->
 <template>
   <div class="news-filters">
     <div class="cat-bar">
@@ -24,18 +38,33 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * 筛选器状态
+ */
 interface FilterState {
+  /** 当前选中的分类 */
   category: string
+  /** 当前选中的语言 */
   language: string
 }
 
+/**
+ * NewsFilters 组件属性
+ */
 defineProps<{
+  /** 当前筛选状态（双向绑定） */
   modelValue: FilterState
+  /** 分类选项列表 */
   categories: Array<{ value: string; label: string }>
+  /** 语言选项列表 */
   languages: Array<{ value: string; label: string }>
 }>()
 
+/**
+ * NewsFilters 组件事件
+ */
 defineEmits<{
+  /** 筛选状态变更时触发 */
   'update:modelValue': [value: FilterState]
 }>()
 </script>

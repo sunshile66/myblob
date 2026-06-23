@@ -1,3 +1,20 @@
+<!--
+/**
+ * NewsCard - 新闻卡片组件
+ * @description 展示单条新闻的卡片组件，支持标题、摘要、缩略图、来源、时间等信息展示
+ *
+ * @usage 基本用法
+ * ```vue
+ * <NewsCard :item="newsItem" @click="handleClick" />
+ * ```
+ *
+ * @usage 在列表中使用
+ * ```vue
+ * <div v-for="item in newsList" :key="item.id">
+ *   <NewsCard :item="item" @click="$router.push('/news/' + item.id)" />
+ * </div>
+ * ```
+ -->
 <template>
   <article class="news-card" @click="$emit('click', item)">
     <div class="card-body">
@@ -41,14 +58,27 @@
 <script setup lang="ts">
 import type { NewsItem } from '@/types'
 
+/**
+ * NewsCard 组件属性
+ */
 defineProps<{
+  /** 新闻数据对象 */
   item: NewsItem
 }>()
 
+/**
+ * NewsCard 组件事件
+ */
 defineEmits<{
+  /** 点击卡片时触发 */
   click: [item: NewsItem]
 }>()
 
+/**
+ * 根据来源平台返回对应的圆点颜色
+ * @param platform - 来源平台名称
+ * @returns CSS 颜色值
+ */
 const srcColor = (platform: string) => {
   const colors: Record<string, string> = {
     '微博': '#ff8200',
@@ -61,6 +91,11 @@ const srcColor = (platform: string) => {
   return colors[platform] || '#666'
 }
 
+/**
+ * 格式化时间为相对时间
+ * @param dateStr - ISO 日期字符串
+ * @returns 相对时间文本（如"5分钟前"、"2小时前"）
+ */
 const fmtTime = (dateStr?: string) => {
   if (!dateStr) return ''
   const d = new Date(dateStr)
