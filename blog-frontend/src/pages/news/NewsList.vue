@@ -482,8 +482,8 @@ watch([curCat, curLang], () => {
   background: var(--theme-primary-light);
 }
 
-.cat-tab.airline { color: #D97706; }
-.cat-tab.airline.active { color: #D97706; background: rgba(217,119,6,.1); }
+.cat-tab.airline { color: var(--theme-warning); }
+.cat-tab.airline.active { color: var(--theme-warning); background: var(--theme-warning-light); }
 .cat-svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 .lang-switch {
@@ -510,7 +510,7 @@ watch([curCat, curLang], () => {
 
 .lang-btn.active {
   background: var(--theme-primary);
-  color: #fff;
+  color: var(--theme-text-inverse);
   border-color: var(--theme-primary);
 }
 
@@ -656,8 +656,8 @@ watch([curCat, curLang], () => {
   gap: 3px;
   padding: 1px 6px;
   border-radius: var(--radius-xs);
-  background: rgba(239,68,68,.1);
-  color: #EF4444;
+  background: var(--theme-danger-light);
+  color: var(--theme-danger);
   font-size: 10px;
   font-weight: 600;
 }
