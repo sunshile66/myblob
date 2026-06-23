@@ -661,7 +661,7 @@ const handleRegister = async () => {
 .panel-header h1 {
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text);
   margin: 0 0 6px;
   letter-spacing: 0.2px;
 }
@@ -669,7 +669,7 @@ const handleRegister = async () => {
 .panel-header p {
   margin: 0 0 22px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 /* Tabs */
@@ -783,7 +783,7 @@ const handleRegister = async () => {
 
 .agree-item :deep(.el-checkbox__label) {
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .agree-item :deep(.el-checkbox__inner) {
@@ -800,7 +800,7 @@ const handleRegister = async () => {
   margin: 18px 0 0;
   text-align: center;
   font-size: 13px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .form-options {
