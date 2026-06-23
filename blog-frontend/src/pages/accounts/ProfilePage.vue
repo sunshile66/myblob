@@ -313,7 +313,7 @@ const mockPhotos = [
 }
 
 .profile-avatar .el-avatar {
-  border: 4px solid #f5f5f5;
+  border: 4px solid var(--theme-border);
 }
 
 .profile-info {
@@ -323,19 +323,19 @@ const mockPhotos = [
 .profile-name {
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: var(--theme-text);
   margin: 0 0 8px 0;
 }
 
 .profile-username {
   font-size: 14px;
-  color: #999;
+  color: var(--theme-text-tertiary);
   margin: 0 0 16px 0;
 }
 
 .profile-bio {
   font-size: 15px;
-  color: #666;
+  color: var(--theme-text-secondary);
   line-height: 1.6;
   margin: 0 0 20px 0;
 }
@@ -350,11 +350,11 @@ const mockPhotos = [
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #666;
+  color: var(--theme-text-secondary);
 }
 
 .meta-item .el-icon {
-  color: #999;
+  color: var(--theme-text-tertiary);
 }
 
 .profile-actions {
@@ -366,9 +366,9 @@ const mockPhotos = [
   justify-content: center;
   gap: 40px;
   padding: 30px 40px;
-  background: white;
+  background: var(--theme-card);
   border-radius: var(--radius-xl);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
   margin-bottom: 30px;
 }
 
@@ -379,24 +379,24 @@ const mockPhotos = [
 .stat-number {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  color: var(--theme-text);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #999;
+  color: var(--theme-text-tertiary);
 }
 
 .stat-divider {
   width: 1px;
-  background: #f0f0f0;
+  background: var(--theme-border);
 }
 
 .profile-nav {
-  background: white;
+  background: var(--theme-card);
   border-radius: var(--radius-xl);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
   padding: 20px;
 }
 
