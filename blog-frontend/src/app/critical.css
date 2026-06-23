@@ -1,15 +1,203 @@
+/* ===== Myblob 全局样式 ===== */
+
 :root {
+  /* ===== 主色调 ===== */
   --theme-primary: #4F46E5;
   --theme-primary-light: rgba(79, 70, 229, 0.10);
+  --theme-primary-hover: #4338CA;
+  --theme-primary-active: #3730A3;
   --theme-secondary: #6366F1;
-  --theme-background: #FAFAFB;
-  --theme-card: #FFFFFF;
+  --theme-secondary-light: rgba(99, 102, 241, 0.10);
+
+  /* ===== 文字颜色 ===== */
   --theme-text: #0F172A;
   --theme-text-secondary: #64748B;
-  --theme-border: #E5E7EB;
+  --theme-text-tertiary: #94A3B8;
+  --theme-text-inverse: #FFFFFF;
+  --theme-text-link: #4F46E5;
+  --theme-text-link-hover: #4338CA;
+
+  /* ===== 背景颜色 ===== */
+  --theme-background: #FAFAFB;
+  --theme-card: #FFFFFF;
   --theme-hover: #F1F5F9;
+  --theme-muted: #F8FAFC;
+  --theme-elevated: #FFFFFF;
+
+  /* ===== 边框颜色 ===== */
+  --theme-border: #E5E7EB;
+  --theme-border-strong: #D1D5DB;
+  --theme-border-focus: #4F46E5;
+
+  /* ===== 语义颜色 ===== */
+  --theme-success: #10B981;
+  --theme-success-light: rgba(16, 185, 129, 0.10);
+  --theme-success-hover: #059669;
+  --theme-warning: #F59E0B;
+  --theme-warning-light: rgba(245, 158, 11, 0.10);
+  --theme-warning-hover: #D97706;
+  --theme-danger: #EF4444;
+  --theme-danger-light: rgba(239, 68, 68, 0.10);
+  --theme-danger-hover: #DC2626;
+  --theme-info: #0EA5E9;
+  --theme-info-light: rgba(14, 165, 233, 0.10);
+  --theme-info-hover: #0284C7;
+
+  /* ===== 差异对比颜色 ===== */
+  --diff-added-bg: #dcfce7;
+  --diff-added-text: #166534;
+  --diff-added-border: #86efac;
+  --diff-removed-bg: #fee2e2;
+  --diff-removed-text: #991b1b;
+  --diff-removed-border: #fca5a5;
+  --diff-modified-bg: #fdf6ec;
+  --diff-modified-text: #92400e;
+  --diff-modified-border: #fcd34d;
+
+  /* ===== 玻璃效果 ===== */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(15, 23, 42, 0.06);
+  --glass-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+
+  /* ===== 渐变 ===== */
+  --gradient-primary: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+  --gradient-danger: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+
+  /* ===== 阴影 ===== */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 40px rgba(15, 23, 42, 0.10), 0 8px 16px rgba(15, 23, 42, 0.04);
+
+  /* ===== 圆角 ===== */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* ===== 间距 ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ===== 字体 ===== */
+  --font-sans: "Inter", "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+
+  /* ===== 字号 ===== */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 30px;
+
+  /* ===== 字重 ===== */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ===== 行高 ===== */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* ===== Z-index ===== */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+
+  /* ===== 过渡 ===== */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* ===== 亮度/对比度（主题调节） ===== */
+  --brightness: 100%;
+  --contrast: 100%;
 }
 
+/* ===== 深色主题 ===== */
+.dark {
+  --theme-primary: #818CF8;
+  --theme-primary-light: rgba(129, 140, 248, 0.16);
+  --theme-primary-hover: #6366F1;
+  --theme-primary-active: #4F46E5;
+  --theme-secondary: #A5B4FC;
+  --theme-secondary-light: rgba(165, 180, 252, 0.16);
+
+  --theme-text: #F1F5F9;
+  --theme-text-secondary: #94A3B8;
+  --theme-text-tertiary: #64748B;
+  --theme-text-inverse: #0F172A;
+  --theme-text-link: #818CF8;
+  --theme-text-link-hover: #A5B4FC;
+
+  --theme-background: #0B0F19;
+  --theme-card: #111827;
+  --theme-hover: #1A2233;
+  --theme-muted: #0F172A;
+  --theme-elevated: #1F2937;
+
+  --theme-border: #1F2937;
+  --theme-border-strong: #374151;
+  --theme-border-focus: #818CF8;
+
+  --theme-success: #34D399;
+  --theme-success-light: rgba(52, 211, 153, 0.16);
+  --theme-success-hover: #10B981;
+  --theme-warning: #FBBF24;
+  --theme-warning-light: rgba(251, 191, 36, 0.16);
+  --theme-warning-hover: #F59E0B;
+  --theme-danger: #F87171;
+  --theme-danger-light: rgba(248, 113, 113, 0.16);
+  --theme-danger-hover: #EF4444;
+  --theme-info: #38BDF8;
+  --theme-info-light: rgba(56, 189, 248, 0.16);
+  --theme-info-hover: #0EA5E9;
+
+  --diff-added-bg: rgba(52, 211, 153, 0.15);
+  --diff-added-text: #34D399;
+  --diff-added-border: rgba(52, 211, 153, 0.3);
+  --diff-removed-bg: rgba(248, 113, 113, 0.15);
+  --diff-removed-text: #F87171;
+  --diff-removed-border: rgba(248, 113, 113, 0.3);
+  --diff-modified-bg: rgba(251, 191, 36, 0.15);
+  --diff-modified-text: #FBBF24;
+  --diff-modified-border: rgba(251, 191, 36, 0.3);
+
+  --glass-bg: rgba(17, 24, 39, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== 全局重置 ===== */
 * {
   margin: 0;
   padding: 0;
@@ -17,27 +205,31 @@
 }
 
 body {
-  font-family: "Inter", "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-sans);
   background: var(--theme-background);
   color: var(--theme-text);
   min-height: 100vh;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  filter: brightness(var(--brightness)) contrast(var(--contrast));
 }
 
 /* ===== 无障碍：键盘焦点可见样式 ===== */
 :focus-visible {
-  outline: 2px solid var(--theme-primary);
+  outline: 2px solid var(--theme-border-focus);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 
-/* 对交互元素使用更明显的焦点样式 */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--theme-primary);
+  outline: 2px solid var(--theme-border-focus);
   outline-offset: 2px;
 }
 
@@ -46,21 +238,22 @@ textarea:focus-visible,
   position: absolute;
   top: -100%;
   left: 16px;
-  z-index: 9999;
+  z-index: var(--z-toast);
   padding: 8px 16px;
   background: var(--theme-primary);
-  color: white;
+  color: var(--theme-text-inverse);
   text-decoration: none;
-  border-radius: 0 0 4px 4px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: top 0.2s;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  transition: top var(--transition-normal);
 }
+
 .skip-to-content:focus {
   top: 0;
 }
 
-/* 减少动画偏好 */
+/* ===== 减少动画偏好 ===== */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -70,4 +263,29 @@ textarea:focus-visible,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ===== 滚动条样式 ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-tertiary);
+}
+
+/* ===== 选中文本样式 ===== */
+::selection {
+  background: var(--theme-primary-light);
+  color: var(--theme-text);
 }

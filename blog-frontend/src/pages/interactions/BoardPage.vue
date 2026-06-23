@@ -130,19 +130,19 @@ onMounted(() => {
 
 .board-header h2 {
   font-size: 28px;
-  color: #333;
+  color: var(--theme-text);
   margin: 0 0 8px;
 }
 
 .board-desc {
-  color: #999;
+  color: var(--theme-text-tertiary);
   margin: 0;
 }
 
 .board-form {
   margin-bottom: 32px;
   padding: 16px;
-  background: #f9fafc;
+  background: var(--theme-muted);
   border-radius: var(--radius-md);
 }
 
@@ -164,7 +164,7 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .message-item:last-child {
@@ -188,17 +188,17 @@ onMounted(() => {
 
 .msg-author {
   font-weight: 600;
-  color: #333;
+  color: var(--theme-text);
   font-size: 14px;
 }
 
 .msg-time {
-  color: #999;
+  color: var(--theme-text-tertiary);
   font-size: 12px;
 }
 
 .msg-content {
-  color: #666;
+  color: var(--theme-text-secondary);
   line-height: 1.6;
   font-size: 14px;
   word-break: break-word;
