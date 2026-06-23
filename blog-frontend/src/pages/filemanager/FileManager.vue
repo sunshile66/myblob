@@ -423,23 +423,23 @@ onMounted(() => {
 }
 
 .folder-icon {
-  color: #f59e0b;
+  color: var(--theme-warning);
 }
 
 .file-icon-image {
-  color: #ef4444;
+  color: var(--theme-danger);
 }
 
 .file-icon-document {
-  color: #3b82f6;
+  color: var(--theme-info);
 }
 
 .file-icon-video {
-  color: #6366f1;
+  color: var(--theme-primary);
 }
 
 .file-icon-audio {
-  color: #10b981;
+  color: var(--theme-success);
 }
 
 .file-icon-archive {
