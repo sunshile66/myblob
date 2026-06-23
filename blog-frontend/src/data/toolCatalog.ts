@@ -66,6 +66,63 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
 ]
 
 export const TOOL_CATALOG: ToolItem[] = [
+  // ===== 工具箱（合并后的综合工具） =====
+  {
+    slug: 'json-toolkit',
+    name: 'JSON 工具箱',
+    description: '格式化、对比、转换、查询一站式 JSON 处理。',
+    category: 'text',
+    icon: 'Document',
+    accent: 'linear-gradient(135deg, #ff7a59 0%, #ffb36b 100%)',
+    tags: ['JSON', '格式化', '对比', 'SQL'],
+    featured: true,
+    isNew: true,
+  },
+  {
+    slug: 'encoding-toolkit',
+    name: '编码与加密',
+    description: 'URL、Base64、HTML 编码解码，MD5、SHA、SM3 哈希计算。',
+    category: 'security',
+    icon: 'Lock',
+    accent: 'linear-gradient(135deg, #4f46e5 0%, #ec4899 100%)',
+    tags: ['编码', '哈希', '加密', 'MD5'],
+    featured: true,
+    isNew: true,
+  },
+  {
+    slug: 'developer-toolkit',
+    name: '开发者工具箱',
+    description: '时间戳、正则测试、进制转换、UUID/密码生成一站式开发辅助。',
+    category: 'developer',
+    icon: 'Operation',
+    accent: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+    tags: ['时间戳', '正则', 'UUID', '密码'],
+    featured: true,
+    isNew: true,
+  },
+  {
+    slug: 'text-toolkit',
+    name: '文本工具箱',
+    description: '文本对比、Markdown 预览、代码格式化一站式文本处理。',
+    category: 'text',
+    icon: 'DocumentCopy',
+    accent: 'linear-gradient(135deg, #22c55e 0%, #06b6d4 100%)',
+    tags: ['对比', 'Markdown', '格式化'],
+    featured: true,
+    isNew: true,
+  },
+  {
+    slug: 'image-toolkit',
+    name: '图片工具箱',
+    description: '图片压缩、Base64 转换一站式图片处理。',
+    category: 'image',
+    icon: 'Picture',
+    accent: 'linear-gradient(135deg, #14b8a6 0%, #22c55e 100%)',
+    tags: ['压缩', 'Base64', '图片'],
+    featured: true,
+    isNew: true,
+  },
+  // ===== 独立工具 =====
   {
     slug: 'json-formatter',
     name: 'JSON 格式化',
