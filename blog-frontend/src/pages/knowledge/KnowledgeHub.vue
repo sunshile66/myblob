@@ -309,8 +309,8 @@ onMounted(async () => {
 }
 
 .card-vocab .card-icon { background: var(--theme-primary-light); color: var(--theme-primary); }
-.card-quiz .card-icon { background: rgba(16,185,129,.1); color: #10B981; }
-.card-articles .card-icon { background: rgba(245,158,11,.1); color: #F59E0B; }
+.card-quiz .card-icon { background: var(--theme-success-light); color: var(--theme-success); }
+.card-articles .card-icon { background: var(--theme-warning-light); color: var(--theme-warning); }
 .card-progress .card-icon { background: rgba(139,92,246,.1); color: #8B5CF6; }
 .cat-card .card-icon { background: var(--theme-hover); color: var(--theme-primary); }
 
@@ -387,8 +387,8 @@ onMounted(async () => {
 }
 
 :deep(mark) {
-  background: #FEF08A;
-  color: #000;
+  background: var(--theme-warning-light);
+  color: var(--theme-text);
   padding: 1px 3px;
   border-radius: 2px;
 }

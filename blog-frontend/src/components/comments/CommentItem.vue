@@ -200,7 +200,7 @@ const handleDelete = async () => {
   display: flex;
   gap: 16px;
   padding: 16px;
-  background: #f9fafc;
+  background: var(--theme-muted);
   border-radius: 8px;
 }
 
@@ -221,24 +221,24 @@ const handleDelete = async () => {
 
 .comment-author {
   font-weight: 600;
-  color: #333;
+  color: var(--theme-text);
 }
 
 .comment-time {
-  color: #999;
+  color: var(--theme-text-tertiary);
   font-size: 13px;
 }
 
 .comment-deleted-tag {
   font-size: 12px;
-  color: #999;
-  background: #f0f0f0;
+  color: var(--theme-text-tertiary);
+  background: var(--theme-hover);
   padding: 2px 8px;
   border-radius: 4px;
 }
 
 .comment-text {
-  color: #666;
+  color: var(--theme-text-secondary);
   line-height: 1.6;
   margin-bottom: 8px;
 }
@@ -259,13 +259,13 @@ const handleDelete = async () => {
 }
 
 .comment-actions .delete-btn {
-  color: #f56c6c;
+  color: var(--theme-danger);
 }
 
 .comment-children {
   margin-top: 16px;
   padding-left: 20px;
-  border-left: 2px solid #e6e6e6;
+  border-left: 2px solid var(--theme-border);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -275,11 +275,11 @@ const handleDelete = async () => {
   display: flex;
   gap: 8px;
   padding: 8px 12px;
-  background: #fff;
-  border: 1px solid #e6e6e6;
+  background: var(--theme-card);
+  border: 1px solid var(--theme-border);
   border-radius: 20px;
   margin-top: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .reaction-emoji-item {
@@ -292,12 +292,12 @@ const handleDelete = async () => {
 }
 
 .reaction-emoji-item:hover {
-  background: #f0f0f0;
+  background: var(--theme-hover);
   transform: scale(1.2);
 }
 
 .reaction-emoji-item.active {
-  background: #e8f4fd;
+  background: var(--theme-primary-light);
 }
 
 .reactions-bar {
@@ -310,7 +310,7 @@ const handleDelete = async () => {
 .reaction-badge {
   font-size: 13px;
   padding: 2px 8px;
-  background: #f0f2f5;
+  background: var(--theme-hover);
   border-radius: 12px;
   cursor: default;
 }

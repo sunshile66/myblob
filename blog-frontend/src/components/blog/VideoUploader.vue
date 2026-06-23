@@ -190,24 +190,24 @@ const formatFileSize = (bytes: number): string => {
 }
 
 .upload-area {
-  border: 2px dashed #dcdfe6;
+  border: 2px dashed var(--theme-border-strong);
   border-radius: 12px;
   padding: 40px 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  background: #fafafa;
+  background: var(--theme-muted);
 }
 
 .upload-area:hover,
 .upload-area.dragging {
-  border-color: #ff2442;
-  background: #fff5f7;
+  border-color: var(--theme-primary);
+  background: var(--theme-primary-light);
 }
 
 .upload-icon {
   font-size: 48px;
-  color: #c0c4cc;
+  color: var(--theme-text-tertiary);
   margin-bottom: 16px;
 }
 
@@ -226,26 +226,26 @@ const formatFileSize = (bytes: number): string => {
 
 .upload-text {
   font-size: 16px;
-  color: #606266;
+  color: var(--theme-text-secondary);
   margin: 0 0 8px 0;
 }
 
 .upload-hint {
   font-size: 13px;
-  color: #909399;
+  color: var(--theme-text-tertiary);
   margin: 0;
 }
 
 .uploading-area {
-  border: 2px dashed #409eff;
+  border: 2px dashed var(--theme-info);
   border-radius: 12px;
   padding: 40px 20px;
   text-align: center;
-  background: #ecf5ff;
+  background: var(--theme-info-light);
 }
 
 .video-preview {
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--theme-border);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -263,13 +263,13 @@ const formatFileSize = (bytes: number): string => {
 
 .video-info {
   padding: 12px 16px;
-  background: #f5f7fa;
+  background: var(--theme-hover);
 }
 
 .video-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--theme-text);
   margin: 0 0 4px 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -278,7 +278,7 @@ const formatFileSize = (bytes: number): string => {
 
 .video-size {
   font-size: 12px;
-  color: #909399;
+  color: var(--theme-text-tertiary);
   margin: 0;
 }
 
