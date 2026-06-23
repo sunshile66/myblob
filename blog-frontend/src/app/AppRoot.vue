@@ -426,7 +426,7 @@ code, pre {
 /* Pagination */
 .el-pagination .el-pager li.is-active {
   background: var(--theme-primary) !important;
-  color: #fff !important;
+  color: var(--theme-text-inverse) !important;
   border-radius: var(--radius-sm) !important;
   font-weight: 600;
 }

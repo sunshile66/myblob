@@ -339,13 +339,13 @@ onMounted(() => {
 .post-header {
   margin-bottom: 32px;
   padding-bottom: 24px;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--theme-hover);
 }
 
 .post-title {
   font-size: 32px;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--theme-text);
   margin: 0 0 20px 0;
   line-height: 1.3;
 }
@@ -353,7 +353,7 @@ onMounted(() => {
 .post-meta {
   display: flex;
   gap: 28px;
-  color: #64748b;
+  color: var(--theme-text-secondary);
   font-size: 14px;
   flex-wrap: wrap;
 }
@@ -375,7 +375,7 @@ onMounted(() => {
 .post-content {
   font-size: 17px;
   line-height: 1.9;
-  color: #334155;
+  color: var(--theme-text);
   margin-bottom: 32px;
 }
 
@@ -389,7 +389,7 @@ onMounted(() => {
 .post-content :deep(h1),
 .post-content :deep(h2),
 .post-content :deep(h3) {
-  color: #1e293b;
+  color: var(--theme-text);
   margin-top: 28px;
   margin-bottom: 16px;
   font-weight: 700;
@@ -400,16 +400,16 @@ onMounted(() => {
 }
 
 .post-content :deep(code) {
-  background: #f1f5f9;
+  background: var(--theme-hover);
   padding: 2px 8px;
   border-radius: var(--radius-sm);
   font-family: 'Fira Code', 'Consolas', monospace;
   font-size: 0.9em;
-  color: #e11d48;
+  color: var(--theme-danger);
 }
 
 .post-content :deep(pre) {
-  background: #0f172a;
+  background: var(--theme-text);
   padding: 20px;
   border-radius: var(--radius-lg);
   overflow-x: auto;
@@ -418,7 +418,7 @@ onMounted(() => {
 
 .post-content :deep(pre code) {
   background: transparent;
-  color: #e2e8f0;
+  color: var(--theme-background);
   padding: 0;
 }
 
@@ -427,7 +427,7 @@ onMounted(() => {
   gap: 12px;
   flex-wrap: wrap;
   padding-top: 24px;
-  border-top: 2px solid #f1f5f9;
+  border-top: 2px solid var(--theme-hover);
 }
 
 .post-actions {
@@ -448,7 +448,7 @@ onMounted(() => {
 .comments-title {
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--theme-text);
 }
 
 .comment-box-wrapper {
@@ -456,7 +456,7 @@ onMounted(() => {
 }
 
 .comment-list-wrapper {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--theme-border);
   padding-top: 24px;
 }
 
@@ -474,7 +474,7 @@ onMounted(() => {
 .revisions-title {
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--theme-text);
 }
 
 .revision-item p {
@@ -486,7 +486,7 @@ onMounted(() => {
   font-size: 14px;
   line-height: 1.6;
   padding: 8px;
-  background: #f8fafc;
+  background: var(--theme-muted);
   border-radius: var(--radius-md);
 }
 
