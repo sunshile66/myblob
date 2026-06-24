@@ -340,9 +340,9 @@ const addShape = (type: string) => {
   let obj: fabric.FabricObject
   const fill = brushColor.value
   if (type === 'rect') {
-    obj = new fabric.Rect({ left: 120, top: 120, width: 140, height: 100, fill, stroke: '#333', strokeWidth: 1 })
+    obj = new fabric.Rect({ left: 120, top: 120, width: 140, height: 100, fill, stroke: 'var(--theme-text)', strokeWidth: 1 })
   } else if (type === 'circle') {
-    obj = new fabric.Circle({ left: 120, top: 120, radius: 60, fill, stroke: '#333', strokeWidth: 1 })
+    obj = new fabric.Circle({ left: 120, top: 120, radius: 60, fill, stroke: 'var(--theme-text)', strokeWidth: 1 })
   } else if (type === 'line') {
     obj = new fabric.Line([100, 150, 300, 150], { stroke: fill, strokeWidth: 3 })
   } else if (type === 'arrow') {

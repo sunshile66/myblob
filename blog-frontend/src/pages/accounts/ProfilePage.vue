@@ -442,13 +442,13 @@ const mockPhotos = [
   align-items: center;
   justify-content: center;
   padding: 80px 20px;
-  color: #999;
+  color: var(--theme-text-tertiary);
 }
 
 .empty-icon {
   font-size: 64px;
   margin-bottom: 16px;
-  color: #ddd;
+  color: var(--theme-border-strong);
 }
 
 .empty-state p {

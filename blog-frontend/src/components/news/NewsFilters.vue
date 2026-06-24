@@ -99,7 +99,7 @@ defineEmits<{
   color: white;
 }
 .cat-tab.airline.active {
-  background: #e6a23c;
+  background: var(--theme-warning);
 }
 .lang-switch {
   display: flex;

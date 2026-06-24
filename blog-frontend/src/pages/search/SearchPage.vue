@@ -83,7 +83,7 @@ watch(searchQuery, () => {
 .page-title {
   font-size: 24px;
   margin-bottom: 24px;
-  color: #333;
+  color: var(--theme-text);
 }
 
 .loading {

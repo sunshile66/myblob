@@ -84,11 +84,11 @@ const srcColor = (platform: string) => {
     '微博': '#ff8200',
     '知乎': '#0084ff',
     '今日头条': '#ff0000',
-    'GitHub': '#333',
+    'GitHub': 'var(--theme-text)',
     'HackerNews': '#ff6600',
     'Reddit': '#ff4500',
   }
-  return colors[platform] || '#666'
+  return colors[platform] || 'var(--theme-text-secondary)'
 }
 
 /**

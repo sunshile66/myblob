@@ -220,7 +220,7 @@ const langs = [
 ]
 
 const srcColors = new Map<string, string>()
-const palette = ['#409eff', '#f56c6c', '#67c23a', '#e6a23c', '#9b59b6', '#1abc9c', '#e74c3c', '#3498db', '#2ecc71', '#f39c12']
+const palette = ['var(--theme-info)', 'var(--theme-danger)', 'var(--theme-success)', 'var(--theme-warning)', '#9b59b6', '#1abc9c', '#e74c3c', '#3498db', '#2ecc71', '#f39c12']
 let colorIdx = 0
 function srcColor(platform: string): string {
   if (!srcColors.has(platform)) {

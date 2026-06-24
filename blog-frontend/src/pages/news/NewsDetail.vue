@@ -120,7 +120,7 @@ const item = ref<NewsItem | null>(null)
 const loading = ref(true)
 const related = ref<NewsItem[]>([])
 
-const palette = ['#409eff', '#f56c6c', '#67c23a', '#e6a23c', '#9b59b6', '#1abc9c']
+const palette = ['var(--theme-info)', 'var(--theme-danger)', 'var(--theme-success)', 'var(--theme-warning)', '#9b59b6', '#1abc9c']
 const srcColorMap = new Map<string, string>()
 let ci = 0
 function srcColor(p: string) {

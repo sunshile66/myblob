@@ -55,6 +55,6 @@ onMounted(() => load())
 <style scoped>
 .item-mgr{max-width:1200px;margin:0 auto;padding:24px}
 h2{margin:0 0 16px}
-.hi{color:#67c23a;font-weight:700}.mid{color:#e6a23c;font-weight:700}.lo{color:#f56c6c;font-weight:700}
+.hi{color:var(--theme-success);font-weight:700}.mid{color:var(--theme-warning);font-weight:700}.lo{color:var(--theme-danger);font-weight:700}
 .pager{margin-top:16px;display:flex;justify-content:center}
 </style>

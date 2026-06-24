@@ -87,7 +87,7 @@
         </el-button>
       </div>
       <div v-if="fetchMsg" class="fetch-result">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#67c23a" stroke-width="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--theme-success)" stroke-width="2">
           <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
         </svg>
         {{ fetchMsg }}
@@ -191,7 +191,7 @@ onMounted(() => { loadStats(); loadGlobal() })
 }
 
 .status-dot.on {
-  background: #67c23a;
+  background: var(--theme-success);
   box-shadow: 0 0 6px rgba(103,194,58,.4);
 }
 
@@ -229,9 +229,9 @@ onMounted(() => { loadStats(); loadGlobal() })
   flex-shrink: 0;
 }
 
-.stat-card.blue .stat-icon { background: rgba(64,158,255,.1); color: #409eff; }
-.stat-card.green .stat-icon { background: rgba(103,194,58,.1); color: #67c23a; }
-.stat-card.orange .stat-icon { background: rgba(230,162,60,.1); color: #e6a23c; }
+.stat-card.blue .stat-icon { background: rgba(64,158,255,.1); color: var(--theme-info); }
+.stat-card.green .stat-icon { background: rgba(103,194,58,.1); color: var(--theme-success); }
+.stat-card.orange .stat-icon { background: rgba(230,162,60,.1); color: var(--theme-warning); }
 .stat-card.purple .stat-icon { background: rgba(155,89,182,.1); color: #9b59b6; }
 
 .stat-body h3 {
@@ -278,8 +278,8 @@ onMounted(() => { loadStats(); loadGlobal() })
   font-weight: 500;
 }
 
-.info-value.running { color: #e6a23c; }
-.info-value.idle { color: #67c23a; }
+.info-value.running { color: var(--theme-warning); }
+.info-value.idle { color: var(--theme-success); }
 
 .control-actions { display: flex; gap: 10px; }
 
@@ -291,7 +291,7 @@ onMounted(() => { loadStats(); loadGlobal() })
   padding: 10px 14px;
   background: rgba(103,194,58,.06);
   border-radius: var(--radius-md);
-  color: #67c23a;
+  color: var(--theme-success);
   font-size: 13px;
 }
 

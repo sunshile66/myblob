@@ -165,8 +165,8 @@ onMounted(load)
 }
 
 .sep { color: var(--theme-border); }
-.enabled-count { color: #67c23a; font-weight: 500; }
-.err { color: #f56c6c; font-weight: 700; }
+.enabled-count { color: var(--theme-success); font-weight: 500; }
+.err { color: var(--theme-danger); font-weight: 700; }
 
 :deep(.disabled-row) { opacity: .6; }
 </style>

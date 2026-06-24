@@ -92,18 +92,18 @@ onMounted(() => {
 
 .page-header h2 {
   font-size: 24px;
-  color: #333;
+  color: var(--theme-text);
   margin: 0 0 8px;
 }
 
 .page-desc {
-  color: #999;
+  color: var(--theme-text-tertiary);
   margin: 0;
   font-size: 14px;
 }
 
 .empty-value {
-  color: #ccc;
+  color: var(--theme-text-tertiary);
   font-style: italic;
 }
 

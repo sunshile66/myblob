@@ -372,7 +372,7 @@ onMounted(() => {
 }
 
 .feature-item .el-icon {
-  color: #67c23a;
+  color: var(--theme-success);
   flex-shrink: 0;
 }
 

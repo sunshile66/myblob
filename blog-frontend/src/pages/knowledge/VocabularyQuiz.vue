@@ -76,7 +76,7 @@
         <h2>测验完成！</h2>
         <div class="result-score">{{ correctCount }} / {{ quizData.length }}</div>
         <div class="result-percent">正确率 {{ scorePercent }}%</div>
-        <el-progress :percentage="scorePercent" :color="scorePercent >= 60 ? '#67c23a' : '#e6a23c'" />
+        <el-progress :percentage="scorePercent" :color="scorePercent >= 60 ? 'var(--theme-success)' : 'var(--theme-warning)'" />
 
         <div class="wrong-list" v-if="wrongWords.length > 0">
           <h3>错题回顾</h3>
@@ -279,8 +279,8 @@ const shuffleArray = <T>(arr: T[]): T[] => {
 }
 
 .option-btn.selected { border-color: var(--theme-primary); background: rgba(var(--theme-primary-rgb), 0.1); }
-.option-btn.correct { border-color: #67c23a; background: rgba(103, 194, 58, 0.1); color: #67c23a; }
-.option-btn.wrong { border-color: #f56c6c; background: rgba(245, 108, 108, 0.1); color: #f56c6c; }
+.option-btn.correct { border-color: var(--theme-success); background: rgba(103, 194, 58, 0.1); color: var(--theme-success); }
+.option-btn.wrong { border-color: var(--theme-danger); background: rgba(245, 108, 108, 0.1); color: var(--theme-danger); }
 
 .option-label {
   width: 28px; height: 28px; flex-shrink: 0;
@@ -290,8 +290,8 @@ const shuffleArray = <T>(arr: T[]): T[] => {
 }
 
 .answer-feedback { margin-top: 16px; text-align: center; }
-.feedback-correct { color: #67c23a; font-weight: 600; font-size: 16px; }
-.feedback-wrong { color: #f56c6c; font-weight: 500; }
+.feedback-correct { color: var(--theme-success); font-weight: 600; font-size: 16px; }
+.feedback-wrong { color: var(--theme-danger); font-weight: 500; }
 
 /* 结果 */
 .result-icon { font-size: 56px; margin-bottom: 12px; }
